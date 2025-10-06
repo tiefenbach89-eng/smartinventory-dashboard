@@ -2,7 +2,6 @@
 
 import { FormFileUpload } from '@/components/forms/form-file-upload';
 import { FormInput } from '@/components/forms/form-input';
-import { FormSelect } from '@/components/forms/form-select';
 import { FormTextarea } from '@/components/forms/form-textarea';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,16 +16,20 @@ import { toast } from 'sonner';
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 
+// ✅ Neues Schema
 const formSchema = z.object({
+  artikelnummer: z.coerce.number().min(1, { message: 'Article number is required.' }),
+  name: z.string().min(2, { message: 'Product name must be at least 2 characters.' }),
+  supplier: z.string().min(1, { message: 'Supplier is required.' }),
+  price: z.coerce.number().min(0, { message: 'Price must be positive.' }),
+  quantity: z.coerce.number().min(0, { message: 'Quantity is required.' }),
+  minStock: z.coerce.number().min(0, { message: 'Minimum stock is required.' }),
+  description: z.string().optional(),
   image: z
     .any()
     .refine((files) => files?.length === 1, 'Please upload one image.')
     .refine((files) => files?.[0]?.size <= MAX_FILE_SIZE, 'Max file size is 5MB.')
     .refine((files) => ACCEPTED_IMAGE_TYPES.includes(files?.[0]?.type), 'Only image files are allowed.'),
-  name: z.string().min(2, { message: 'Product name must be at least 2 characters.' }),
-  category: z.string().min(1, { message: 'Please select a category.' }),
-  price: z.coerce.number().min(0, { message: 'Price must be positive.' }),
-  description: z.string().min(10, { message: 'Description must be at least 10 characters.' }),
 });
 
 export default function ProductForm({
@@ -42,9 +45,12 @@ export default function ProductForm({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      artikelnummer: initialData?.artikelnummer || '',
       name: initialData?.name || '',
-      category: initialData?.category || '',
+      supplier: initialData?.supplier || '',
       price: initialData?.price || 0,
+      quantity: initialData?.quantity || 0,
+      minStock: initialData?.minStock || 0,
       description: initialData?.description || '',
       image: [],
     },
@@ -55,7 +61,7 @@ export default function ProductForm({
       toast.loading('Saving product...');
       let imageUrl: string | null = null;
 
-      // 📸 1️⃣ Upload Image to Supabase Storage
+      // Upload Image
       const file = values.image[0];
       const fileName = `${values.name.replace(/\s+/g, '_')}_${Date.now()}_${file.name}`;
       const { error: uploadError } = await supabase.storage
@@ -63,28 +69,26 @@ export default function ProductForm({
         .upload(fileName, file);
 
       if (uploadError) {
-        console.error('Upload error:', uploadError.message);
         toast.error('Upload failed: ' + uploadError.message);
         return;
       }
 
-      // 📦 2️⃣ Get public URL for the image
       const { data } = supabase.storage.from('product-images').getPublicUrl(fileName);
       imageUrl = data.publicUrl;
 
-      // 🧾 3️⃣ Save Product in "artikel" table
-      const { error: insertError } = await supabase.from('artikel').insert({
-        artikelnummer: Math.floor(Math.random() * 1000000), // You can later replace this with an auto-generator
-        artikelbezeichnung: values.name,
-        bestand: 0,
-        sollbestand: 0,
-        preis: values.price,
-        lieferant: values.category,
-        image_url: imageUrl,
-      });
+    // Insert Product into artikel
+    const { error: insertError } = await supabase.from('artikel').insert({
+      artikelnummer: values.artikelnummer.toString(), // erlaubt Text oder Zahl
+      artikelbezeichnung: values.name,
+      beschreibung: values.description || null, // ✅ Description wird korrekt gespeichert
+      bestand: values.quantity,
+      sollbestand: values.minStock,
+      preis: values.price,
+      lieferant: values.supplier,
+      image_url: imageUrl,
+    });
 
       if (insertError) {
-        console.error('Insert error:', insertError.message);
         toast.error('Database error: ' + insertError.message);
         return;
       }
@@ -92,7 +96,6 @@ export default function ProductForm({
       toast.success('✅ Product saved successfully!');
       router.push('/dashboard/product');
     } catch (err: any) {
-      console.error('Unexpected error:', err);
       toast.error('Something went wrong: ' + err.message);
     } finally {
       toast.dismiss();
@@ -111,13 +114,19 @@ export default function ProductForm({
             name="image"
             label="Product Image"
             description="Upload a product image"
-            config={{
-              maxSize: MAX_FILE_SIZE,
-              maxFiles: 1,
-            }}
+            config={{ maxSize: MAX_FILE_SIZE, maxFiles: 1 }}
           />
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <FormInput
+              control={form.control}
+              name="artikelnummer"
+              label="Article Number"
+              placeholder="Enter article number"
+              required
+              type="text"
+              min={1}
+            />
             <FormInput
               control={form.control}
               name="name"
@@ -125,21 +134,13 @@ export default function ProductForm({
               placeholder="Enter product name"
               required
             />
-
-            <FormSelect
+            <FormInput
               control={form.control}
-              name="category"
-              label="Category"
-              placeholder="Select category"
+              name="supplier"
+              label="Supplier"
+              placeholder="Enter supplier name"
               required
-              options={[
-                { label: 'Beauty Products', value: 'Beauty' },
-                { label: 'Electronics', value: 'Electronics' },
-                { label: 'Home & Garden', value: 'Home & Garden' },
-                { label: 'Sports & Outdoors', value: 'Sports' },
-              ]}
             />
-
             <FormInput
               control={form.control}
               name="price"
@@ -150,6 +151,24 @@ export default function ProductForm({
               min={0}
               step="0.01"
             />
+            <FormInput
+              control={form.control}
+              name="quantity"
+              label="Stock Quantity"
+              placeholder="Enter current stock"
+              required
+              type="number"
+              min={0}
+            />
+            <FormInput
+              control={form.control}
+              name="minStock"
+              label="Minimum Stock"
+              placeholder="Enter minimum stock"
+              required
+              type="number"
+              min={0}
+            />
           </div>
 
           <FormTextarea
@@ -157,12 +176,7 @@ export default function ProductForm({
             name="description"
             label="Description"
             placeholder="Enter product description"
-            required
-            config={{
-              maxLength: 500,
-              showCharCount: true,
-              rows: 4,
-            }}
+            config={{ maxLength: 500, showCharCount: true, rows: 4 }}
           />
 
           <Button type="submit">Add Product</Button>

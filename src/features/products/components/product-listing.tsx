@@ -6,21 +6,23 @@ import { ProductTable } from "./product-tables";
 import { columns } from "./product-tables/columns";
 
 export interface Article {
-  artikelnummer: number;
+  artikelnummer: string;
   artikelbezeichnung: string;
   bestand: number;
   sollbestand: number | null;
   preis: number;
   lieferant: string;
+  beschreibung?: string | null;
   image_url?: string | null;
 }
 
 interface ProductRow {
-  id: number;
+  id: string;
   name: string;
-  category: string;
+  supplier: string;
   price: number;
   description: string;
+  stock: string;
   photo_url: string;
 }
 
@@ -39,13 +41,13 @@ export default function ProductListingClient() {
       if (error) {
         console.error("❌ Supabase fetch error:", error.message);
       } else {
-        console.log("✅ Supabase data:", data);
         const mapped: ProductRow[] = (data || []).map((a) => ({
-          id: a.artikelnummer ?? 0,
+          id: a.artikelnummer ?? "—",
           name: a.artikelbezeichnung || "—",
-          category: a.lieferant || "—",
+          supplier: a.lieferant || "—",
           price: a.preis ?? 0,
-          description: `Stock: ${a.bestand ?? 0} / Min: ${a.sollbestand ?? 0}`,
+          description: a.beschreibung || "—",
+          stock: `Stock: ${a.bestand ?? 0} / Min: ${a.sollbestand ?? 0}`,
           photo_url:
             a.image_url && a.image_url.trim() !== ""
               ? a.image_url

@@ -1,11 +1,12 @@
 import { ColumnDef } from "@tanstack/react-table";
 
 export interface ProductRow {
-  id: number;
+  id: string;
   name: string;
-  category: string;
+  supplier: string;
   price: number;
   description: string;
+  stock: string;
   photo_url: string;
 }
 
@@ -29,22 +30,22 @@ export const columns: ColumnDef<ProductRow>[] = [
     },
   },
   {
-  accessorKey: "id",
-  header: "Article ",
-  cell: ({ row }) => (
-    <div className="text-sm text-muted-foreground">{row.original.id}</div>
-  ),
-},
+    accessorKey: "id",
+    header: "Article Number",
+    cell: ({ row }) => (
+      <div className="text-sm text-muted-foreground">{row.original.id}</div>
+    ),
+  },
   {
     accessorKey: "name",
     header: "Name",
     cell: ({ row }) => <div className="font-medium">{row.original.name}</div>,
   },
   {
-    accessorKey: "category",
+    accessorKey: "supplier",
     header: "Supplier",
     cell: ({ row }) => (
-      <span className="text-muted-foreground">{row.original.category}</span>
+      <span className="text-muted-foreground">{row.original.supplier}</span>
     ),
   },
   {
@@ -56,9 +57,16 @@ export const columns: ColumnDef<ProductRow>[] = [
   },
   {
     accessorKey: "description",
-    header: "Stock / Min",
+    header: "Description",
     cell: ({ row }) => (
       <span className="text-muted-foreground">{row.original.description}</span>
+    ),
+  },
+  {
+    accessorKey: "stock",
+    header: "Stock / Min",
+    cell: ({ row }) => (
+      <span className="text-muted-foreground">{row.original.stock}</span>
     ),
   },
 ];
