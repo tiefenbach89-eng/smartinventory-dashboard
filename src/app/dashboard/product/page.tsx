@@ -1,5 +1,5 @@
 import PageContainer from '@/components/layout/page-container';
-import { buttonVariants } from '@/components/ui/button';
+import { buttonVariants, Button } from '@/components/ui/button';
 import { Heading } from '@/components/ui/heading';
 import { Separator } from '@/components/ui/separator';
 import { DataTableSkeleton } from '@/components/ui/table/data-table-skeleton';
@@ -9,9 +9,10 @@ import { IconPlus } from '@tabler/icons-react';
 import Link from 'next/link';
 import { SearchParams } from 'nuqs/server';
 import { Suspense } from 'react';
-
-// 👉 Hier ist jetzt dein Client-Component Import:
 import ProductListingClient from '@/features/products/components/product-listing-client';
+
+// 🧩 Neu importieren:
+import ProductStockButtons from './product-stock-buttons';
 
 export const metadata = {
   title: 'Dashboard: Products'
@@ -33,12 +34,18 @@ export default async function Page(props: PageProps) {
             title="Products"
             description="Manage products (Server side table functionalities.)"
           />
-          <Link
-            href="/dashboard/product/new"
-            className={cn(buttonVariants(), 'text-xs md:text-sm')}
-          >
-            <IconPlus className="mr-2 h-4 w-4" /> Add New
-          </Link>
+          <div className="flex gap-2">
+            {/* 🔘 Neue Buttons */}
+            <ProductStockButtons />
+
+            {/* Bestehender Add-New Button */}
+            <Link
+              href="/dashboard/product/new"
+              className={cn(buttonVariants(), 'text-xs md:text-sm bg-yellow-400 hover:bg-yellow-500 text-black')}
+            >
+              <IconPlus className="mr-2 h-4 w-4" /> Add New
+            </Link>
+          </div>
         </div>
         <Separator />
         <Suspense
@@ -46,7 +53,6 @@ export default async function Page(props: PageProps) {
             <DataTableSkeleton columnCount={5} rowCount={8} filterCount={2} />
           }
         >
-          {/* 👉 Hier jetzt dein neuer Client-Renderer */}
           <ProductListingClient />
         </Suspense>
       </div>
