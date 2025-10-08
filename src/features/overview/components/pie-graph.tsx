@@ -1,8 +1,9 @@
-'use client';
+'use client'
 
-import * as React from 'react';
-import { IconTrendingUp } from '@tabler/icons-react';
-import { Label, Pie, PieChart } from 'recharts';
+import * as React from 'react'
+import { IconTrendingUp } from '@tabler/icons-react'
+import { Label, Pie, PieChart } from 'recharts'
+import { createClient } from '@/lib/supabase/client'
 
 import {
   Card,
@@ -10,110 +11,135 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle
-} from '@/components/ui/card';
+  CardTitle,
+} from '@/components/ui/card'
 import {
   ChartConfig,
   ChartContainer,
   ChartTooltip,
-  ChartTooltipContent
-} from '@/components/ui/chart';
+  ChartTooltipContent,
+} from '@/components/ui/chart'
+import { toast } from 'sonner'
+import { Loader2 } from 'lucide-react'
 
-const chartData = [
-  { browser: 'chrome', visitors: 275, fill: 'var(--primary)' },
-  { browser: 'safari', visitors: 200, fill: 'var(--primary-light)' },
-  { browser: 'firefox', visitors: 287, fill: 'var(--primary-lighter)' },
-  { browser: 'edge', visitors: 173, fill: 'var(--primary-dark)' },
-  { browser: 'other', visitors: 190, fill: 'var(--primary-darker)' }
-];
-
-const chartConfig = {
-  visitors: {
-    label: 'Visitors'
-  },
-  chrome: {
-    label: 'Chrome',
-    color: 'var(--primary)'
-  },
-  safari: {
-    label: 'Safari',
-    color: 'var(--primary)'
-  },
-  firefox: {
-    label: 'Firefox',
-    color: 'var(--primary)'
-  },
-  edge: {
-    label: 'Edge',
-    color: 'var(--primary)'
-  },
-  other: {
-    label: 'Other',
-    color: 'var(--primary)'
-  }
-} satisfies ChartConfig;
+type SupplierData = {
+  supplier: string
+  value: number
+  fill?: string
+}
 
 export function PieGraph() {
-  const totalVisitors = React.useMemo(() => {
-    return chartData.reduce((acc, curr) => acc + curr.visitors, 0);
-  }, []);
+  const supabase = createClient()
+  const [chartData, setChartData] = React.useState<SupplierData[]>([])
+  const [loading, setLoading] = React.useState(true)
+
+  React.useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true)
+        const { data, error } = await supabase
+          .from('artikel')
+          .select('lieferant, preis, bestand')
+
+        if (error) throw error
+
+        const grouped: Record<string, number> = {}
+        data?.forEach((row) => {
+          const name = (row.lieferant ?? 'Unknown Supplier').trim()
+          const value = (Number(row.preis) || 0) * (Number(row.bestand) || 0)
+          grouped[name] = (grouped[name] || 0) + value
+        })
+
+        // Sortiere nach Lagerwert und nimm die Top 5 Lieferanten
+        const formatted = Object.entries(grouped)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 5)
+          .map(([supplier, value], index) => ({
+            supplier,
+            value,
+            fill: `url(#fill${index})`,
+          }))
+
+        setChartData(formatted)
+      } catch (err: any) {
+        console.error('❌ PieChart error:', err)
+        toast.error('Failed to load supplier distribution.')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [supabase])
+
+  const totalValue = React.useMemo(() => {
+    return chartData.reduce((acc, curr) => acc + curr.value, 0)
+  }, [chartData])
+
+  if (loading) {
+    return (
+      <Card className="@container/card flex items-center justify-center h-[300px]">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </Card>
+    )
+  }
 
   return (
-    <Card className='@container/card'>
+    <Card className="@container/card">
       <CardHeader>
-        <CardTitle>Pie Chart - Donut with Text</CardTitle>
+        <CardTitle>Supplier Distribution</CardTitle>
         <CardDescription>
-          <span className='hidden @[540px]/card:block'>
-            Total visitors by browser for the last 6 months
+          <span className="hidden @[540px]/card:block">
+            Total inventory value per supplier
           </span>
-          <span className='@[540px]/card:hidden'>Browser distribution</span>
+          <span className="@[540px]/card:hidden">Supplier share</span>
         </CardDescription>
       </CardHeader>
-      <CardContent className='px-2 pt-4 sm:px-6 sm:pt-6'>
+
+      <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
         <ChartContainer
-          config={chartConfig}
-          className='mx-auto aspect-square h-[250px]'
+          config={{
+            value: { label: 'Value (€)' },
+          }}
+          className="mx-auto aspect-square h-[250px]"
         >
           <PieChart>
             <defs>
-              {['chrome', 'safari', 'firefox', 'edge', 'other'].map(
-                (browser, index) => (
-                  <linearGradient
-                    key={browser}
-                    id={`fill${browser}`}
-                    x1='0'
-                    y1='0'
-                    x2='0'
-                    y2='1'
-                  >
-                    <stop
-                      offset='0%'
-                      stopColor='var(--primary)'
-                      stopOpacity={1 - index * 0.15}
-                    />
-                    <stop
-                      offset='100%'
-                      stopColor='var(--primary)'
-                      stopOpacity={0.8 - index * 0.15}
-                    />
-                  </linearGradient>
-                )
-              )}
+              {chartData.map((item, index) => (
+                <linearGradient
+                  key={index}
+                  id={`fill${index}`}
+                  x1="0"
+                  y1="0"
+                  x2="0"
+                  y2="1"
+                >
+                  <stop
+                    offset="0%"
+                    stopColor="var(--primary)"
+                    stopOpacity={1 - index * 0.15}
+                  />
+                  <stop
+                    offset="100%"
+                    stopColor="var(--primary)"
+                    stopOpacity={0.8 - index * 0.15}
+                  />
+                </linearGradient>
+              ))}
             </defs>
+
             <ChartTooltip
               cursor={false}
               content={<ChartTooltipContent hideLabel />}
             />
+
             <Pie
-              data={chartData.map((item) => ({
-                ...item,
-                fill: `url(#fill${item.browser})`
-              }))}
-              dataKey='visitors'
-              nameKey='browser'
+              data={chartData}
+              dataKey="value"
+              nameKey="supplier"
               innerRadius={60}
               strokeWidth={2}
-              stroke='var(--background)'
+              stroke="var(--background)"
             >
               <Label
                 content={({ viewBox }) => {
@@ -122,25 +148,25 @@ export function PieGraph() {
                       <text
                         x={viewBox.cx}
                         y={viewBox.cy}
-                        textAnchor='middle'
-                        dominantBaseline='middle'
+                        textAnchor="middle"
+                        dominantBaseline="middle"
                       >
                         <tspan
                           x={viewBox.cx}
                           y={viewBox.cy}
-                          className='fill-foreground text-3xl font-bold'
+                          className="fill-foreground text-3xl font-bold"
                         >
-                          {totalVisitors.toLocaleString()}
+                          {Math.round(totalValue).toLocaleString()} €
                         </tspan>
                         <tspan
                           x={viewBox.cx}
                           y={(viewBox.cy || 0) + 24}
-                          className='fill-muted-foreground text-sm'
+                          className="fill-muted-foreground text-sm"
                         >
-                          Total Visitors
+                          Total Value
                         </tspan>
                       </text>
-                    );
+                    )
                   }
                 }}
               />
@@ -148,16 +174,19 @@ export function PieGraph() {
           </PieChart>
         </ChartContainer>
       </CardContent>
-      <CardFooter className='flex-col gap-2 text-sm'>
-        <div className='flex items-center gap-2 leading-none font-medium'>
-          Chrome leads with{' '}
-          {((chartData[0].visitors / totalVisitors) * 100).toFixed(1)}%{' '}
-          <IconTrendingUp className='h-4 w-4' />
-        </div>
-        <div className='text-muted-foreground leading-none'>
-          Based on data from January - June 2024
+
+      <CardFooter className="flex-col gap-2 text-sm">
+        {chartData.length > 0 && (
+          <div className="flex items-center gap-2 leading-none font-medium">
+            {chartData[0].supplier} leads with{' '}
+            {((chartData[0].value / totalValue) * 100).toFixed(1)}%{' '}
+            <IconTrendingUp className="h-4 w-4" />
+          </div>
+        )}
+        <div className="text-muted-foreground leading-none">
+          Based on current inventory data
         </div>
       </CardFooter>
     </Card>
-  );
+  )
 }
