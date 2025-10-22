@@ -4,35 +4,38 @@ import { createServerClient } from '@supabase/ssr';
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
 
+  // 🧠 Kein eigenes Cookie-Objekt mehr nötig
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get: (name) => req.cookies.get(name)?.value,
-        set: (name, value, options) => res.cookies.set(name, value, options),
-        remove: (name, options) =>
-          res.cookies.set(name, '', { ...options, maxAge: 0 }),
-      },
+        getAll: () => req.cookies.getAll(),
+        setAll: (cookiesToSet) => {
+          for (const { name, value, options } of cookiesToSet) {
+            res.cookies.set(name, value, options);
+          }
+        }
+      }
     }
   );
 
-  await supabase.auth.getSession();
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
 
-  // Zugriffsschutz
-  if (req.nextUrl.pathname.startsWith('/dashboard')) {
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user) {
-      const url = new URL('/auth/sign-in', req.url);
-      url.searchParams.set('redirectedFrom', req.nextUrl.pathname);
-      return NextResponse.redirect(url);
-    }
+  // 🚫 Zugriffsschutz für /dashboard
+  if (req.nextUrl.pathname.startsWith('/dashboard') && !user) {
+    const redirectUrl = req.nextUrl.clone();
+    redirectUrl.pathname = '/auth/sign-in';
+    redirectUrl.searchParams.set('redirectedFrom', req.nextUrl.pathname);
+    return NextResponse.redirect(redirectUrl);
   }
 
   return res;
 }
 
+// 🔒 Middleware aktiv für Dashboard + API
 export const config = {
-  matcher: ['/dashboard/:path*', '/(api|trpc)(.*)'],
+  matcher: ['/dashboard/:path*', '/(api|trpc)(.*)']
 };

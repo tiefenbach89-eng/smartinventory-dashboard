@@ -11,26 +11,31 @@ import {
   useFormState,
   type ControllerProps,
   type FieldPath,
-  type FieldValues
+  type FieldValues,
+  type SubmitHandler
 } from 'react-hook-form';
 
 import { cn } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
 
-const Form = ({
+// 🧠 Generischer Form-Typ
+interface FormProps<TFieldValues extends FieldValues = FieldValues> {
+  children: React.ReactNode;
+  onSubmit: SubmitHandler<TFieldValues>;
+  form: UseFormReturn<TFieldValues>;
+  className?: string;
+}
+
+// ✅ Generische Form-Komponente mit korrektem HandleSubmit
+const Form = <TFieldValues extends FieldValues>({
   children,
   onSubmit,
   form,
   className
-}: {
-  children: React.ReactNode;
-  onSubmit: (data: any) => void;
-  form: UseFormReturn<any, any, undefined>;
-  className?: string;
-}) => {
+}: FormProps<TFieldValues>) => {
   return (
     <FormProvider {...form}>
-      <form onSubmit={onSubmit} className={className}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className={className}>
         {children}
       </form>
     </FormProvider>
