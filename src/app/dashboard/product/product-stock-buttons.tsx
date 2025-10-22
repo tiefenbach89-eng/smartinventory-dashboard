@@ -1,190 +1,153 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import { Button } from '@/components/ui/button'
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { createClient } from '@/lib/supabase/client'
-import { toast } from 'sonner'
+  DialogFooter
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { createClient } from '@/lib/supabase/client';
+import { toast } from 'sonner';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+  SelectValue
+} from '@/components/ui/select';
+import Link from 'next/link';
+import { cn } from '@/lib/utils';
+import { buttonVariants } from '@/components/ui/button';
+import { IconPlus } from '@tabler/icons-react';
 
-const supabase = createClient()
+const supabase = createClient();
 
 type Product = {
-  artikelnummer: number
-  artikelbezeichnung: string
-  bestand: number
-  preis: number
-  lieferant?: string
-}
+  artikelnummer: number;
+  artikelbezeichnung: string;
+  bestand: number;
+  preis: number;
+  lieferant?: string;
+};
 
 export default function ProductStockButtons() {
-  const [openAdd, setOpenAdd] = useState(false)
-  const [openRemove, setOpenRemove] = useState(false)
-  const [products, setProducts] = useState<Product[]>([])
-  const [selectedProduct, setSelectedProduct] = useState<string>('')
-  const [quantity, setQuantity] = useState<number>(0)
-  const [price, setPrice] = useState<number | null>(null)
-  const [note, setNote] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [user, setUser] = useState<any>(null)
+  const [openAdd, setOpenAdd] = useState(false);
+  const [openRemove, setOpenRemove] = useState(false);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [selectedProduct, setSelectedProduct] = useState<string>('');
+  const [quantity, setQuantity] = useState<number>(0);
+  const [price, setPrice] = useState<number | null>(null);
+  const [note, setNote] = useState('');
+  const [deliveryNote, setDeliveryNote] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState<any>(null);
 
-  // 🔹 Aktuellen Benutzer aus Supabase laden
+  // 🧠 Load current user
   useEffect(() => {
-    const getUser = async () => {
-      const { data } = await supabase.auth.getUser()
-      if (data?.user) setUser(data.user)
-    }
-    getUser()
-  }, [])
+    supabase.auth.getUser().then(({ data }) => setUser(data?.user ?? null));
+  }, []);
 
-  // 🔹 Produkte für Dropdown laden
+  // 📦 Load product list
   useEffect(() => {
-    const fetchProducts = async () => {
-      const { data, error } = await supabase
-        .from('artikel')
-        .select('artikelnummer, artikelbezeichnung, bestand, preis, lieferant')
-        .order('artikelbezeichnung', { ascending: true })
+    supabase
+      .from('artikel')
+      .select('artikelnummer, artikelbezeichnung, bestand, preis, lieferant')
+      .order('artikelbezeichnung', { ascending: true })
+      .then(({ data, error }) => {
+        if (!error && data) setProducts(data);
+      });
+  }, []);
 
-      if (!error && data) setProducts(data)
-    }
-    fetchProducts()
-  }, [])
-
+  // 🔧 Handle Add / Remove Stock
   const handleStockChange = async (type: 'add' | 'remove') => {
-    console.log('🟡 handleStockChange started', type, { selectedProduct, quantity, price, note })
-    console.log('Inserted into table artikel_log in schema "public"')
     try {
-      setLoading(true)
-      toast.loading(type === 'add' ? 'Adding stock...' : 'Removing stock...')
+      setLoading(true);
+      toast.loading(type === 'add' ? 'Adding stock...' : 'Removing stock...');
 
-      const quantityDiff = type === 'add' ? quantity : -quantity
       const selected = products.find(
         (p) => String(p.artikelnummer) === selectedProduct
-      )
+      );
+      if (!selected) throw new Error('Please select a valid product.');
 
-      if (!selected) {
-        toast.error('Please select a valid product.')
-        setLoading(false)
-        toast.dismiss()
-        return
-      }
+      const quantityDiff = type === 'add' ? quantity : -quantity;
+      const oldStock = selected.bestand;
+      const newStock = oldStock + quantityDiff;
 
-      const { data: product, error: fetchErr } = await supabase
-        .from('artikel')
-        .select('*')
-        .eq('artikelnummer', Number(selectedProduct))
-        .single()
+      if (newStock < 0)
+        throw new Error(
+          `Cannot remove ${Math.abs(
+            quantityDiff
+          )} items. Only ${oldStock} in stock.`
+        );
 
-      if (fetchErr || !product) {
-        toast.error('Product not found in database.')
-        setLoading(false)
-        toast.dismiss()
-        return
-      }
+      // 🧾 Benutzername oder Fallback bestimmen
+      const benutzer =
+        user?.user_metadata?.first_name || user?.user_metadata?.last_name
+          ? `${user?.user_metadata?.first_name ?? ''} ${
+              user?.user_metadata?.last_name ?? ''
+            }`.trim()
+          : (user?.email ?? 'System');
 
-      const oldStock = product.bestand
-      const newStock = oldStock + quantityDiff
-
-      // ❌ Kein negativer Bestand erlaubt
-      if (newStock < 0) {
-        toast.error(
-          `Cannot remove ${Math.abs(quantityDiff)} items. Only ${oldStock} in stock.`
-        )
-        setLoading(false)
-        toast.dismiss()
-        return
-      }
-
-      // 2️⃣ Bestand und Preis aktualisieren (falls Preis angegeben)
-      const updateData: any = { bestand: newStock }
-      if (price !== null) updateData.preis = price
-
-      const { error: updateErr } = await supabase
-        .from('artikel')
-        .update(updateData)
-        .eq('artikelnummer', Number(selectedProduct))
-
-      if (updateErr) throw updateErr
-
-      // 3️⃣ Eintrag in artikel_log schreiben
-      const { error: logErr } = await supabase.from('artikel_log').insert([
-        {
-          timestamp: new Date().toISOString(),
-          artikelnummer: selectedProduct,
-          artikelname: product.artikelbezeichnung,
+      // 🔄 Call secure API
+      const res = await fetch('/api/stock-log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          artikelnummer: selected.artikelnummer,
+          artikelname: selected.artikelbezeichnung,
           alt_wert: oldStock,
           neu_wert: newStock,
           menge_diff: quantityDiff,
-          preis_snapshot: price ?? product.preis,
-          aktion: type === 'add' ? 'zubuchung' : 'ausbuchung',
+          preis_snapshot: price ?? selected.preis,
+          aktion: type === 'add' ? 'addition' : 'removal',
           kommentar: note,
-          lieferant: product.lieferant,
-          benutzer: user?.email ?? 'System',
-        },
-      ])
+          lieferant: selected.lieferant,
+          benutzer,
+          lieferscheinnr: type === 'add' ? deliveryNote || null : null
+        })
+      });
 
-      console.log('✅ Insert into artikel_log executed')
-if (logErr) {
-  console.error('❌ Log insert error:', logErr)
-  toast.error('Log insert failed: ' + logErr.message)
-} else {
-  console.log('✅ Log insert successful')
-}
+      const json = await res.json();
+      if (!res.ok || json.error)
+        throw new Error(json.error || 'Failed to save log entry');
 
-      // 🧩 Fehler beim Loggen anzeigen (falls auftritt)
-      if (logErr) {
-        console.error('❌ Log insert error:', logErr)
-        toast.error('Log insert failed: ' + logErr.message)
-      }
-
-      // ✅ Erfolgsmeldung
       toast.success(
-        `✅ Stock successfully ${
+        `Stock successfully ${
           type === 'add' ? 'added' : 'removed'
-        } for "${product.artikelbezeichnung}".`
-      )
+        } for "${selected.artikelbezeichnung}".`
+      );
 
-      // Eingabefelder zurücksetzen
-      setOpenAdd(false)
-      setOpenRemove(false)
-      setSelectedProduct('')
-      setQuantity(0)
-      setNote('')
-      setPrice(null)
+      // Reset all fields
+      setSelectedProduct('');
+      setQuantity(0);
+      setPrice(null);
+      setNote('');
+      setDeliveryNote('');
+      setOpenAdd(false);
+      setOpenRemove(false);
     } catch (err: any) {
-      console.error('❌ Supabase error:', err)
-      toast.error('Something went wrong: ' + (err.message || 'Unknown error'))
+      console.error('❌', err);
+      toast.error(err.message);
     } finally {
-      setLoading(false)
-      toast.dismiss()
+      toast.dismiss();
+      setLoading(false);
     }
-  }
+  };
 
+  // 🔽 Product Selector
   const renderProductSelect = () => (
-    <Select
-      onValueChange={(val) => setSelectedProduct(val)}
-      value={selectedProduct}
-    >
+    <Select value={selectedProduct} onValueChange={setSelectedProduct}>
       <SelectTrigger>
-        <SelectValue placeholder="Select Product" />
+        <SelectValue placeholder='Select Product' />
       </SelectTrigger>
-      <SelectContent className="max-h-60 overflow-y-auto">
+      <SelectContent className='max-h-60 overflow-y-auto'>
         {products.length === 0 ? (
-          <SelectItem value="none" disabled>
+          <SelectItem value='none' disabled>
             Loading products...
           </SelectItem>
         ) : (
@@ -196,24 +159,38 @@ if (logErr) {
         )}
       </SelectContent>
     </Select>
-  )
+  );
 
   return (
-    <>
-      {/* 🟡 Buttons */}
+    <div className='flex gap-2'>
+      {/* ➕ Add Stock */}
       <Button
         onClick={() => setOpenAdd(true)}
-        className="bg-yellow-400 hover:bg-yellow-500 text-black"
+        variant='outline'
+        className='border-border hover:bg-muted text-foreground border bg-transparent'
       >
         + Add Stock
       </Button>
 
+      {/* ➖ Remove Stock */}
       <Button
         onClick={() => setOpenRemove(true)}
-        className="bg-yellow-400 hover:bg-yellow-500 text-black"
+        variant='outline'
+        className='border-border hover:bg-muted border bg-transparent text-red-600 hover:text-red-700'
       >
         - Remove Stock
       </Button>
+
+      {/* ➕ Add Product */}
+      <Link
+        href='/dashboard/product/new'
+        className={cn(
+          buttonVariants({ variant: 'outline' }),
+          'border-border hover:bg-muted text-foreground border bg-transparent text-xs md:text-sm'
+        )}
+      >
+        <IconPlus className='mr-2 h-4 w-4' /> Add Product
+      </Link>
 
       {/* 🟢 Add Stock Dialog */}
       <Dialog open={openAdd} onOpenChange={setOpenAdd}>
@@ -221,32 +198,33 @@ if (logErr) {
           <DialogHeader>
             <DialogTitle>Add Stock</DialogTitle>
           </DialogHeader>
-          <div className="space-y-3">
+          <div className='space-y-3'>
             {renderProductSelect()}
             <Input
-              type="number"
-              placeholder="Quantity"
+              type='number'
+              placeholder='Quantity'
               value={quantity}
               onChange={(e) => setQuantity(Number(e.target.value))}
             />
             <Input
-              type="number"
-              placeholder="New Price (€) (optional)"
+              type='number'
+              placeholder='New Price (€) (optional)'
               value={price ?? ''}
               onChange={(e) => setPrice(Number(e.target.value))}
             />
+            <Input
+              placeholder='Delivery Note Number'
+              value={deliveryNote}
+              onChange={(e) => setDeliveryNote(e.target.value)}
+            />
             <Textarea
-              placeholder="Note (optional)"
+              placeholder='Note (optional)'
               value={note}
               onChange={(e) => setNote(e.target.value)}
             />
           </div>
           <DialogFooter>
-            <Button
-              onClick={() => handleStockChange('add')}
-              disabled={loading}
-              className="bg-yellow-400 hover:bg-yellow-500 text-black"
-            >
+            <Button onClick={() => handleStockChange('add')} disabled={loading}>
               {loading ? 'Saving...' : 'Save'}
             </Button>
           </DialogFooter>
@@ -259,16 +237,16 @@ if (logErr) {
           <DialogHeader>
             <DialogTitle>Remove Stock</DialogTitle>
           </DialogHeader>
-          <div className="space-y-3">
+          <div className='space-y-3'>
             {renderProductSelect()}
             <Input
-              type="number"
-              placeholder="Quantity"
+              type='number'
+              placeholder='Quantity'
               value={quantity}
               onChange={(e) => setQuantity(Number(e.target.value))}
             />
             <Textarea
-              placeholder="Note (optional)"
+              placeholder='Note (optional)'
               value={note}
               onChange={(e) => setNote(e.target.value)}
             />
@@ -277,13 +255,13 @@ if (logErr) {
             <Button
               onClick={() => handleStockChange('remove')}
               disabled={loading}
-              className="bg-yellow-400 hover:bg-yellow-500 text-black"
+              className='bg-red-100 text-red-700 hover:bg-red-200'
             >
               {loading ? 'Saving...' : 'Save'}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </>
-  )
+    </div>
+  );
 }

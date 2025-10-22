@@ -7,6 +7,7 @@ import type { Metadata, Viewport } from 'next';
 import { cookies } from 'next/headers';
 import NextTopLoader from 'nextjs-toploader';
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
+import AuthBootstrap from '@/components/auth-bootstrap'; // 👈 neu hinzugefügt
 import './globals.css';
 import './theme.css';
 
@@ -40,8 +41,14 @@ export default async function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `
               try {
-                if (localStorage.theme === 'dark' || ((!('theme' in localStorage) || localStorage.theme === 'system') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                  document.querySelector('meta[name="theme-color"]').setAttribute('content', '${META_THEME_COLORS.dark}')
+                if (
+                  localStorage.theme === 'dark' ||
+                  ((!('theme' in localStorage) || localStorage.theme === 'system') &&
+                    window.matchMedia('(prefers-color-scheme: dark)').matches)
+                ) {
+                  document
+                    .querySelector('meta[name="theme-color"]')
+                    .setAttribute('content', '${META_THEME_COLORS.dark}')
                 }
               } catch (_) {}
             `
@@ -57,6 +64,7 @@ export default async function RootLayout({
         )}
       >
         <NextTopLoader color='var(--primary)' showSpinner={false} />
+
         <NuqsAdapter>
           <ThemeProvider
             attribute='class'
@@ -68,6 +76,9 @@ export default async function RootLayout({
             <Providers activeThemeValue={activeThemeValue as string}>
               <Toaster />
               {children}
+
+              {/* 🔹 Bootstrap zur automatischen Rollenzuweisung */}
+              <AuthBootstrap />
             </Providers>
           </ThemeProvider>
         </NuqsAdapter>

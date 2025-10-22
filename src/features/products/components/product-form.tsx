@@ -14,27 +14,42 @@ import * as z from 'zod';
 import { toast } from 'sonner';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
-const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+const ACCEPTED_IMAGE_TYPES = [
+  'image/jpeg',
+  'image/jpg',
+  'image/png',
+  'image/webp'
+];
 
-// ✅ Neues Schema
+// ✅ Neues Schema – Pflichtfelder korrekt definiert
 const formSchema = z.object({
-  artikelnummer: z.coerce.number().min(1, { message: 'Article number is required.' }),
-  name: z.string().min(2, { message: 'Product name must be at least 2 characters.' }),
+  artikelnummer: z.coerce
+    .number()
+    .min(1, { message: 'Article number is required.' }),
+  name: z
+    .string()
+    .min(2, { message: 'Product name must be at least 2 characters.' }),
   supplier: z.string().min(1, { message: 'Supplier is required.' }),
-  price: z.coerce.number().min(0, { message: 'Price must be positive.' }),
-  quantity: z.coerce.number().min(0, { message: 'Quantity is required.' }),
-  minStock: z.coerce.number().min(0, { message: 'Minimum stock is required.' }),
+  price: z.coerce.number().optional(),
+  quantity: z.coerce.number().optional(),
+  minStock: z.coerce.number().optional(),
   description: z.string().optional(),
   image: z
     .any()
     .refine((files) => files?.length === 1, 'Please upload one image.')
-    .refine((files) => files?.[0]?.size <= MAX_FILE_SIZE, 'Max file size is 5MB.')
-    .refine((files) => ACCEPTED_IMAGE_TYPES.includes(files?.[0]?.type), 'Only image files are allowed.'),
+    .refine(
+      (files) => files?.[0]?.size <= MAX_FILE_SIZE,
+      'Max file size is 5MB.'
+    )
+    .refine(
+      (files) => ACCEPTED_IMAGE_TYPES.includes(files?.[0]?.type),
+      'Only image files are allowed.'
+    )
 });
 
 export default function ProductForm({
   initialData,
-  pageTitle,
+  pageTitle
 }: {
   initialData: any | null;
   pageTitle: string;
@@ -52,8 +67,8 @@ export default function ProductForm({
       quantity: initialData?.quantity || 0,
       minStock: initialData?.minStock || 0,
       description: initialData?.description || '',
-      image: [],
-    },
+      image: []
+    }
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
@@ -73,20 +88,22 @@ export default function ProductForm({
         return;
       }
 
-      const { data } = supabase.storage.from('product-images').getPublicUrl(fileName);
+      const { data } = supabase.storage
+        .from('product-images')
+        .getPublicUrl(fileName);
       imageUrl = data.publicUrl;
 
-    // Insert Product into artikel
-    const { error: insertError } = await supabase.from('artikel').insert({
-      artikelnummer: values.artikelnummer.toString(), // erlaubt Text oder Zahl
-      artikelbezeichnung: values.name,
-      beschreibung: values.description || null, // ✅ Description wird korrekt gespeichert
-      bestand: values.quantity,
-      sollbestand: values.minStock,
-      preis: values.price,
-      lieferant: values.supplier,
-      image_url: imageUrl,
-    });
+      // Insert Product into artikel
+      const { error: insertError } = await supabase.from('artikel').insert({
+        artikelnummer: values.artikelnummer.toString(),
+        artikelbezeichnung: values.name,
+        beschreibung: values.description || null,
+        bestand: values.quantity,
+        sollbestand: values.minStock,
+        preis: values.price,
+        lieferant: values.supplier,
+        image_url: imageUrl
+      });
 
       if (insertError) {
         toast.error('Database error: ' + insertError.message);
@@ -103,83 +120,91 @@ export default function ProductForm({
   }
 
   return (
-    <Card className="mx-auto w-full">
+    <Card className='mx-auto w-full'>
       <CardHeader>
-        <CardTitle className="text-left text-2xl font-bold">{pageTitle}</CardTitle>
+        <CardTitle className='text-left text-2xl font-bold'>
+          {pageTitle}
+        </CardTitle>
       </CardHeader>
       <CardContent>
-        <Form form={form} onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <Form
+          form={form}
+          onSubmit={form.handleSubmit(onSubmit)}
+          className='space-y-8'
+        >
+          {/* Upload-Bereich */}
           <FormFileUpload
             control={form.control}
-            name="image"
-            label="Product Image"
-            description="Upload a product image"
+            name='image'
+            label='Product Image'
+            description='Upload a product image'
             config={{ maxSize: MAX_FILE_SIZE, maxFiles: 1 }}
           />
 
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          {/* 👇 Grid mit fixierter Zeilenhöhe */}
+          <div className='grid auto-rows-min grid-cols-1 items-start gap-6 md:grid-cols-2'>
             <FormInput
               control={form.control}
-              name="artikelnummer"
-              label="Article Number"
-              placeholder="Enter article number"
+              name='artikelnummer'
+              label='Article Number'
+              placeholder='Enter article number'
               required
-              type="text"
+              type='text'
               min={1}
             />
             <FormInput
               control={form.control}
-              name="name"
-              label="Product Name"
-              placeholder="Enter product name"
+              name='name'
+              label='Product Name'
+              placeholder='Enter product name'
               required
             />
             <FormInput
               control={form.control}
-              name="supplier"
-              label="Supplier"
-              placeholder="Enter supplier name"
+              name='supplier'
+              label='Supplier'
+              placeholder='Enter supplier name'
               required
             />
             <FormInput
               control={form.control}
-              name="price"
-              label="Price (€)"
-              placeholder="Enter price"
-              required
-              type="number"
+              name='price'
+              label='Price (€)'
+              placeholder='Enter price'
+              required={false}
+              type='number'
               min={0}
-              step="0.01"
+              step='0.01'
             />
             <FormInput
               control={form.control}
-              name="quantity"
-              label="Stock Quantity"
-              placeholder="Enter current stock"
-              required
-              type="number"
+              name='quantity'
+              label='Stock Quantity'
+              placeholder='Enter current stock'
+              required={false}
+              type='number'
               min={0}
             />
             <FormInput
               control={form.control}
-              name="minStock"
-              label="Minimum Stock"
-              placeholder="Enter minimum stock"
-              required
-              type="number"
+              name='minStock'
+              label='Minimum Stock'
+              placeholder='Enter minimum stock'
+              required={false}
+              type='number'
               min={0}
             />
           </div>
 
           <FormTextarea
             control={form.control}
-            name="description"
-            label="Description"
-            placeholder="Enter product description"
+            name='description'
+            label='Description'
+            placeholder='Enter product description'
             config={{ maxLength: 500, showCharCount: true, rows: 4 }}
           />
 
-          <Button type="submit">Add Product</Button>
+          <Button type='submit'>Add Product</Button>
         </Form>
       </CardContent>
     </Card>

@@ -1,111 +1,166 @@
 'use client';
 
-import { useState } from 'react';
+import * as React from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent
+} from '@/components/ui/card';
+import { toast } from 'sonner';
+import { Loader2, Eye, EyeOff } from 'lucide-react';
 
 export default function SignInPage() {
   const supabase = createClient();
   const router = useRouter();
-  const search = useSearchParams();
-  const redirectTo = search.get('redirectedFrom') || '/dashboard/overview';
-
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = React.useState(false);
+  const [email, setEmail] = React.useState('');
+  const [password, setPassword] = React.useState('');
+  const [showPassword, setShowPassword] = React.useState(false);
 
   async function handleSignIn(e: React.FormEvent) {
     e.preventDefault();
-    setError(null);
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
-    if (error) setError(error.message);
-    else router.push(redirectTo);
-  }
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+      if (error) {
+        const msg = error.message?.toLowerCase?.() || '';
+        if (msg.includes('email not confirmed'))
+          return toast.info('Please verify your email before logging in.');
+        if (msg.includes('invalid login credentials'))
+          return toast.error('Invalid email or password.');
+        throw error;
+      }
 
-  async function handleSignUp() {
-    const { error } = await supabase.auth.signUp({ email, password });
-    if (error) setError(error.message);
-    else alert('Check your email for confirmation link');
+      const user = data.user;
+      if (!user?.email_confirmed_at) {
+        toast.info('Please verify your email before logging in.');
+        await supabase.auth.signOut();
+        return;
+      }
+
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('approved, banned')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (roleData?.banned) {
+        toast.error('Your account has been banned.');
+        await supabase.auth.signOut();
+        return;
+      }
+      if (!roleData?.approved) {
+        toast.info('Your account is pending admin approval.');
+        await supabase.auth.signOut();
+        return;
+      }
+
+      toast.success('Welcome back!');
+      router.push('/dashboard');
+    } catch (err: any) {
+      console.error('❌ Sign-in failed:', err);
+      toast.error(err.message || 'Login failed.');
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
-    <div className="flex min-h-[90vh] items-center justify-center p-4">
-      <Card className="w-full max-w-md border shadow-xl bg-card">
-        <CardHeader>
-          <CardTitle className="text-center text-2xl font-semibold">
-            Welcome back 👋
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSignIn} className="space-y-4">
-            <div className="space-y-2">
-              <Input
-                placeholder="Email address"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-              <Input
-                placeholder="Password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
-            {error && (
-              <p className="text-sm text-red-500 text-center">{error}</p>
-            )}
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Signing in…' : 'Sign in'}
-            </Button>
-          </form>
+    <div className='grid min-h-screen lg:grid-cols-2'>
+      <div className='flex flex-col justify-center px-8 py-12'>
+        <div className='mx-auto w-full max-w-sm'>
+          <Card>
+            <CardHeader>
+              <CardTitle className='text-2xl font-bold'>Sign in</CardTitle>
+              <CardDescription>
+                Enter your credentials to access your account
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSignIn} className='space-y-4'>
+                <Input
+                  type='email'
+                  placeholder='Email address'
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
 
-          <div className="my-4 flex items-center gap-2">
-            <Separator className="flex-1" />
-            <span className="text-xs text-muted-foreground">or</span>
-            <Separator className="flex-1" />
-          </div>
+                <div className='relative'>
+                  <Input
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder='Password'
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                  <button
+                    type='button'
+                    onClick={() => setShowPassword(!showPassword)}
+                    className='text-muted-foreground absolute top-1/2 right-3 -translate-y-1/2'
+                  >
+                    {showPassword ? (
+                      <EyeOff className='h-4 w-4' />
+                    ) : (
+                      <Eye className='h-4 w-4' />
+                    )}
+                  </button>
+                </div>
 
-          <Button
-            variant="outline"
-            className="w-full mb-2"
-            onClick={() => supabase.auth.signInWithOAuth({ provider: 'google' })}
-          >
-            Sign in with Google
-          </Button>
-          <Button
-            variant="outline"
-            className="w-full"
-            onClick={() => supabase.auth.signInWithOAuth({ provider: 'github' })}
-          >
-            Sign in with GitHub
-          </Button>
+                <Button type='submit' className='w-full' disabled={loading}>
+                  {loading ? (
+                    <>
+                      <Loader2 className='mr-2 h-4 w-4 animate-spin' /> Signing
+                      in...
+                    </>
+                  ) : (
+                    'Sign in'
+                  )}
+                </Button>
+              </form>
 
-          <div className="mt-4 text-center text-sm">
-            <span className="text-muted-foreground">
-              Don’t have an account?{' '}
-            </span>
-            <Button
-              type="button"
-              variant="link"
-              className="p-0"
-              onClick={handleSignUp}
-            >
-              Sign up
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+              <div className='text-muted-foreground mt-4 space-y-1 text-center text-sm'>
+                <p>
+                  Don’t have an account?{' '}
+                  <Link href='/auth/sign-up' className='text-primary underline'>
+                    Sign up
+                  </Link>
+                </p>
+                <p>
+                  Forgot your password?{' '}
+                  <Link
+                    href='/auth/reset-password'
+                    className='text-primary underline'
+                  >
+                    Reset it
+                  </Link>
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      <div className='bg-muted hidden lg:flex lg:flex-col lg:items-center lg:justify-center'>
+        <blockquote className='max-w-md space-y-2 text-center'>
+          <p className='text-lg leading-relaxed font-medium'>
+            “SmartInventory keeps our warehouse data accurate and organized.”
+          </p>
+          <footer className='text-muted-foreground text-sm'>
+            — Alexander Tiefenbach
+          </footer>
+        </blockquote>
+      </div>
     </div>
   );
 }
-
