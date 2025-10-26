@@ -152,7 +152,7 @@ export default function ProductListing() {
     }
   }
 
-  // 📦 Fetch logs
+  // 📦 Fetch logs <<
   async function fetchLogs(articleNumber: string) {
     try {
       setLogsLoading(true);
