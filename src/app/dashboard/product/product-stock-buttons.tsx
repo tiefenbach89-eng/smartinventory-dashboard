@@ -1,5 +1,5 @@
 'use client';
-// ✨ Trigger Vercel Deploy: 26.10. – responsive table fix
+// ✨ Trigger Vercel Deploy: 26.10.25 – responsive table fix
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
