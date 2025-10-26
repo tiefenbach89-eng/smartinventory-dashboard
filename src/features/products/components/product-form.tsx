@@ -21,7 +21,6 @@ const ACCEPTED_IMAGE_TYPES = [
   'image/webp'
 ];
 
-// ✅ Zod Schema
 const formSchema = z.object({
   artikelnummer: z.coerce
     .number()
@@ -30,9 +29,10 @@ const formSchema = z.object({
     .string()
     .min(2, { message: 'Product name must be at least 2 characters.' }),
   supplier: z.string().min(1, { message: 'Supplier is required.' }),
-  price: z.coerce.number().default(0),
-  quantity: z.coerce.number().default(0),
-  minStock: z.coerce.number().default(0),
+  price: z.coerce
+    .number()
+    .min(0.01, { message: 'Price must be greater than 0.' }),
+  minStock: z.coerce.number().min(1, { message: 'Minimum stock is required.' }),
   description: z.string().optional(),
   image: z
     .any()
@@ -47,68 +47,59 @@ const formSchema = z.object({
     )
 });
 
-// ✅ Typ-Ableitung (einheitlich für useForm & onSubmit)
 type ProductFormValues = z.infer<typeof formSchema>;
 
 export default function ProductForm({
   initialData,
-  pageTitle
+  pageTitle = 'List New Product'
 }: {
   initialData: Partial<ProductFormValues> | null;
-  pageTitle: string;
+  pageTitle?: string;
 }) {
   const supabase = createClient();
   const router = useRouter();
 
-  // ✅ useForm sauber typisiert
   const form = useForm<ProductFormValues>({
-    resolver: zodResolver(formSchema) as any,
+    resolver: zodResolver(formSchema),
     defaultValues: {
-      artikelnummer: Number(initialData?.artikelnummer ?? 0),
-      name: String(initialData?.name ?? ''),
-      supplier: String(initialData?.supplier ?? ''),
-      price: Number(initialData?.price ?? 0),
-      quantity: Number(initialData?.quantity ?? 0),
-      minStock: Number(initialData?.minStock ?? 0),
-      description: String(initialData?.description ?? ''),
+      artikelnummer: initialData?.artikelnummer ?? undefined,
+      name: initialData?.name ?? '',
+      supplier: initialData?.supplier ?? '',
+      price: initialData?.price ?? undefined,
+      minStock: initialData?.minStock ?? undefined,
+      description: initialData?.description ?? '',
       image: []
     }
   });
 
-  // ✅ Submit-Handler
   async function onSubmit(values: ProductFormValues) {
     try {
       toast.loading('Saving product...');
-      let imageUrl: string | null = null;
-
       const file = values.image[0];
       const fileName = `${values.name.replace(/\s+/g, '_')}_${Date.now()}_${file.name}`;
 
       const { error: uploadError } = await supabase.storage
         .from('product-images')
         .upload(fileName, file);
-
       if (uploadError) throw new Error(uploadError.message);
 
       const { data } = supabase.storage
         .from('product-images')
         .getPublicUrl(fileName);
-      imageUrl = data.publicUrl;
+      const imageUrl = data.publicUrl;
 
       const { error: insertError } = await supabase.from('artikel').insert({
         artikelnummer: String(values.artikelnummer),
         artikelbezeichnung: values.name,
         beschreibung: values.description || null,
-        bestand: values.quantity,
-        sollbestand: values.minStock,
-        preis: values.price,
         lieferant: values.supplier,
+        preis: values.price,
+        sollbestand: values.minStock,
         image_url: imageUrl
       });
-
       if (insertError) throw new Error(insertError.message);
 
-      toast.success('✅ Product saved successfully!');
+      toast.success('✅ Product listed successfully!');
       router.push('/dashboard/product');
     } catch (err: any) {
       toast.error('❌ ' + err.message);
@@ -127,25 +118,26 @@ export default function ProductForm({
 
       <CardContent>
         <Form form={form} onSubmit={onSubmit} className='space-y-8'>
-          {/* Upload */}
+          {/* Produktbild Upload */}
           <FormFileUpload
             control={form.control}
             name='image'
             label='Product Image'
             description='Upload a product image'
             config={{ maxSize: MAX_FILE_SIZE, maxFiles: 1 }}
+            required
           />
 
-          {/* Inputs */}
-          <div className='grid auto-rows-min grid-cols-1 items-start gap-6 md:grid-cols-2'>
+          {/* Grid Inputs */}
+          <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
             <FormInput
               control={form.control}
               name='artikelnummer'
               label='Article Number'
               placeholder='Enter article number'
-              required
               type='number'
               min={1}
+              required
             />
             <FormInput
               control={form.control}
@@ -168,15 +160,7 @@ export default function ProductForm({
               placeholder='Enter price'
               type='number'
               step='0.01'
-              min={0}
-            />
-            <FormInput
-              control={form.control}
-              name='quantity'
-              label='Stock Quantity'
-              placeholder='Enter current stock'
-              type='number'
-              min={0}
+              required
             />
             <FormInput
               control={form.control}
@@ -184,10 +168,12 @@ export default function ProductForm({
               label='Minimum Stock'
               placeholder='Enter minimum stock'
               type='number'
-              min={0}
+              min={1}
+              required
             />
           </div>
 
+          {/* Beschreibung */}
           <FormTextarea
             control={form.control}
             name='description'
@@ -196,7 +182,9 @@ export default function ProductForm({
             config={{ maxLength: 500, showCharCount: true, rows: 4 }}
           />
 
-          <Button type='submit'>Add Product</Button>
+          <Button type='submit' className='w-full md:w-auto'>
+            List Product
+          </Button>
         </Form>
       </CardContent>
     </Card>

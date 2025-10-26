@@ -1,5 +1,6 @@
 'use client';
 
+import { Textarea } from '@/components/ui/textarea';
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import {
@@ -16,7 +17,8 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription
+  DialogDescription,
+  DialogFooter
 } from '@/components/ui/dialog';
 import {
   Table,
@@ -91,14 +93,39 @@ export default function ProductListing() {
   // ✏️ Save changes from Edit modal
   async function handleSave() {
     if (!editProduct) return;
-    const { artikelnummer, bestand, sollbestand, beschreibung } = editProduct;
+
+    const original = products.find(
+      (p) => p.artikelnummer === editProduct.artikelnummer
+    );
+
+    if (!original) {
+      toast.error('Original product data not found.');
+      return;
+    }
+
+    const hasChanged =
+      editProduct.sollbestand !== original.sollbestand ||
+      editProduct.beschreibung !== original.beschreibung;
+
+    if (!hasChanged) {
+      toast.warning(
+        '⚠️ No changes detected. Please update at least one field.'
+      );
+      return;
+    }
+
     const { error } = await supabase
       .from('artikel')
-      .update({ bestand, sollbestand, beschreibung })
-      .eq('artikelnummer', artikelnummer);
+      .update({
+        bestand: editProduct.bestand,
+        sollbestand: editProduct.sollbestand,
+        beschreibung: editProduct.beschreibung
+      })
+      .eq('artikelnummer', editProduct.artikelnummer);
 
-    if (error) toast.error('Update failed: ' + error.message);
-    else {
+    if (error) {
+      toast.error('Update failed: ' + error.message);
+    } else {
       toast.success('✅ Product updated successfully.');
       setEditProduct(null);
       const { data } = await supabase.from('artikel').select('*');
@@ -188,162 +215,192 @@ export default function ProductListing() {
             <Loader2 className='text-muted-foreground h-6 w-6 animate-spin' />
           </div>
         ) : (
-          <div className='overflow-hidden rounded-md border'>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Image</TableHead>
-                  <TableHead>Article Number</TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Supplier</TableHead>
-                  <TableHead>Price (€)</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Stock / Min</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filtered.map((p) => (
-                  <TableRow key={p.artikelnummer}>
-                    <TableCell>
-                      {p.image_url ? (
-                        <img
-                          src={
-                            p.image_url.trim() !== ''
-                              ? p.image_url
-                              : 'https://placehold.co/100x100?text=No+Image'
-                          }
-                          alt={p.artikelbezeichnung || 'Product Image'}
-                          className='h-10 w-10 cursor-pointer rounded-md object-cover transition-transform hover:scale-105'
-                          onDoubleClick={() =>
-                            setImagePreview(
+          <div className='overflow-auto rounded-md border'>
+            <div className='min-w-[800px] md:min-w-full'>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Image</TableHead>
+                    <TableHead>Article Number</TableHead>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Supplier</TableHead>
+                    <TableHead>Price (€)</TableHead>
+                    <TableHead>Description</TableHead>
+                    <TableHead>Stock / Min</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filtered.map((p) => (
+                    <TableRow key={p.artikelnummer} className='align-top'>
+                      <TableCell>
+                        {p.image_url ? (
+                          <img
+                            src={
                               p.image_url.trim() !== ''
                                 ? p.image_url
-                                : 'https://placehold.co/600x600?text=No+Image'
-                            )
-                          }
-                        />
-                      ) : (
-                        <div className='bg-muted text-muted-foreground flex h-10 w-10 items-center justify-center rounded-md text-xs'>
-                          No Image
-                        </div>
-                      )}
-                    </TableCell>
-                    <TableCell>{p.artikelnummer}</TableCell>
-                    <TableCell>{p.artikelbezeichnung}</TableCell>
-                    <TableCell>{p.lieferant}</TableCell>
-                    <TableCell>{p.preis?.toFixed(2)}</TableCell>
-                    <TableCell className='max-w-[200px] truncate'>
-                      {p.beschreibung || '—'}
-                    </TableCell>
-                    <TableCell>
-                      Stock: {p.bestand} / Min: {p.sollbestand || 0}
-                    </TableCell>
-                    <TableCell className='flex gap-2'>
-                      {/* ✏️ Edit (Dialog) */}
-                      <Button
-                        size='sm'
-                        variant='outline'
-                        onClick={() => setEditProduct(p)}
-                      >
-                        <Pencil className='mr-1 h-4 w-4' /> Edit
-                      </Button>
-
-                      {/* 🔄 Movements */}
-                      <Button
-                        size='sm'
-                        variant='outline'
-                        onClick={() => fetchLogs(p.artikelnummer)}
-                      >
-                        <History className='mr-1 h-4 w-4' /> Movements
-                      </Button>
-
-                      {/* 🗑️ Delete mit Dialog */}
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button size='sm' variant='destructive'>
-                            <Trash2 className='mr-1 h-4 w-4' />
-                            Delete
+                                : 'https://placehold.co/100x100?text=No+Image'
+                            }
+                            alt={p.artikelbezeichnung || 'Product Image'}
+                            className='h-10 w-10 cursor-pointer rounded-md object-cover transition-transform hover:scale-105'
+                            onDoubleClick={() =>
+                              setImagePreview(
+                                p.image_url.trim() !== ''
+                                  ? p.image_url
+                                  : 'https://placehold.co/600x600?text=No+Image'
+                              )
+                            }
+                          />
+                        ) : (
+                          <div className='bg-muted text-muted-foreground flex h-10 w-10 items-center justify-center rounded-md text-xs'>
+                            No Image
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell>{p.artikelnummer}</TableCell>
+                      <TableCell>{p.artikelbezeichnung}</TableCell>
+                      <TableCell>{p.lieferant}</TableCell>
+                      <TableCell>{p.preis?.toFixed(2)}</TableCell>
+                      <TableCell className='max-w-[200px] truncate'>
+                        {p.beschreibung || '—'}
+                      </TableCell>
+                      <TableCell>
+                        Stock: {p.bestand} / Min: {p.sollbestand || 0}
+                      </TableCell>
+                      <TableCell>
+                        <div className='flex flex-col gap-2 md:flex-row'>
+                          <Button
+                            size='sm'
+                            variant='outline'
+                            onClick={() => setEditProduct(p)}
+                          >
+                            <Pencil className='mr-1 h-4 w-4' /> Edit
                           </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Delete product?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              This action cannot be undone. The product will be
-                              permanently removed.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => handleDelete(p.artikelnummer)}
-                            >
-                              Delete
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                          <Button
+                            size='sm'
+                            variant='outline'
+                            onClick={() => fetchLogs(p.artikelnummer)}
+                          >
+                            <History className='mr-1 h-4 w-4' /> Movements
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button size='sm' variant='destructive'>
+                                <Trash2 className='mr-1 h-4 w-4' /> Delete
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>
+                                  Delete product?
+                                </AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This action cannot be undone. The product will
+                                  be permanently removed.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleDelete(p.artikelnummer)}
+                                >
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </div>
         )}
       </CardContent>
 
       {/* ✏️ Edit Modal */}
-      <Dialog open={!!editProduct} onOpenChange={() => setEditProduct(null)}>
-        <DialogContent className='max-w-lg'>
-          <DialogHeader>
-            <DialogTitle>Edit Product</DialogTitle>
-            <DialogDescription>
-              Adjust minimum stock or description. Core product data is locked.
-            </DialogDescription>
-          </DialogHeader>
-          {editProduct && (
+      {editProduct && (
+        <Dialog open={!!editProduct} onOpenChange={() => setEditProduct(null)}>
+          <DialogContent className='max-w-lg'>
+            <DialogHeader>
+              <DialogTitle>Edit Product</DialogTitle>
+              <DialogDescription>
+                Adjust product details. Core data like article number or name is
+                not editable.
+              </DialogDescription>
+            </DialogHeader>
+
+            {/* Image Preview */}
+            {editProduct.image_url && (
+              <img
+                src={editProduct.image_url}
+                alt='Preview'
+                className='mx-auto mb-4 h-36 rounded-md object-contain'
+              />
+            )}
+
             <div className='space-y-4'>
-              <Input value={editProduct.artikelnummer} disabled />
-              <Input value={editProduct.artikelbezeichnung} disabled />
-              <Input value={editProduct.lieferant} disabled />
-              <Input value={editProduct.preis} disabled />
-              <Input
-                type='number'
-                value={editProduct.bestand || 0}
-                onChange={(e) =>
-                  setEditProduct({ ...editProduct, bestand: +e.target.value })
-                }
-              />
-              <Input
-                type='number'
-                value={editProduct.sollbestand || 0}
-                onChange={(e) =>
-                  setEditProduct({
-                    ...editProduct,
-                    sollbestand: +e.target.value
-                  })
-                }
-              />
-              <Input
-                value={editProduct.beschreibung || ''}
-                onChange={(e) =>
-                  setEditProduct({
-                    ...editProduct,
-                    beschreibung: e.target.value
-                  })
-                }
-              />
-              <div className='flex justify-end gap-2'>
-                <Button variant='outline' onClick={() => setEditProduct(null)}>
-                  Cancel
-                </Button>
-                <Button onClick={handleSave}>Save Changes</Button>
+              <div>
+                <label className='text-sm font-medium'>Article Number</label>
+                <Input value={editProduct.artikelnummer} disabled />
+              </div>
+              <div>
+                <label className='text-sm font-medium'>Product Name</label>
+                <Input value={editProduct.artikelbezeichnung} disabled />
+              </div>
+              <div>
+                <label className='text-sm font-medium'>Supplier</label>
+                <Input value={editProduct.lieferant} disabled />
+              </div>
+              <div>
+                <label className='text-sm font-medium'>Price (€)</label>
+                <Input
+                  type='number'
+                  value={editProduct.preis || ''}
+                  onChange={(e) =>
+                    setEditProduct({ ...editProduct, preis: +e.target.value })
+                  }
+                />
+              </div>
+              <div>
+                <label className='text-sm font-medium'>Minimum Stock</label>
+                <Input
+                  type='number'
+                  value={editProduct.sollbestand || ''}
+                  onChange={(e) =>
+                    setEditProduct({
+                      ...editProduct,
+                      sollbestand: +e.target.value
+                    })
+                  }
+                />
+              </div>
+              <div>
+                <label className='text-sm font-medium'>Description</label>
+                <Textarea
+                  value={editProduct.beschreibung || ''}
+                  onChange={(e) =>
+                    setEditProduct({
+                      ...editProduct,
+                      beschreibung: e.target.value
+                    })
+                  }
+                  placeholder='Optional'
+                />
               </div>
             </div>
-          )}
-        </DialogContent>
-      </Dialog>
+
+            <div className='mt-6 flex justify-end gap-2'>
+              <Button variant='outline' onClick={() => setEditProduct(null)}>
+                Cancel
+              </Button>
+              <Button onClick={handleSave}>Save Changes</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* 🧾 Logs Modal with Delivery Note */}
       <Dialog open={!!viewLogs} onOpenChange={() => setViewLogs(null)}>
