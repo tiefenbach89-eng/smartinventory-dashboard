@@ -1,7 +1,9 @@
-import { fakeProducts, Product } from '@/constants/mock-api';
+import {
+  fakeProducts,
+  type Product as MockProduct
+} from '../../../constants/mock-api';
 import { notFound } from 'next/navigation';
 import ProductForm from './product-form';
-import { Loader2 } from 'lucide-react';
 
 type TProductViewPageProps = {
   productId: string;
@@ -10,34 +12,42 @@ type TProductViewPageProps = {
 export default async function ProductViewPage({
   productId
 }: TProductViewPageProps) {
-  // 🧱 Basisdaten
-  let product: Product | null = null;
+  let product: MockProduct | null = null;
   let pageTitle = 'List New Product';
 
-  // 🧭 Wenn wir kein neues Produkt anlegen, sondern ein vorhandenes laden
+  // 🧭 Wenn wir ein bestehendes Produkt laden
   if (productId !== 'new') {
     const data = await fakeProducts.getProductById(Number(productId));
-    product = data.product as Product;
 
-    if (!product) {
+    if (!data || !data.success || !data.product) {
       notFound();
     }
 
-    pageTitle = `Edit Product`;
+    product = data.product as MockProduct;
+    pageTitle = 'Edit Product';
   }
 
-  // 🧩 Wenn kein Produkt vorhanden ist, initialisiere leeres Objekt
-  // So bleibt React-Formular controlled
-  const safeProduct = product ?? {
-    artikelnummer: '',
-    name: '',
-    supplier: '',
-    price: 0,
-    minStock: 0,
-    description: '',
-    image: []
-  };
+  // 🧩 Mock-Produkt -> Formularstruktur mappen
+  const safeProduct = product
+    ? {
+        artikelnummer: Number(product.id) || 0, // id → artikelnummer
+        name: product.name ?? '',
+        supplier: product.category ?? '', // category → supplier
+        price: Number(product.price) || 0,
+        minStock: 0, // mock hat kein Stock
+        description: product.description ?? '',
+        image: [] as File[] // erwarteter Typ
+      }
+    : {
+        artikelnummer: 0,
+        name: '',
+        supplier: '',
+        price: 0,
+        minStock: 0,
+        description: '',
+        image: [] as File[]
+      };
 
-  // ✅ Formular immer mit definierten Werten rendern
+  // ✅ Formular rendern
   return <ProductForm initialData={safeProduct} pageTitle={pageTitle} />;
 }

@@ -14,6 +14,7 @@ import { CardModern } from '@/components/ui/card-modern';
 import { Form } from '@/components/ui/form';
 import { createClient } from '@/lib/supabase/client';
 import { zodResolver } from '@hookform/resolvers/zod';
+import type { Resolver } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -27,7 +28,7 @@ const ACCEPTED_IMAGE_TYPES = [
   'image/webp'
 ];
 
-// ✅ korrigiertes Schema mit typisiertem File[]
+// ✅ sauberes Schema mit File[]
 const formSchema = z.object({
   artikelnummer: z.coerce
     .number()
@@ -66,8 +67,9 @@ export default function ProductForm({
   const supabase = createClient();
   const router = useRouter();
 
+  // ✅ Resolver mit Typ-Cast für volle TS-Kompatibilität
   const form = useForm<ProductFormValues>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(formSchema) as unknown as Resolver<ProductFormValues>,
     defaultValues: {
       artikelnummer: initialData?.artikelnummer ?? 0,
       name: initialData?.name ?? '',

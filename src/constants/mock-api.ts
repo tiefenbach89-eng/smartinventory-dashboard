@@ -8,7 +8,7 @@ import { matchSorter } from 'match-sorter'; // For filtering
 export const delay = (ms: number) =>
   new Promise((resolve) => setTimeout(resolve, ms));
 
-// Define the shape of Product data
+// ✅ Der Typ wird hier exportiert, damit du ihn in anderen Dateien nutzen kannst
 export type Product = {
   photo_url: string;
   name: string;
@@ -20,13 +20,14 @@ export type Product = {
   updated_at: string;
 };
 
-// Mock product data store
+// ✅ Fake-Produkt-Datenbank
 export const fakeProducts = {
   records: [] as Product[], // Holds the list of product objects
 
-  // Initialize with sample data
+  // Initialisierung
   initialize() {
     const sampleProducts: Product[] = [];
+
     function generateRandomProductData(id: number): Product {
       const categories = [
         'Electronics',
@@ -53,7 +54,7 @@ export const fakeProducts = {
       };
     }
 
-    // Generate remaining records
+    // Generiere Beispiel-Daten
     for (let i = 1; i <= 20; i++) {
       sampleProducts.push(generateRandomProductData(i));
     }
@@ -61,7 +62,7 @@ export const fakeProducts = {
     this.records = sampleProducts;
   },
 
-  // Get all products with optional category filtering and search
+  // Alle Produkte abrufen
   async getAll({
     categories = [],
     search
@@ -71,14 +72,12 @@ export const fakeProducts = {
   }) {
     let products = [...this.records];
 
-    // Filter products based on selected categories
     if (categories.length > 0) {
       products = products.filter((product) =>
         categories.includes(product.category)
       );
     }
 
-    // Search functionality across multiple fields
     if (search) {
       products = matchSorter(products, search, {
         keys: ['name', 'description', 'category']
@@ -88,50 +87,9 @@ export const fakeProducts = {
     return products;
   },
 
-  // Get paginated results with optional category filtering and search
-  async getProducts({
-    page = 1,
-    limit = 10,
-    categories,
-    search
-  }: {
-    page?: number;
-    limit?: number;
-    categories?: string;
-    search?: string;
-  }) {
-    await delay(1000);
-    const categoriesArray = categories ? categories.split('.') : [];
-    const allProducts = await this.getAll({
-      categories: categoriesArray,
-      search
-    });
-    const totalProducts = allProducts.length;
-
-    // Pagination logic
-    const offset = (page - 1) * limit;
-    const paginatedProducts = allProducts.slice(offset, offset + limit);
-
-    // Mock current time
-    const currentTime = new Date().toISOString();
-
-    // Return paginated response
-    return {
-      success: true,
-      time: currentTime,
-      message: 'Sample data for testing and learning purposes',
-      total_products: totalProducts,
-      offset,
-      limit,
-      products: paginatedProducts
-    };
-  },
-
-  // Get a specific product by its ID
+  // Einzelnes Produkt abrufen
   async getProductById(id: number) {
-    await delay(1000); // Simulate a delay
-
-    // Find the product by its ID
+    await delay(1000); // Simuliere Ladezeit
     const product = this.records.find((product) => product.id === id);
 
     if (!product) {
@@ -141,17 +99,14 @@ export const fakeProducts = {
       };
     }
 
-    // Mock current time
-    const currentTime = new Date().toISOString();
-
     return {
       success: true,
-      time: currentTime,
+      product,
       message: `Product with ID ${id} found`,
-      product
+      time: new Date().toISOString()
     };
   }
 };
 
-// Initialize sample products
+// Direkt initialisieren
 fakeProducts.initialize();

@@ -9,7 +9,7 @@ import { createClient as createServerClient } from '@/lib/supabase/server'; // d
 export async function POST() {
   try {
     // ✅ 1️⃣ Server-Client mit Session
-    const supabase = createServerClient();
+    const supabase = await createServerClient();
 
     // ✅ 2️⃣ Aktuellen User holen
     const {
