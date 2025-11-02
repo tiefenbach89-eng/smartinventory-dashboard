@@ -10,7 +10,7 @@ import {
   CardContent,
   CardDescription
 } from '@/components/ui/card';
-import { CardModern } from '@/components/ui/card-modern'; // ✅ modernes Design
+import { CardModern } from '@/components/ui/card-modern';
 import { Form } from '@/components/ui/form';
 import { createClient } from '@/lib/supabase/client';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -27,6 +27,7 @@ const ACCEPTED_IMAGE_TYPES = [
   'image/webp'
 ];
 
+// ✅ korrigiertes Schema mit typisiertem File[]
 const formSchema = z.object({
   artikelnummer: z.coerce
     .number()
@@ -41,7 +42,7 @@ const formSchema = z.object({
   minStock: z.coerce.number().min(1, { message: 'Minimum stock is required.' }),
   description: z.string().optional(),
   image: z
-    .any()
+    .custom<File[]>()
     .refine((files) => files?.length === 1, 'Please upload one image.')
     .refine(
       (files) => files?.[0]?.size <= MAX_FILE_SIZE,
