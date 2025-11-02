@@ -60,7 +60,6 @@ export function BarGraph() {
   React.useEffect(() => {
     const fetchData = async () => {
       try {
-        // 1️⃣ Bewegungsdaten abrufen
         const { data: logs, error: logError } = await supabase
           .from('artikel_log')
           .select('timestamp, aktion, menge_diff')
@@ -68,7 +67,6 @@ export function BarGraph() {
 
         if (logError) throw logError;
 
-        // 2️⃣ Artikel abrufen
         const { data: artikel, error: artikelError } = await supabase
           .from('artikel')
           .select(
@@ -77,13 +75,11 @@ export function BarGraph() {
 
         if (artikelError) throw artikelError;
 
-        // 3️⃣ Niedrigen Bestand prüfen
         const lowStock = artikel.filter(
           (a) => (a.bestand ?? 0) < (a.sollbestand ?? 0)
         );
         const lowCount = lowStock.length;
 
-        // 4️⃣ Bewegungsdaten gruppieren (neu: kompatibel zu alten & neuen Logs)
         const grouped: Record<string, { added: number; removed: number }> = {};
 
         logs.forEach((entry) => {
@@ -91,21 +87,18 @@ export function BarGraph() {
           const key = d.toISOString().split('T')[0];
           if (!grouped[key]) grouped[key] = { added: 0, removed: 0 };
 
-          // 🔄 Alte & neue Aktionen berücksichtigen
           if (['zubuchung', 'addition', 'added'].includes(entry.aktion))
             grouped[key].added += Math.abs(entry.menge_diff || 0);
           else if (['ausbuchung', 'removal', 'removed'].includes(entry.aktion))
             grouped[key].removed += Math.abs(entry.menge_diff || 0);
         });
 
-        // 5️⃣ Formatierung für Chart
         const formatted = Object.entries(grouped).map(([date, values]) => ({
           date,
           added: values.added,
           removed: values.removed
         }));
 
-        // 6️⃣ State aktualisieren
         setChartData(formatted);
         setLowStockItems(lowStock);
         setTotals({
@@ -127,7 +120,7 @@ export function BarGraph() {
   return (
     <>
       {/* Hauptkarte */}
-      <Card className='@container/card min-h-[496px]'>
+      <Card className='flex h-full flex-col'>
         <CardHeader className='flex flex-col items-stretch space-y-0 border-b !p-0 sm:flex-row'>
           <div className='flex flex-1 flex-col justify-center gap-1 px-6 !py-0'>
             <CardTitle>Stock Overview - Interactive</CardTitle>
@@ -162,7 +155,7 @@ export function BarGraph() {
           </div>
         </CardHeader>
 
-        <CardContent className='px-2 pt-4 sm:px-6 sm:pt-6'>
+        <CardContent className='flex-1 px-2 pt-4 sm:px-6 sm:pt-6'>
           <ChartContainer
             config={chartConfig}
             className='aspect-auto h-[250px] w-full'

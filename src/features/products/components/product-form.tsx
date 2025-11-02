@@ -4,7 +4,13 @@ import { FormFileUpload } from '@/components/forms/form-file-upload';
 import { FormInput } from '@/components/forms/form-input';
 import { FormTextarea } from '@/components/forms/form-textarea';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardDescription
+} from '@/components/ui/card';
+import { CardModern } from '@/components/ui/card-modern'; // ✅ modernes Design
 import { Form } from '@/components/ui/form';
 import { createClient } from '@/lib/supabase/client';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -53,7 +59,7 @@ export default function ProductForm({
   initialData,
   pageTitle = 'List New Product'
 }: {
-  initialData: Partial<ProductFormValues> | null;
+  initialData: Partial<ProductFormValues>;
   pageTitle?: string;
 }) {
   const supabase = createClient();
@@ -62,11 +68,11 @@ export default function ProductForm({
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      artikelnummer: initialData?.artikelnummer ?? undefined,
+      artikelnummer: initialData?.artikelnummer ?? 0,
       name: initialData?.name ?? '',
       supplier: initialData?.supplier ?? '',
-      price: initialData?.price ?? undefined,
-      minStock: initialData?.minStock ?? undefined,
+      price: initialData?.price ?? 0,
+      minStock: initialData?.minStock ?? 0,
       description: initialData?.description ?? '',
       image: []
     }
@@ -109,84 +115,79 @@ export default function ProductForm({
   }
 
   return (
-    <Card className='mx-auto w-full'>
-      <CardHeader>
-        <CardTitle className='text-left text-2xl font-bold'>
-          {pageTitle}
-        </CardTitle>
-      </CardHeader>
+    <div className='w-full px-6 py-10'>
+      <CardModern className='border-border/40 from-primary/10 via-card/70 to-background/30 hover:border-primary/40 hover:shadow-primary/20 w-full transform-none space-y-8 border bg-gradient-to-b p-8 shadow-sm backdrop-blur-sm transition-all duration-300 hover:transform-none hover:shadow-lg'>
+        <CardHeader>
+          <CardTitle className='text-2xl font-semibold'>{pageTitle}</CardTitle>
+          <CardDescription className='text-muted-foreground mt-1 text-sm'>
+            Fill out the product details below.
+          </CardDescription>
+        </CardHeader>
 
-      <CardContent>
-        <Form form={form} onSubmit={onSubmit} className='space-y-8'>
-          {/* Produktbild Upload */}
-          <FormFileUpload
-            control={form.control}
-            name='image'
-            label='Product Image'
-            description='Upload a product image'
-            config={{ maxSize: MAX_FILE_SIZE, maxFiles: 1 }}
-            required
-          />
+        <CardContent>
+          <Form form={form} onSubmit={onSubmit} className='space-y-8'>
+            <FormFileUpload
+              control={form.control}
+              name='image'
+              label='Product Image'
+              description='Upload a product image'
+              config={{ maxSize: MAX_FILE_SIZE, maxFiles: 1 }}
+              required
+            />
 
-          {/* Grid Inputs */}
-          <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
-            <FormInput
-              control={form.control}
-              name='artikelnummer'
-              label='Article Number'
-              placeholder='Enter article number'
-              type='number'
-              min={1}
-              required
-            />
-            <FormInput
-              control={form.control}
-              name='name'
-              label='Product Name'
-              placeholder='Enter product name'
-              required
-            />
-            <FormInput
-              control={form.control}
-              name='supplier'
-              label='Supplier'
-              placeholder='Enter supplier name'
-              required
-            />
-            <FormInput
-              control={form.control}
-              name='price'
-              label='Price (€)'
-              placeholder='Enter price'
-              type='number'
-              step='0.01'
-              required
-            />
-            <FormInput
-              control={form.control}
-              name='minStock'
-              label='Minimum Stock'
-              placeholder='Enter minimum stock'
-              type='number'
-              min={1}
-              required
-            />
-          </div>
+            <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
+              <FormInput
+                control={form.control}
+                name='artikelnummer'
+                label='Article Number'
+                type='number'
+                min={1}
+                required
+              />
+              <FormInput
+                control={form.control}
+                name='name'
+                label='Product Name'
+                required
+              />
+              <FormInput
+                control={form.control}
+                name='supplier'
+                label='Supplier'
+                required
+              />
+              <FormInput
+                control={form.control}
+                name='price'
+                label='Price (€)'
+                type='number'
+                step='0.01'
+                required
+              />
+              <FormInput
+                control={form.control}
+                name='minStock'
+                label='Minimum Stock'
+                type='number'
+                min={1}
+                required
+              />
+            </div>
 
-          {/* Beschreibung */}
-          <FormTextarea
-            control={form.control}
-            name='description'
-            label='Description'
-            placeholder='Enter product description'
-            config={{ maxLength: 500, showCharCount: true, rows: 4 }}
-          />
+            <FormTextarea
+              control={form.control}
+              name='description'
+              label='Description'
+              placeholder='Enter product description'
+              config={{ maxLength: 500, showCharCount: true, rows: 4 }}
+            />
 
-          <Button type='submit' className='w-full md:w-auto'>
-            List Product
-          </Button>
-        </Form>
-      </CardContent>
-    </Card>
+            <Button type='submit' className='w-full md:w-auto'>
+              {pageTitle.includes('Edit') ? 'Save Changes' : 'List Product'}
+            </Button>
+          </Form>
+        </CardContent>
+      </CardModern>
+    </div>
   );
 }

@@ -157,7 +157,7 @@ export default function SignInPage() {
             “SmartInventory keeps our warehouse data accurate and organized.”
           </p>
           <footer className='text-muted-foreground text-sm'>
-            — Alexander Tiefenbach
+            — SmartInventory
           </footer>
         </blockquote>
       </div>

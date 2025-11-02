@@ -1,9 +1,9 @@
-'use client'
+'use client';
 
-import * as React from 'react'
-import { IconTrendingUp } from '@tabler/icons-react'
-import { Label, Pie, PieChart } from 'recharts'
-import { createClient } from '@/lib/supabase/client'
+import * as React from 'react';
+import { IconTrendingUp } from '@tabler/icons-react';
+import { Label, Pie, PieChart } from 'recharts';
+import { createClient } from '@/lib/supabase/client';
 
 import {
   Card,
@@ -11,97 +11,97 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+  CardTitle
+} from '@/components/ui/card';
 import {
-  ChartConfig,
   ChartContainer,
   ChartTooltip,
-  ChartTooltipContent,
-} from '@/components/ui/chart'
-import { toast } from 'sonner'
-import { Loader2 } from 'lucide-react'
+  ChartTooltipContent
+} from '@/components/ui/chart';
+import { toast } from 'sonner';
+import { Loader2 } from 'lucide-react';
 
 type SupplierData = {
-  supplier: string
-  value: number
-  fill?: string
-}
+  supplier: string;
+  value: number;
+  fill?: string;
+};
 
 export function PieGraph() {
-  const supabase = createClient()
-  const [chartData, setChartData] = React.useState<SupplierData[]>([])
-  const [loading, setLoading] = React.useState(true)
+  const supabase = createClient();
+  const [chartData, setChartData] = React.useState<SupplierData[]>([]);
+  const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
     const fetchData = async () => {
       try {
-        setLoading(true)
+        setLoading(true);
         const { data, error } = await supabase
           .from('artikel')
-          .select('lieferant, preis, bestand')
+          .select('lieferant, preis, bestand');
 
-        if (error) throw error
+        if (error) throw error;
 
-        const grouped: Record<string, number> = {}
+        const grouped: Record<string, number> = {};
         data?.forEach((row) => {
-          const name = (row.lieferant ?? 'Unknown Supplier').trim()
-          const value = (Number(row.preis) || 0) * (Number(row.bestand) || 0)
-          grouped[name] = (grouped[name] || 0) + value
-        })
+          const name = (row.lieferant ?? 'Unknown Supplier').trim();
+          const value = (Number(row.preis) || 0) * (Number(row.bestand) || 0);
+          grouped[name] = (grouped[name] || 0) + value;
+        });
 
-        // Sortiere nach Lagerwert und nimm die Top 5 Lieferanten
         const formatted = Object.entries(grouped)
           .sort((a, b) => b[1] - a[1])
           .slice(0, 5)
           .map(([supplier, value], index) => ({
             supplier,
             value,
-            fill: `url(#fill${index})`,
-          }))
+            fill: `url(#fill${index})`
+          }));
 
-        setChartData(formatted)
+        setChartData(formatted);
       } catch (err: any) {
-        console.error('❌ PieChart error:', err)
-        toast.error('Failed to load supplier distribution.')
+        console.error('❌ PieChart error:', err);
+        toast.error('Failed to load supplier distribution.');
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchData()
-  }, [supabase])
+    fetchData();
+  }, [supabase]);
 
-  const totalValue = React.useMemo(() => {
-    return chartData.reduce((acc, curr) => acc + curr.value, 0)
-  }, [chartData])
+  const totalValue = React.useMemo(
+    () => chartData.reduce((acc, curr) => acc + curr.value, 0),
+    [chartData]
+  );
 
   if (loading) {
     return (
-      <Card className="@container/card flex items-center justify-center h-[300px]">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      <Card className='flex h-full items-center justify-center'>
+        <Loader2 className='text-muted-foreground h-6 w-6 animate-spin' />
       </Card>
-    )
+    );
   }
 
   return (
-    <Card className="@container/card">
+    <Card className='flex h-full flex-col'>
       <CardHeader>
         <CardTitle>Supplier Distribution</CardTitle>
         <CardDescription>
-          <span className="hidden @[540px]/card:block">
+          <span className='hidden @[540px]/card:block'>
             Total inventory value per supplier
           </span>
-          <span className="@[540px]/card:hidden">Supplier share</span>
+          <span className='@[540px]/card:hidden'>Supplier share</span>
         </CardDescription>
       </CardHeader>
 
-      <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
+      {/* Der Hauptbereich dehnt sich vollständig, auch bei leerem Inhalt */}
+      <CardContent className='flex flex-1 items-center justify-center px-2 pt-4 sm:px-6 sm:pt-6'>
         <ChartContainer
           config={{
-            value: { label: 'Value (€)' },
+            value: { label: 'Value (€)' }
           }}
-          className="mx-auto aspect-square h-[250px]"
+          className='mx-auto aspect-square h-[250px]'
         >
           <PieChart>
             <defs>
@@ -109,19 +109,19 @@ export function PieGraph() {
                 <linearGradient
                   key={index}
                   id={`fill${index}`}
-                  x1="0"
-                  y1="0"
-                  x2="0"
-                  y2="1"
+                  x1='0'
+                  y1='0'
+                  x2='0'
+                  y2='1'
                 >
                   <stop
-                    offset="0%"
-                    stopColor="var(--primary)"
+                    offset='0%'
+                    stopColor='var(--primary)'
                     stopOpacity={1 - index * 0.15}
                   />
                   <stop
-                    offset="100%"
-                    stopColor="var(--primary)"
+                    offset='100%'
+                    stopColor='var(--primary)'
                     stopOpacity={0.8 - index * 0.15}
                   />
                 </linearGradient>
@@ -135,11 +135,11 @@ export function PieGraph() {
 
             <Pie
               data={chartData}
-              dataKey="value"
-              nameKey="supplier"
+              dataKey='value'
+              nameKey='supplier'
               innerRadius={60}
               strokeWidth={2}
-              stroke="var(--background)"
+              stroke='var(--background)'
             >
               <Label
                 content={({ viewBox }) => {
@@ -148,25 +148,25 @@ export function PieGraph() {
                       <text
                         x={viewBox.cx}
                         y={viewBox.cy}
-                        textAnchor="middle"
-                        dominantBaseline="middle"
+                        textAnchor='middle'
+                        dominantBaseline='middle'
                       >
                         <tspan
                           x={viewBox.cx}
                           y={viewBox.cy}
-                          className="fill-foreground text-3xl font-bold"
+                          className='fill-foreground text-3xl font-bold'
                         >
                           {Math.round(totalValue).toLocaleString()} €
                         </tspan>
                         <tspan
                           x={viewBox.cx}
                           y={(viewBox.cy || 0) + 24}
-                          className="fill-muted-foreground text-sm"
+                          className='fill-muted-foreground text-sm'
                         >
                           Total Value
                         </tspan>
                       </text>
-                    )
+                    );
                   }
                 }}
               />
@@ -175,18 +175,18 @@ export function PieGraph() {
         </ChartContainer>
       </CardContent>
 
-      <CardFooter className="flex-col gap-2 text-sm">
+      <CardFooter className='flex-col gap-2 text-sm'>
         {chartData.length > 0 && (
-          <div className="flex items-center gap-2 leading-none font-medium">
+          <div className='flex items-center gap-2 leading-none font-medium'>
             {chartData[0].supplier} leads with{' '}
-            {((chartData[0].value / totalValue) * 100).toFixed(1)}%{' '}
-            <IconTrendingUp className="h-4 w-4" />
+            {((chartData[0].value / totalValue) * 100).toFixed(1)} %{' '}
+            <IconTrendingUp className='h-4 w-4' />
           </div>
         )}
-        <div className="text-muted-foreground leading-none">
+        <div className='text-muted-foreground leading-none'>
           Based on current inventory data
         </div>
       </CardFooter>
     </Card>
-  )
+  );
 }

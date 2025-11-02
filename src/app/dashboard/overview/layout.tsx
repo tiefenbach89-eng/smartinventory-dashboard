@@ -34,7 +34,6 @@ export default function OverViewLayout({
   const supabase = createClient();
   const user = useUser();
 
-  // 🧠 States für KPIs
   const [productCount, setProductCount] = useState(0);
   const [totalStock, setTotalStock] = useState(0);
   const [totalWithdrawals, setTotalWithdrawals] = useState(0);
@@ -42,29 +41,27 @@ export default function OverViewLayout({
   const [activeUser, setActiveUser] = useState<string | null>(null);
   const [activeUserCount, setActiveUserCount] = useState(0);
 
-  // 📦 KPI-Daten laden
   useEffect(() => {
     async function fetchData() {
       try {
-        const { data: artikel, error: artikelError } = await supabase
+        const { data: artikel } = await supabase
           .from('artikel')
           .select('bestand');
-
-        if (artikelError) throw artikelError;
-        setProductCount(artikel.length);
-        setTotalStock(artikel.reduce((sum, a) => sum + (a.bestand || 0), 0));
+        setProductCount(artikel?.length || 0);
+        setTotalStock(
+          artikel?.reduce((sum, a) => sum + (a.bestand || 0), 0) || 0
+        );
 
         const since = new Date(
           Date.now() - 30 * 24 * 60 * 60 * 1000
         ).toISOString();
 
-        const { data: withdrawals, error: withdrawalsError } = await supabase
+        const { data: withdrawals } = await supabase
           .from('artikel_log')
           .select('menge_diff')
           .lt('menge_diff', 0)
           .gte('timestamp', since);
 
-        if (withdrawalsError) throw withdrawalsError;
         setTotalWithdrawals(
           withdrawals?.reduce(
             (sum, w) => sum + Math.abs(w.menge_diff || 0),
@@ -72,23 +69,21 @@ export default function OverViewLayout({
           ) || 0
         );
 
-        const { data: additions, error: additionsError } = await supabase
+        const { data: additions } = await supabase
           .from('artikel_log')
           .select('menge_diff')
           .gt('menge_diff', 0)
           .gte('timestamp', since);
 
-        if (additionsError) throw additionsError;
         setTotalAdded(
           additions?.reduce((sum, a) => sum + (a.menge_diff || 0), 0) || 0
         );
 
-        const { data: userActivity, error: userError } = await supabase
+        const { data: userActivity } = await supabase
           .from('artikel_log')
           .select('benutzer')
           .gte('timestamp', since);
 
-        if (userError) throw userError;
         if (userActivity && userActivity.length > 0) {
           const counts: Record<string, number> = {};
           for (const log of userActivity) {
@@ -109,7 +104,6 @@ export default function OverViewLayout({
     fetchData();
   }, [supabase]);
 
-  // 🧑‍💼 Nutzername zusammensetzen
   const firstName = user?.user_metadata?.first_name || '';
   const lastName = user?.user_metadata?.last_name || '';
   const displayName =
@@ -119,117 +113,87 @@ export default function OverViewLayout({
 
   return (
     <PageContainer>
-      <div className='flex flex-1 flex-col space-y-2'>
-        {/* 👋 Begrüßung */}
-        <div className='flex items-center justify-between space-y-2'>
+      <div className='flex flex-1 flex-col space-y-6'>
+        {/* 👋 Greeting */}
+        <div className='flex items-center justify-between'>
           <h2 className='text-2xl font-bold tracking-tight'>
-            Hi, {displayName} 👋
+            Hi, {displayName}
           </h2>
         </div>
 
-        {/* 📦 KPI CARDS */}
-        <div className='*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs md:grid-cols-2 lg:grid-cols-4'>
-          {/* 1️⃣ Total Products & Stock */}
-          <Card className='@container/card'>
-            <CardHeader>
-              <CardDescription>Total Products & Stock</CardDescription>
-              <CardTitle className='text-2xl font-semibold @[250px]/card:text-3xl'>
-                {productCount} Products / {totalStock} Units
-              </CardTitle>
-              <CardAction>
-                <Badge variant='outline'>
-                  <IconPackage className='mr-1' />
-                  OK
-                </Badge>
-              </CardAction>
-            </CardHeader>
-            <CardFooter className='flex-col items-start gap-1.5 text-sm'>
-              <div className='font-medium'>
-                Current active SKUs and total quantity
-              </div>
-              <div className='text-muted-foreground'>
-                Pulled live from artikel table
-              </div>
-            </CardFooter>
-          </Card>
-
-          {/* 2️⃣ Total Withdrawals */}
-          <Card className='@container/card'>
-            <CardHeader>
-              <CardDescription>Total Withdrawals (30d)</CardDescription>
-              <CardTitle className='text-2xl font-semibold @[250px]/card:text-3xl'>
-                {totalWithdrawals} pcs removed
-              </CardTitle>
-              <CardAction>
-                <Badge variant='outline'>
-                  <IconArrowDown className='mr-1' />
-                  30d
-                </Badge>
-              </CardAction>
-            </CardHeader>
-            <CardFooter className='flex-col items-start gap-1.5 text-sm'>
-              <div className='font-medium'>
-                Items withdrawn in the last 30 days
-              </div>
-              <div className='text-muted-foreground'>
-                Based on artikel_log movements
-              </div>
-            </CardFooter>
-          </Card>
-
-          {/* 3️⃣ Total Added */}
-          <Card className='@container/card'>
-            <CardHeader>
-              <CardDescription>Total Added (30d)</CardDescription>
-              <CardTitle className='text-2xl font-semibold @[250px]/card:text-3xl'>
-                {totalAdded} pcs added
-              </CardTitle>
-              <CardAction>
-                <Badge variant='outline'>
-                  <IconArrowUp className='mr-1' />
-                  30d
-                </Badge>
-              </CardAction>
-            </CardHeader>
-            <CardFooter className='flex-col items-start gap-1.5 text-sm'>
-              <div className='font-medium'>
-                Items restocked in the last 30 days
-              </div>
-              <div className='text-muted-foreground'>
-                Based on artikel_log additions
-              </div>
-            </CardFooter>
-          </Card>
-
-          {/* 4️⃣ Most Active User */}
-          <Card className='@container/card'>
-            <CardHeader>
-              <CardDescription>Most Active User (30d)</CardDescription>
-              <CardTitle className='text-2xl font-semibold @[250px]/card:text-3xl'>
-                {activeUser ? activeUser : '—'}
-              </CardTitle>
-              <CardAction>
-                <Badge variant='outline'>
-                  <IconUser className='mr-1' />
-                  {activeUserCount} actions
-                </Badge>
-              </CardAction>
-            </CardHeader>
-            <CardFooter className='flex-col items-start gap-1.5 text-sm'>
-              <div className='font-medium'>Top user by logged movements</div>
-              <div className='text-muted-foreground'>
-                Tracks 30-day user activity
-              </div>
-            </CardFooter>
-          </Card>
+        {/* 🟡 KPI Cards */}
+        <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4'>
+          {[
+            {
+              title: 'Total Products & Stock',
+              value: `${productCount} Products / ${totalStock} Units`,
+              desc: 'Current active SKUs and total quantity',
+              sub: 'Pulled live from artikel table',
+              icon: <IconPackage className='mr-1' />,
+              badge: 'OK'
+            },
+            {
+              title: 'Total Withdrawals (30d)',
+              value: `${totalWithdrawals} pcs removed`,
+              desc: 'Items withdrawn in the last 30 days',
+              sub: 'Based on artikel_log movements',
+              icon: <IconArrowDown className='mr-1' />,
+              badge: '30d'
+            },
+            {
+              title: 'Total Added (30d)',
+              value: `${totalAdded} pcs added`,
+              desc: 'Items restocked in the last 30 days',
+              sub: 'Based on artikel_log additions',
+              icon: <IconArrowUp className='mr-1' />,
+              badge: '30d'
+            },
+            {
+              title: 'Most Active User (30d)',
+              value: activeUser || '—',
+              desc: 'Top user by logged movements',
+              sub: 'Tracks 30-day user activity',
+              icon: <IconUser className='mr-1' />,
+              badge: `${activeUserCount} actions`
+            }
+          ].map((kpi, i) => (
+            <Card
+              key={i}
+              className='border-border/40 from-primary/10 via-card/70 to-background/30 hover:border-primary/40 hover:shadow-primary/20 rounded-2xl border bg-gradient-to-b shadow-md backdrop-blur-sm transition-all duration-300 hover:shadow-lg'
+            >
+              <CardHeader>
+                <CardDescription>{kpi.title}</CardDescription>
+                <CardTitle className='text-2xl font-semibold'>
+                  {kpi.value}
+                </CardTitle>
+                <CardAction>
+                  <Badge
+                    variant='outline'
+                    className='border-primary text-primary flex items-center'
+                  >
+                    {kpi.icon}
+                    {kpi.badge}
+                  </Badge>
+                </CardAction>
+              </CardHeader>
+              <CardFooter className='flex-col items-start gap-1.5 text-sm'>
+                <div className='font-medium'>{kpi.desc}</div>
+                <div className='text-muted-foreground'>{kpi.sub}</div>
+              </CardFooter>
+            </Card>
+          ))}
         </div>
 
         {/* 📊 Charts */}
-        <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-7'>
-          <div className='col-span-4'>{bar_stats}</div>
-          <div className='col-span-4 md:col-span-3'>{sales}</div>
-          <div className='col-span-4'>{area_stats}</div>
-          <div className='col-span-4 md:col-span-3'>{pie_stats}</div>
+        <div className='grid grid-cols-1 items-stretch gap-6 md:grid-cols-2'>
+          {[bar_stats, sales, area_stats, pie_stats].map((chart, i) => (
+            <div
+              key={i}
+              className='border-border/40 from-primary/10 via-card/70 to-background/30 hover:border-primary/40 hover:shadow-primary/20 flex h-full min-h-[420px] flex-col rounded-2xl border bg-gradient-to-b shadow-md backdrop-blur-sm transition-all duration-300 hover:shadow-lg'
+            >
+              {chart}
+            </div>
+          ))}
         </div>
       </div>
     </PageContainer>

@@ -207,7 +207,7 @@ export default function SignUpPage() {
             today.”
           </p>
           <footer className='text-muted-foreground text-sm'>
-            — Alexander Tiefenbach
+            — SmartInventory
           </footer>
         </blockquote>
       </div>

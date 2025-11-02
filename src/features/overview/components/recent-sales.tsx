@@ -157,7 +157,8 @@ export function RecentSales() {
 
   return (
     <>
-      <Card className='col-span-4 md:col-span-4'>
+      {/* 🧾 Top & Slow Movers Card */}
+      <Card className='flex h-full flex-col'>
         <CardHeader>
           <CardTitle>Top & Slow Movers (30 Days)</CardTitle>
           <CardDescription>
@@ -165,9 +166,9 @@ export function RecentSales() {
           </CardDescription>
         </CardHeader>
 
-        <CardContent>
+        <CardContent className='flex-1 overflow-y-auto'>
           {loading ? (
-            <div className='flex justify-center py-6'>
+            <div className='flex h-full items-center justify-center'>
               <Loader2 className='text-muted-foreground h-6 w-6 animate-spin' />
             </div>
           ) : (

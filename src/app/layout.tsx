@@ -1,3 +1,4 @@
+import { AppVersionGuard } from '@/components/system/AppVersionGuard';
 import Providers from '@/components/layout/providers';
 import { Toaster } from '@/components/ui/sonner';
 import { fontVariables } from '@/lib/font';
@@ -73,6 +74,9 @@ export default async function RootLayout({
             disableTransitionOnChange
             enableColorScheme
           >
+            {/* 🧩 Automatischer Versions-Check */}
+            <AppVersionGuard />
+
             <Providers activeThemeValue={activeThemeValue as string}>
               <Toaster />
               {children}

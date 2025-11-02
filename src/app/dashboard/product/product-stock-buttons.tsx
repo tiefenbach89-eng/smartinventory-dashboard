@@ -1,7 +1,7 @@
 'use client';
-// ✨ Trigger Vercel Deploy: 26.10.25 – responsive table fix
+
 import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -22,8 +22,8 @@ import {
 } from '@/components/ui/select';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { buttonVariants } from '@/components/ui/button';
 import { IconPlus, IconMinus } from '@tabler/icons-react';
+import { useRolePermissions } from '@/hooks/useRolePermissions';
 
 const supabase = createClient();
 
@@ -48,10 +48,18 @@ export default function ProductStockButtons() {
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<any>(null);
 
+  // 🔒 Berechtigungen laden
+  const { permissions, loading: loadingPerms } = useRolePermissions();
+  const canAdd = permissions?.can_add_stock;
+  const canRemove = permissions?.can_remove_stock;
+  const canList = permissions?.can_list_products;
+
+  // 👤 Aktuellen User holen
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setUser(data?.user ?? null));
   }, []);
 
+  // 📦 Produkte laden
   useEffect(() => {
     supabase
       .from('artikel')
@@ -66,7 +74,7 @@ export default function ProductStockButtons() {
     (p) => String(p.artikelnummer) === selectedProduct
   );
 
-  const handleStockChange = async (type: 'add' | 'remove') => {
+  async function handleStockChange(type: 'add' | 'remove') {
     try {
       setLoading(true);
       if (!selectedProduct) throw new Error('Please select a product.');
@@ -125,38 +133,58 @@ export default function ProductStockButtons() {
     } catch (err: any) {
       toast.error(err.message);
     } finally {
-      toast.dismiss();
       setLoading(false);
     }
-  };
+  }
 
+  // 🔹 Blur-Styling & Button Group
   return (
-    <div className='flex gap-2'>
+    <div className='flex gap-3'>
+      {/* ➕ Add Stock */}
       <Button
         onClick={() => setOpenAdd(true)}
         variant='outline'
-        className='border-border text-foreground hover:bg-muted bg-transparent'
+        disabled={!canAdd}
+        className={cn(
+          'border-border text-foreground transition-all duration-500',
+          canAdd
+            ? 'hover:border-green-400 hover:bg-green-500/10 hover:text-green-400'
+            : 'pointer-events-none opacity-40 blur-[1px]'
+        )}
       >
         <IconPlus className='mr-2 h-4 w-4' /> Add Stock
       </Button>
+
+      {/* ➖ Remove Stock */}
       <Button
         onClick={() => setOpenRemove(true)}
         variant='outline'
-        className='border-border text-foreground hover:bg-muted bg-transparent'
+        disabled={!canRemove}
+        className={cn(
+          'border-border text-foreground transition-all duration-500',
+          canRemove
+            ? 'hover:border-red-400 hover:bg-red-500/10 hover:text-red-400'
+            : 'pointer-events-none opacity-40 blur-[1px]'
+        )}
       >
         <IconMinus className='mr-2 h-4 w-4' /> Remove Stock
       </Button>
+
+      {/* 🧾 List Product */}
       <Link
         href='/dashboard/product/new'
         className={cn(
           buttonVariants({ variant: 'outline' }),
-          'border-border text-foreground hover:bg-muted bg-transparent text-xs md:text-sm'
+          'border-border text-foreground transition-all duration-500',
+          canList
+            ? 'hover:border-amber-400 hover:bg-amber-400/10 hover:text-amber-400'
+            : 'pointer-events-none opacity-40 blur-[1px]'
         )}
       >
         <IconPlus className='mr-2 h-4 w-4' /> List Product
       </Link>
 
-      {/* Add Stock Dialog */}
+      {/* ➕ Add Stock Dialog */}
       <Dialog open={openAdd} onOpenChange={setOpenAdd}>
         <DialogContent className='max-w-md sm:max-w-lg'>
           <DialogHeader>
@@ -166,6 +194,7 @@ export default function ProductStockButtons() {
             </DialogDescription>
           </DialogHeader>
 
+          {/* Produkt Auswahl */}
           <Select value={selectedProduct} onValueChange={setSelectedProduct}>
             <SelectTrigger>
               <SelectValue placeholder='Select Product' />
@@ -182,16 +211,18 @@ export default function ProductStockButtons() {
             </SelectContent>
           </Select>
 
+          {/* Produktbild */}
           {selected?.image_url && (
             <div className='flex justify-center'>
               <img
                 src={selected.image_url}
                 alt={selected.artikelbezeichnung}
-                className='mt-2 mb-4 max-h-48 rounded-md border object-contain'
+                className='border-border/40 mt-2 mb-4 h-32 w-32 rounded-md border object-cover shadow-sm'
               />
             </div>
           )}
 
+          {/* Formularfelder */}
           <div className='grid grid-cols-1 gap-4'>
             <div>
               <label className='text-sm font-medium'>Quantity</label>
@@ -231,14 +262,18 @@ export default function ProductStockButtons() {
           </div>
 
           <div className='flex justify-end'>
-            <Button onClick={() => handleStockChange('add')} disabled={loading}>
+            <Button
+              onClick={() => handleStockChange('add')}
+              disabled={loading}
+              className='bg-primary text-primary-foreground hover:bg-primary/90 mt-2 transition-all'
+            >
               {loading ? 'Saving...' : 'Save'}
             </Button>
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* Remove Stock Dialog */}
+      {/* ➖ Remove Stock Dialog */}
       <Dialog open={openRemove} onOpenChange={setOpenRemove}>
         <DialogContent className='max-w-md sm:max-w-lg'>
           <DialogHeader>
@@ -248,6 +283,7 @@ export default function ProductStockButtons() {
             </DialogDescription>
           </DialogHeader>
 
+          {/* Produkt Auswahl */}
           <Select value={selectedProduct} onValueChange={setSelectedProduct}>
             <SelectTrigger>
               <SelectValue placeholder='Select Product' />
@@ -264,16 +300,18 @@ export default function ProductStockButtons() {
             </SelectContent>
           </Select>
 
+          {/* Produktbild */}
           {selected?.image_url && (
             <div className='flex justify-center'>
               <img
                 src={selected.image_url}
                 alt={selected.artikelbezeichnung}
-                className='mt-2 mb-4 max-h-48 rounded-md border object-contain'
+                className='border-border/40 mt-2 mb-4 h-32 w-32 rounded-md border object-cover shadow-sm'
               />
             </div>
           )}
 
+          {/* Formular */}
           <div className='grid grid-cols-1 gap-4'>
             <div>
               <label className='text-sm font-medium'>Quantity</label>
@@ -296,6 +334,7 @@ export default function ProductStockButtons() {
             <Button
               onClick={() => handleStockChange('remove')}
               disabled={loading}
+              className='bg-destructive text-destructive-foreground hover:bg-destructive/90 mt-2 transition-all'
             >
               {loading ? 'Saving...' : 'Save'}
             </Button>

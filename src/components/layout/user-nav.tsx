@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import { UserAvatarProfile } from '@/components/user-avatar-profile';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import type { User } from '@supabase/supabase-js';
@@ -22,13 +22,31 @@ export function UserNav() {
   const router = useRouter();
   const supabase = createClient();
   const [user, setUser] = useState<User | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [first, setFirst] = useState('');
+  const [last, setLast] = useState('');
 
   // 🧠 Auth-Status überwachen
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setUser(data.user ?? null));
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user ?? null);
+      if (data.user) {
+        setAvatarUrl(data.user.user_metadata?.avatar_url || null);
+        setFirst(data.user.user_metadata?.first_name || '');
+        setLast(data.user.user_metadata?.last_name || '');
+      }
     });
+
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      const u = session?.user ?? null;
+      setUser(u);
+      if (u) {
+        setAvatarUrl(u.user_metadata?.avatar_url || null);
+        setFirst(u.user_metadata?.first_name || '');
+        setLast(u.user_metadata?.last_name || '');
+      }
+    });
+
     return () => sub.subscription.unsubscribe();
   }, [supabase]);
 
@@ -36,8 +54,8 @@ export function UserNav() {
   if (!user) return null;
 
   // 🔹 Nutzerinformationen vorbereiten
-  const firstName = user.user_metadata?.first_name || '';
-  const lastName = user.user_metadata?.last_name || '';
+  const firstName = first || user.user_metadata?.first_name || '';
+  const lastName = last || user.user_metadata?.last_name || '';
   const displayName =
     firstName || lastName
       ? `${firstName} ${lastName}`.trim()
@@ -46,13 +64,6 @@ export function UserNav() {
         user.email?.split('@')[0];
 
   const email = user.email || '';
-
-  // ✅ Mapping für UserAvatarProfile
-  const mapped = {
-    imageUrl: user.user_metadata?.avatar_url || '',
-    fullName: displayName,
-    emailAddresses: [{ emailAddress: email }]
-  };
 
   // 🚪 Logout-Funktion
   async function handleSignOut() {
@@ -73,7 +84,12 @@ export function UserNav() {
           variant='ghost'
           className='relative h-8 w-8 rounded-full focus-visible:ring-0 focus-visible:ring-offset-0'
         >
-          <UserAvatarProfile user={mapped} />
+          <Avatar className='h-8 w-8'>
+            <AvatarImage src={avatarUrl || undefined} />
+            <AvatarFallback>
+              {(firstName?.[0] || 'A') + (lastName?.[0] || 'L')}
+            </AvatarFallback>
+          </Avatar>
         </Button>
       </DropdownMenuTrigger>
 
@@ -81,9 +97,7 @@ export function UserNav() {
         {/* 🔹 Benutzerinformationen */}
         <DropdownMenuLabel className='font-normal'>
           <div className='flex flex-col space-y-1'>
-            <p className='text-sm leading-none font-medium'>
-              {mapped.fullName}
-            </p>
+            <p className='text-sm leading-none font-medium'>{displayName}</p>
             <p className='text-muted-foreground truncate text-xs leading-none'>
               {email}
             </p>
