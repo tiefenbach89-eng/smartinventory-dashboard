@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { FormFileUpload } from '@/components/forms/form-file-upload';
 import { FormInput } from '@/components/forms/form-input';
 import { FormTextarea } from '@/components/forms/form-textarea';
@@ -67,7 +68,11 @@ export default function ProductForm({
   const supabase = createClient();
   const router = useRouter();
 
-  // ✅ Resolver mit Typ-Cast für volle TS-Kompatibilität
+  // ✅ Mounted-Flag für sicheren Client-Render
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  // ✅ useForm wird immer aufgerufen (keine Bedingung!)
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(formSchema) as unknown as Resolver<ProductFormValues>,
     defaultValues: {
@@ -80,6 +85,15 @@ export default function ProductForm({
       image: []
     }
   });
+
+  // ✅ Render-Block erst nach Mount (verhindert Hydration Error)
+  if (!mounted) {
+    return (
+      <div className='text-muted-foreground flex h-[50vh] items-center justify-center'>
+        <p>Loading product form...</p>
+      </div>
+    );
+  }
 
   async function onSubmit(values: ProductFormValues) {
     try {
@@ -117,6 +131,7 @@ export default function ProductForm({
     }
   }
 
+  // ✅ Restlicher JSX bleibt unverändert
   return (
     <div className='w-full px-6 py-10'>
       <CardModern className='border-border/40 from-primary/10 via-card/70 to-background/30 hover:border-primary/40 hover:shadow-primary/20 w-full transform-none space-y-8 border bg-gradient-to-b p-8 shadow-sm backdrop-blur-sm transition-all duration-300 hover:transform-none hover:shadow-lg'>

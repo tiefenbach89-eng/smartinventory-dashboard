@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useThemeConfig } from '@/components/active-theme';
 import { Label } from '@/components/ui/label';
 import {
@@ -14,44 +15,29 @@ import {
 } from '@/components/ui/select';
 
 const DEFAULT_THEMES = [
-  {
-    name: 'Default',
-    value: 'default'
-  },
-  {
-    name: 'Blue',
-    value: 'blue'
-  },
-  {
-    name: 'Green',
-    value: 'green'
-  },
-  {
-    name: 'Amber',
-    value: 'amber'
-  }
+  { name: 'Default', value: 'default' },
+  { name: 'Blue', value: 'blue' },
+  { name: 'Green', value: 'green' },
+  { name: 'Amber', value: 'amber' }
 ];
 
 const SCALED_THEMES = [
-  {
-    name: 'Default',
-    value: 'default-scaled'
-  },
-  {
-    name: 'Blue',
-    value: 'blue-scaled'
-  }
+  { name: 'Default', value: 'default-scaled' },
+  { name: 'Blue', value: 'blue-scaled' }
 ];
 
-const MONO_THEMES = [
-  {
-    name: 'Mono',
-    value: 'mono-scaled'
-  }
-];
+const MONO_THEMES = [{ name: 'Mono', value: 'mono-scaled' }];
 
 export function ThemeSelector() {
   const { activeTheme, setActiveTheme } = useThemeConfig();
+
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null; // ✅ verhindert Hydration-Mismatch
 
   return (
     <div className='flex items-center gap-2'>

@@ -142,7 +142,7 @@ export default function ProductListing() {
 
   return (
     <div className='w-full px-6 py-10'>
-      <CardModern className='w-full transform-none space-y-8 p-8 transition-none hover:scale-100 hover:transform-none hover:shadow-md'>
+      <div className='space-y-8'>
         <CardHeader className='flex flex-col sm:flex-row sm:items-center sm:justify-between'>
           <div>
             <CardTitle className='text-2xl font-semibold'>
@@ -486,7 +486,7 @@ export default function ProductListing() {
             )}
           </DialogContent>
         </Dialog>
-      </CardModern>
+      </div>
     </div>
   );
 }

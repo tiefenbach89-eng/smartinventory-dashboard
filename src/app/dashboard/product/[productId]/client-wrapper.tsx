@@ -1,8 +1,8 @@
 'use client';
 
-import ProductForm from './product-form';
+import ProductForm from '@/features/products/components/product-form';
 
-type TProductViewPageProps = {
+type Props = {
   product: {
     artikelnummer: number;
     name: string;
@@ -15,9 +15,6 @@ type TProductViewPageProps = {
   pageTitle: string;
 };
 
-export default function ProductViewPage({
-  product,
-  pageTitle
-}: TProductViewPageProps) {
+export default function ClientWrapper({ product, pageTitle }: Props) {
   return <ProductForm initialData={product} pageTitle={pageTitle} />;
 }

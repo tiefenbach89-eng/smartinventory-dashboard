@@ -7,12 +7,12 @@ import { createClient } from '@/lib/supabase/client';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
-  Card,
   CardHeader,
   CardTitle,
   CardDescription,
   CardContent
 } from '@/components/ui/card';
+import { CardModern } from '@/components/ui/card-modern';
 import { toast } from 'sonner';
 import { Loader2, Eye, EyeOff } from 'lucide-react';
 
@@ -79,11 +79,11 @@ export default function SignInPage() {
     <div className='grid min-h-screen lg:grid-cols-2'>
       <div className='flex flex-col justify-center px-8 py-12'>
         <div className='mx-auto w-full max-w-sm'>
-          <Card>
+          <CardModern className='border-border/40 from-primary/10 via-card/70 to-background/30 hover:border-primary/40 hover:shadow-primary/25 over:translate-y-0 animate-gradient-move w-full max-w-md border bg-gradient-to-b p-8 shadow-sm backdrop-blur-md transition-all duration-500 hover:shadow-[0_0_25px_var(--tw-shadow-color)]'>
             <CardHeader>
-              <CardTitle className='text-2xl font-bold'>Sign in</CardTitle>
-              <CardDescription>
-                Enter your credentials to access your account
+              <CardTitle className='text-2xl font-semibold'>Sign In</CardTitle>
+              <CardDescription className='text-muted-foreground mt-1 text-sm'>
+                Enter your credentials to access your account.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -124,7 +124,7 @@ export default function SignInPage() {
                       in...
                     </>
                   ) : (
-                    'Sign in'
+                    'Sign In'
                   )}
                 </Button>
               </form>
@@ -133,7 +133,7 @@ export default function SignInPage() {
                 <p>
                   Don’t have an account?{' '}
                   <Link href='/auth/sign-up' className='text-primary underline'>
-                    Sign up
+                    Sign Up
                   </Link>
                 </p>
                 <p>
@@ -147,7 +147,7 @@ export default function SignInPage() {
                 </p>
               </div>
             </CardContent>
-          </Card>
+          </CardModern>
         </div>
       </div>
 

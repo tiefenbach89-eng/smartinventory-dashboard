@@ -1,5 +1,13 @@
 'use client';
-
+import {
+  UserRound,
+  ActivitySquare,
+  ShieldCheck,
+  Trash2,
+  Lock,
+  Unlock,
+  Loader2
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import PageContainer from '@/components/layout/page-container';
@@ -20,15 +28,6 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-  Loader2,
-  User,
-  Activity,
-  Trash2,
-  Lock,
-  Unlock,
-  ShieldAlert
-} from 'lucide-react';
 import { toast } from 'sonner';
 import { createClient } from '@/lib/supabase/client';
 import { CardModern } from '@/components/ui/card-modern';
@@ -75,6 +74,7 @@ type ActivityRow = {
 export default function AccountsPage() {
   const router = useRouter();
   const supabase = createClient();
+  const pathname = usePathname();
 
   // ---------- STATES ----------
   const [loading, setLoading] = useState(false);
@@ -83,14 +83,13 @@ export default function AccountsPage() {
   const [loadingActivity, setLoadingActivity] = useState(false);
   const { permissions, loading: loadingPerms } = useRolePermissions();
 
-  // ---------- PERMISSIONS ----------
   const canAccessAdmin = permissions?.can_access_admin_panel;
   const canManageUsers = permissions?.can_manage_users;
   const canDeleteUsers = permissions?.can_delete_users;
   const isAdmin = permissions?.role === 'admin';
 
   // ---------------------------------------------------------------------------
-  // 🔹 LOAD USERS
+  // 🔹 USERS LADEN
   // ---------------------------------------------------------------------------
   async function fetchUsers() {
     setLoading(true);
@@ -108,9 +107,13 @@ export default function AccountsPage() {
   }
 
   useEffect(() => {
-    const load = async () => await fetchUsers();
-    load();
+    // async Aufruf sauber kapseln
+    const loadUsers = async () => {
+      await fetchUsers();
+    };
+    loadUsers();
 
+    // Supabase Realtime für user_roles
     const channel = supabase
       .channel('user_roles-changes')
       .on(
@@ -126,7 +129,7 @@ export default function AccountsPage() {
   }, [supabase]);
 
   // ---------------------------------------------------------------------------
-  // 🔹 LOAD ACTIVITY
+  // 🔹 ACTIVITY LADEN
   // ---------------------------------------------------------------------------
   async function fetchActivity() {
     setLoadingActivity(true);
@@ -142,8 +145,10 @@ export default function AccountsPage() {
   }
 
   useEffect(() => {
-    const load = async () => await fetchActivity();
-    load();
+    const loadActivity = async () => {
+      await fetchActivity();
+    };
+    loadActivity();
 
     const channel = supabase
       .channel('artikel_log-changes')
@@ -237,21 +242,15 @@ export default function AccountsPage() {
     );
   }
 
-  // 🔹 Nur Admin darf Rollen ändern
   async function handleRoleChange(userId: string, newRole: string) {
     if (!isAdmin) return toast.error('Only admins can change roles');
-
     toast.promise(
       (async () => {
         const supabase = createClient();
         const {
-          data: { session },
-          error: sessionError
+          data: { session }
         } = await supabase.auth.getSession();
-
-        if (sessionError || !session)
-          throw new Error('Failed to retrieve session');
-
+        if (!session) throw new Error('No session found');
         const res = await fetch('/api/admin/users', {
           method: 'PATCH',
           headers: {
@@ -260,15 +259,12 @@ export default function AccountsPage() {
           },
           body: JSON.stringify({ user_id: userId, role: newRole })
         });
-
         const json = await res.json();
         if (!res.ok || json.error)
           throw new Error(json.error || 'Role update failed');
-
         setUsers((prev) =>
           prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u))
         );
-
         return `Role changed to "${newRole}"`;
       })(),
       {
@@ -280,64 +276,72 @@ export default function AccountsPage() {
   }
 
   // ---------------------------------------------------------------------------
-  // 🔹 Redirect if no admin access (but skip on /access-denied)
+  // 🔹 ACCESS CHECK
   // ---------------------------------------------------------------------------
-  const pathname = usePathname();
-
   useEffect(() => {
     if (!loadingPerms && !canAccessAdmin && pathname !== '/access-denied') {
       router.replace('/access-denied');
     }
   }, [loadingPerms, canAccessAdmin, pathname, router]);
 
-  // ---------------------------------------------------------------------------
-  // 🔹 PREVENT RENDER GLITCH
-  // ---------------------------------------------------------------------------
-  if (loadingPerms) {
+  if (loadingPerms)
     return (
       <div className='text-muted-foreground flex h-[80vh] items-center justify-center'>
         <Loader2 className='mr-2 h-5 w-5 animate-spin' />
         Checking access...
       </div>
     );
-  }
 
-  if (!canAccessAdmin) {
-    return null; // 🧠 Falls kein Zugriff, rendern wir nichts (Redirect erledigt den Rest)
-  }
+  if (!canAccessAdmin) return null;
 
   // ---------------------------------------------------------------------------
   // 🔹 RENDER
   // ---------------------------------------------------------------------------
   return (
     <PageContainer>
-      <div className='w-full space-y-6 px-6 py-10'>
-        <div className='flex items-center justify-between'>
-          <h2 className='text-2xl font-bold tracking-tight'>Accounts</h2>
+      <div className='w-full space-y-6 px-4 py-6 sm:px-6 md:px-10 md:py-10'>
+        <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
+          <h2 className='text-center text-xl font-bold tracking-tight sm:text-left sm:text-2xl'>
+            Accounts
+          </h2>
         </div>
 
         <Tabs defaultValue='users' className='w-full'>
-          <TabsList className='bg-card/40 border-border/40 rounded-xl border backdrop-blur-sm'>
-            <TabsTrigger value='users' className='flex items-center gap-2'>
-              <User className='h-4 w-4' /> Users
+          <TabsList className='bg-card/25 border-border/10 flex h-auto w-full flex-wrap items-center justify-center gap-2 rounded-3xl border px-2 py-2 text-sm shadow-[0_0_20px_rgba(255,255,255,0.05)] backdrop-blur-md sm:h-11 sm:w-fit sm:flex-nowrap sm:py-0'>
+            <TabsTrigger
+              value='users'
+              className='group hover:bg-background/60 hover:text-foreground data-[state=active]:bg-background/90 data-[state=active]:text-foreground relative flex h-9 items-center gap-2 rounded-2xl border-none px-4 text-sm font-medium shadow-none ring-0 transition-all duration-200 outline-none focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=active]:shadow-[0_0_15px_-3px_rgba(80,120,255,0.4)]'
+            >
+              <UserRound className='h-4 w-4 transition-colors duration-200 group-hover:text-blue-400' />
+              Users
             </TabsTrigger>
-            <TabsTrigger value='activity' className='flex items-center gap-2'>
-              <Activity className='h-4 w-4' /> Activity
+
+            <TabsTrigger
+              value='activity'
+              className='group hover:bg-background/60 hover:text-foreground data-[state=active]:bg-background/90 data-[state=active]:text-foreground relative flex h-9 items-center gap-2 rounded-2xl border-none px-4 text-sm font-medium shadow-none ring-0 transition-all duration-200 outline-none focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=active]:shadow-[0_0_15px_-3px_rgba(0,255,100,0.35)]'
+            >
+              <ActivitySquare className='h-4 w-4 transition-colors duration-200 group-hover:text-green-400' />
+              Activity
             </TabsTrigger>
+
             {canManageUsers && (
-              <TabsTrigger value='roles' className='flex items-center gap-2'>
-                <ShieldAlert className='h-4 w-4' /> Role Management
+              <TabsTrigger
+                value='roles'
+                className='group hover:bg-background/60 hover:text-foreground data-[state=active]:bg-background/90 data-[state=active]:text-foreground relative flex h-9 items-center gap-2 rounded-2xl border-none px-4 text-sm font-medium shadow-none ring-0 transition-all duration-200 outline-none focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=active]:shadow-[0_0_15px_-3px_rgba(80,160,255,0.35)]'
+              >
+                <ShieldCheck className='h-4 w-4 transition-colors duration-200 group-hover:text-sky-400' />
+                Role Management
               </TabsTrigger>
             )}
           </TabsList>
 
           {/* USERS TAB */}
           <TabsContent value='users' className='mt-6'>
-            <CardModern className='space-y-8 p-8'>
+            <CardModern className='space-y-8 p-4 sm:p-6 md:p-8'>
               <CardHeader>
                 <CardTitle>User Management</CardTitle>
                 <CardDescription>
-                  Manage access, roles, bans, approvals & email verification
+                  Manage roles, bans, and access control.
                 </CardDescription>
               </CardHeader>
 
@@ -347,7 +351,7 @@ export default function AccountsPage() {
                     <Loader2 className='text-muted-foreground h-6 w-6 animate-spin' />
                   </div>
                 ) : (
-                  <div className='border-border/40 bg-card/60 overflow-hidden rounded-xl border shadow-sm backdrop-blur-sm'>
+                  <div className='border-border/40 bg-card/60 overflow-x-auto rounded-xl border shadow-sm backdrop-blur-sm'>
                     <Table>
                       <TableHeader>
                         <TableRow>
@@ -475,10 +479,12 @@ export default function AccountsPage() {
 
           {/* ACTIVITY TAB */}
           <TabsContent value='activity' className='mt-6'>
-            <CardModern className='space-y-8 p-8'>
+            <CardModern className='space-y-8 p-4 sm:p-6 md:p-8'>
               <CardHeader>
                 <CardTitle>User Activity (30 Days)</CardTitle>
-                <CardDescription>Recent stock actions by users</CardDescription>
+                <CardDescription>
+                  Recent stock actions by users.
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 {loadingActivity ? (
@@ -486,7 +492,7 @@ export default function AccountsPage() {
                     <Loader2 className='text-muted-foreground h-6 w-6 animate-spin' />
                   </div>
                 ) : (
-                  <div className='border-border/40 bg-card/60 overflow-hidden rounded-xl border shadow-sm backdrop-blur-sm'>
+                  <div className='border-border/40 bg-card/60 overflow-x-auto rounded-xl border shadow-sm backdrop-blur-sm'>
                     <Table>
                       <TableHeader>
                         <TableRow>
@@ -532,15 +538,18 @@ export default function AccountsPage() {
           {/* ROLE MANAGEMENT TAB */}
           {canManageUsers && (
             <TabsContent value='roles' className='mt-6'>
-              <CardModern className='space-y-8 p-8'>
+              <CardModern className='space-y-8 p-4 sm:p-6 md:p-8'>
                 <CardHeader>
                   <CardTitle>Role Management</CardTitle>
                   <CardDescription>
                     Define what each role can do across the system.
                   </CardDescription>
                 </CardHeader>
+
                 <CardContent>
-                  <RoleManagementTable />
+                  <div className='overflow-x-auto'>
+                    <RoleManagementTable />
+                  </div>
                 </CardContent>
               </CardModern>
             </TabsContent>

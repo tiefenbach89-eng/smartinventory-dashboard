@@ -142,12 +142,12 @@ export default function ProductListing() {
 
   return (
     <div className='w-full px-6 py-10'>
-      <CardModern className='w-full transform-none space-y-8 p-8 transition-none hover:scale-100 hover:transform-none hover:shadow-md'>
+      <div className='space-y-8'>
         <CardHeader className='flex flex-col sm:flex-row sm:items-center sm:justify-between'>
           <div>
-            <CardTitle className='text-2xl font-semibold'>
+            <h3 className='text-lg leading-none font-semibold tracking-tight'>
               Product Management
-            </CardTitle>
+            </h3>
             <CardDescription className='text-muted-foreground mt-1 text-sm'>
               Manage products and track inventory movements.
             </CardDescription>
@@ -195,7 +195,9 @@ export default function ProductListing() {
                     <TableHead>Article Number</TableHead>
                     <TableHead>Name</TableHead>
                     <TableHead>Supplier</TableHead>
-                    <TableHead>Price (€)</TableHead>
+                    <TableHead className='text-muted-foreground text-sm font-medium'>
+                      Price (€)
+                    </TableHead>
                     <TableHead>Description</TableHead>
                     <TableHead>Stock / Min</TableHead>
                     <TableHead>Actions</TableHead>
@@ -236,7 +238,9 @@ export default function ProductListing() {
                       <TableCell>{p.artikelnummer}</TableCell>
                       <TableCell>{p.artikelbezeichnung}</TableCell>
                       <TableCell>{p.lieferant}</TableCell>
-                      <TableCell>{p.preis?.toFixed(2)}</TableCell>
+                      <TableCell className='text-sm'>
+                        {p.preis?.toFixed(2)}
+                      </TableCell>
                       <TableCell className='max-w-[200px] truncate'>
                         {p.beschreibung || '—'}
                       </TableCell>
@@ -248,6 +252,7 @@ export default function ProductListing() {
                         <Button
                           size='sm'
                           variant='outline'
+                          className='h-8 rounded-md px-3 text-sm'
                           onClick={() => setEditProduct(p)}
                         >
                           <Pencil className='mr-1 h-4 w-4' /> Edit
@@ -256,6 +261,7 @@ export default function ProductListing() {
                         <Button
                           size='sm'
                           variant='outline'
+                          className='h-8 rounded-md px-3 text-sm'
                           onClick={() => fetchLogs(p.artikelnummer)}
                         >
                           <History className='mr-1 h-4 w-4' /> Movements
@@ -486,7 +492,7 @@ export default function ProductListing() {
             )}
           </DialogContent>
         </Dialog>
-      </CardModern>
+      </div>
     </div>
   );
 }

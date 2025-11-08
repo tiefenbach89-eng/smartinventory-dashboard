@@ -1,23 +1,53 @@
-import FormCardSkeleton from '@/components/form-card-skeleton';
-import PageContainer from '@/components/layout/page-container';
-import { Suspense } from 'react';
-import ProductViewPage from '@/features/products/components/product-view-page';
+import { notFound } from 'next/navigation';
+import {
+  fakeProducts,
+  type Product as MockProduct
+} from '@/constants/mock-api';
+import ClientWrapper from './client-wrapper'; // Client Component (mit 'use client' in der Datei selbst)
 
-export const metadata = {
-  title: 'Dashboard : Product View'
-};
+export default async function Page({
+  params
+}: {
+  params: Promise<{ productId: string }>;
+}) {
+  // ⬅️ WICHTIG: params ist ein Promise — hier awaiten
+  const { productId } = await params;
 
-type PageProps = { params: Promise<{ productId: string }> };
+  let pageTitle = 'List New Product';
 
-export default async function Page(props: PageProps) {
-  const params = await props.params;
-  return (
-    <PageContainer scrollable>
-      <div className='flex-1 space-y-4'>
-        <Suspense fallback={<FormCardSkeleton />}>
-          <ProductViewPage productId={params.productId} />
-        </Suspense>
-      </div>
-    </PageContainer>
-  );
+  // Standarddaten (Neues Produkt)
+  let safeProduct = {
+    artikelnummer: 0,
+    name: '',
+    supplier: '',
+    price: 0,
+    minStock: 0,
+    description: '',
+    image: [] as File[]
+  };
+
+  // Bestehendes Produkt laden
+  if (productId !== 'new') {
+    const parsedId = Number(productId);
+    if (Number.isNaN(parsedId)) notFound();
+
+    const data = await fakeProducts.getProductById(parsedId);
+    if (!data || !data.success || !data.product) notFound();
+
+    const product = data.product as MockProduct;
+
+    pageTitle = 'Edit Product';
+    safeProduct = {
+      artikelnummer: parsedId,
+      name: product.name ?? '',
+      supplier: product.category ?? '',
+      price: Number(product.price) || 0,
+      minStock: 0,
+      description: product.description ?? '',
+      image: []
+    };
+  }
+
+  // ClientWrapper rendert die Client-Form
+  return <ClientWrapper product={safeProduct} pageTitle={pageTitle} />;
 }
