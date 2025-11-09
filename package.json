@@ -6,16 +6,16 @@
     "name": "Kiran",
     "url": "https://github.com/Kiranism"
   },
-  "scripts": {
-    "dev": "next dev --turbopack",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
-    "lint:fix": "eslint src --fix && pnpm format",
-    "lint:strict": "eslint --max-warnings=0 src",
-    "format": "prettier --write .",
-    "format:check": "prettier -c -w .",
-    "prepare": "husky"
+"scripts": {
+  "dev": "next dev --turbopack",
+  "build": "next build --webpack",
+  "start": "next start",
+  "lint": "next lint",
+  "lint:fix": "eslint src --fix && pnpm format",
+  "lint:strict": "eslint --max-warnings=0 src",
+  "format": "prettier --write .",
+  "format:check": "prettier -c -w .",
+  "prepare": "husky"
   },
   "lint-staged": {
     "**/*.{js,jsx,tsx,ts,css,less,scss,sass}": [
