@@ -12,54 +12,47 @@ export default function ConfirmEmailPage() {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>(
     'loading'
   );
-  const [message, setMessage] = useState<string>(
-    'Confirming your new email address...'
-  );
 
   useEffect(() => {
-    async function confirmEmail() {
+    async function confirm() {
       try {
-        // ✅ Supabase tauscht hier den Code aus der URL gegen eine Session aus
-        const { error } = await supabase.auth.exchangeCodeForSession(
-          window.location.href
-        );
+        // 🔹 1. Token aus der URL holen
+        const hash = window.location.hash;
+        const params = new URLSearchParams(hash.replace('#', ''));
+        const access_token = params.get('access_token');
+        const refresh_token = params.get('refresh_token');
+
+        if (!access_token) throw new Error('No access token found in URL');
+
+        // 🔹 2. Session aus Token wiederherstellen
+        const { data, error } = await supabase.auth.setSession({
+          access_token,
+          refresh_token: refresh_token ?? ''
+        });
 
         if (error) throw error;
 
+        // 🔹 3. Erfolgsmeldung + Weiterleitung
         setStatus('success');
-        setMessage('Email confirmed! Redirecting to account settings...');
-
         toast.success('✅ Email updated successfully', {
           description:
             'You will be redirected to your account settings shortly.',
           duration: 4000
         });
 
-        // ✅ Redirect in den richtigen Pfad deiner App
-        setTimeout(
-          () => router.replace('/dashboard/settings?email-updated=1'),
-          2500
-        );
+        setTimeout(() => router.replace('/dashboard/settings'), 2500);
       } catch (err: any) {
-        console.error('Email confirmation error:', err);
+        console.error(err);
         setStatus('error');
-        setMessage(
-          err.message || 'Something went wrong during email confirmation.'
-        );
-
         toast.error('❌ Confirmation failed', {
           description: err.message || 'Something went wrong.',
           duration: 5000
         });
-
-        setTimeout(
-          () => router.replace('/dashboard/settings?email-updated=0'),
-          3000
-        );
+        setTimeout(() => router.replace('/dashboard/settings'), 3000);
       }
     }
 
-    confirmEmail();
+    confirm();
   }, [supabase, router]);
 
   return (
@@ -67,7 +60,9 @@ export default function ConfirmEmailPage() {
       {status === 'loading' && (
         <>
           <Loader2 className='text-primary mb-2 h-8 w-8 animate-spin' />
-          <p className='text-muted-foreground text-sm'>{message}</p>
+          <p className='text-muted-foreground text-sm'>
+            Confirming your new email address...
+          </p>
         </>
       )}
 
