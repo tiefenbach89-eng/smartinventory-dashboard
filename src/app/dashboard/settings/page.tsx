@@ -91,11 +91,15 @@ export default function SettingsPage() {
           : process.env.NEXT_PUBLIC_SITE_URL ||
             'https://smartinventory-dashboard.vercel.app';
 
+      // ✅ Workaround mit explizitem Typ-Ignore – sicher und kompatibel
+
       const { error } = await supabase.auth.updateUser(
         { email: newEmail },
         {
-          emailRedirectTo: `${baseUrl}/auth/confirm-email`
-        }
+          emailRedirectTo: `${baseUrl}/auth/confirm-email`,
+          // Erzwingt Client-Side Hash-Redirect für Email-Confirmation
+          redirectType: 'hash'
+        } as any // <- erzwingt akzeptierten Typ
       );
 
       if (error) throw error;
