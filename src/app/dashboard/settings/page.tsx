@@ -95,8 +95,8 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className='mx-auto max-w-2xl py-10'>
-      <CardModern className='transform-none space-y-8 p-8 transition-none hover:scale-100 hover:transform-none hover:shadow-md'>
+    <div className='flex justify-center overflow-y-auto px-4 py-10 sm:px-6 lg:px-8'>
+      <CardModern className='w-full max-w-2xl space-y-8 p-6 shadow-md sm:p-8'>
         <CardHeader>
           <CardTitle className='text-2xl font-semibold'>
             Account Settings

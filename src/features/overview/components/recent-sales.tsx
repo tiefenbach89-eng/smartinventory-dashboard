@@ -255,71 +255,94 @@ export function RecentSales() {
         </CardContent>
       </Card>
 
-      {/* 🧾 Product Movement Details Modal */}
+      {/* 🧾 Product Movement Details Modal (Soft, Themed) */}
       <Dialog
         open={!!selectedProduct}
         onOpenChange={() => setSelectedProduct(null)}
       >
-        <DialogContent className='w-full max-w-4xl'>
-          <DialogHeader>
-            <DialogTitle>
+        <DialogContent className='bg-background/90 w-full max-w-6xl rounded-2xl border-none p-0 shadow-2xl backdrop-blur-lg'>
+          <DialogHeader className='px-7 pt-7'>
+            <DialogTitle className='text-lg font-semibold'>
               {selectedProduct?.name || 'Product Movements'}
             </DialogTitle>
-            <CardDescription>
+            <CardDescription className='text-muted-foreground text-sm'>
               Detailed movement log for this product, including delivery notes.
             </CardDescription>
           </DialogHeader>
 
           {logLoading ? (
-            <div className='flex justify-center py-6'>
+            <div className='flex justify-center py-12'>
               <Loader2 className='text-muted-foreground h-6 w-6 animate-spin' />
             </div>
           ) : articleLogs.length === 0 ? (
-            <p className='text-muted-foreground text-sm'>No movements found.</p>
+            <p className='text-muted-foreground py-8 text-center text-sm'>
+              No movements found.
+            </p>
           ) : (
-            <div className='mt-3 overflow-hidden rounded-md border'>
-              <Table>
-                <TableHeader>
+            <div className='border-border/40 mt-3 max-h-[70vh] overflow-y-auto rounded-b-2xl border-t'>
+              <Table className='min-w-full text-sm'>
+                <TableHeader className='bg-background/90 sticky top-0 z-10 backdrop-blur-md'>
                   <TableRow>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Action</TableHead>
-                    <TableHead className='text-right'>Quantity</TableHead>
-                    <TableHead>User</TableHead>
-                    <TableHead>Delivery Note</TableHead>
+                    <TableHead className='w-[120px]'>Date</TableHead>
+                    <TableHead className='w-[120px]'>Action</TableHead>
+                    <TableHead className='w-[100px] text-right'>
+                      Quantity
+                    </TableHead>
+                    <TableHead className='w-[200px]'>User</TableHead>
+                    <TableHead className='w-[200px]'>Delivery Note</TableHead>
                     <TableHead>Comment</TableHead>
                   </TableRow>
                 </TableHeader>
+
                 <TableBody>
                   {articleLogs.map((log, i) => (
-                    <TableRow key={i}>
-                      <TableCell>
+                    <TableRow
+                      key={i}
+                      className='hover:bg-muted/30 transition-colors duration-150'
+                    >
+                      {/* Date */}
+                      <TableCell className='whitespace-nowrap'>
                         {new Date(log.timestamp).toLocaleDateString('en-GB')}
                       </TableCell>
+
+                      {/* Action */}
                       <TableCell>
                         <Badge
-                          className={
+                          className={`rounded-lg border px-2 py-[2px] text-xs font-medium backdrop-blur-sm ${
                             log.menge_diff >= 0
-                              ? 'bg-green-500/20 text-green-600'
-                              : 'bg-red-500/20 text-red-500'
-                          }
+                              ? 'border-emerald-500/20 bg-emerald-500/15 text-emerald-400'
+                              : 'border-red-500/20 bg-red-500/15 text-red-400'
+                          }`}
                         >
                           {log.menge_diff >= 0 ? 'Added' : 'Removed'}
                         </Badge>
                       </TableCell>
-                      <TableCell className='text-right font-semibold'>
+
+                      {/* Quantity */}
+                      <TableCell className='text-right font-semibold whitespace-nowrap'>
                         {Math.abs(log.menge_diff)}
                       </TableCell>
-                      <TableCell>{log.benutzer || 'System'}</TableCell>
+
+                      {/* User */}
+                      <TableCell className='text-foreground'>
+                        {log.benutzer || 'System'}
+                      </TableCell>
+
+                      {/* Delivery Note — verwendet Theme-Farbe */}
                       <TableCell>
                         {log.lieferscheinnr ? (
-                          <span className='text-primary font-medium'>
+                          <span className='border-primary/30 text-primary bg-primary/10 inline-flex items-center rounded-md border px-2 py-[2px] font-mono text-xs font-medium tracking-wide whitespace-nowrap backdrop-blur-sm'>
                             {log.lieferscheinnr}
                           </span>
                         ) : (
                           <span className='text-muted-foreground'>—</span>
                         )}
                       </TableCell>
-                      <TableCell>{log.kommentar || '—'}</TableCell>
+
+                      {/* Comment */}
+                      <TableCell className='text-muted-foreground max-w-[320px] truncate'>
+                        {log.kommentar || '—'}
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

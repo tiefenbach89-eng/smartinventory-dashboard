@@ -128,7 +128,7 @@ export default function OverViewLayout({
               title: 'Total Products & Stock',
               value: `${productCount} Products / ${totalStock} Units`,
               desc: 'Current active SKUs and total quantity',
-              sub: 'Pulled live from artikel table',
+              sub: 'Live data from current inventory, reflecting all stock movements in real time',
               icon: <IconPackage className='mr-1' />,
               badge: 'OK'
             },
@@ -136,7 +136,7 @@ export default function OverViewLayout({
               title: 'Total Withdrawals (30d)',
               value: `${totalWithdrawals} pcs removed`,
               desc: 'Items withdrawn in the last 30 days',
-              sub: 'Based on artikel_log movements',
+              sub: 'Live inventory overview — updated instantly from recent stock changes',
               icon: <IconArrowDown className='mr-1' />,
               badge: '30d'
             },
@@ -144,7 +144,7 @@ export default function OverViewLayout({
               title: 'Total Added (30d)',
               value: `${totalAdded} pcs added`,
               desc: 'Items restocked in the last 30 days',
-              sub: 'Based on artikel_log additions',
+              sub: 'Real-time inventory feed based on recent activity and stock logs',
               icon: <IconArrowUp className='mr-1' />,
               badge: '30d'
             },
@@ -152,7 +152,7 @@ export default function OverViewLayout({
               title: 'Most Active User (30d)',
               value: activeUser || '—',
               desc: 'Top user by logged movements',
-              sub: 'Tracks 30-day user activity',
+              sub: 'Automatically updated from stock transactions — last 30 days of user activity',
               icon: <IconUser className='mr-1' />,
               badge: `${activeUserCount} actions`
             }

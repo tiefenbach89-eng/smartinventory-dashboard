@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Upload } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function ProfilePage() {
@@ -87,72 +88,77 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className='mx-auto max-w-2xl py-10'>
-      <CardModern className='transform-none space-y-6 p-8 transition-none hover:scale-100 hover:transform-none hover:shadow-md'>
-        <CardHeader className='flex flex-col pb-6 sm:flex-row sm:items-center sm:justify-between'>
-          <div>
-            <CardTitle className='text-2xl font-semibold'>Profile</CardTitle>
-            <CardDescription className='text-muted-foreground mt-1 text-sm'>
-              Manage your personal details and avatar.
-            </CardDescription>
-          </div>
-          <div className='mt-5 sm:mt-0'>
-            <Avatar className='border-primary/60 h-20 w-20 border-2 shadow'>
+    <div className='flex justify-center overflow-y-auto px-4 py-10 sm:px-6 lg:px-8'>
+      <CardModern className='w-full max-w-2xl space-y-8 p-6 shadow-md sm:p-8'>
+        <CardHeader>
+          <CardTitle className='text-2xl font-semibold'>Profile</CardTitle>
+          <CardDescription className='text-muted-foreground mt-1 text-sm'>
+            Manage your personal details and avatar.
+          </CardDescription>
+        </CardHeader>
+
+        <CardContent className='space-y-8'>
+          {/* 🖼️ Avatar Change Section (wie bei Product Edit) */}
+          <div className='flex flex-col items-center gap-3'>
+            <Avatar className='border-primary/40 h-32 w-32 border-2 shadow-lg'>
               <AvatarImage src={avatarUrl || undefined} />
-              <AvatarFallback>
+              <AvatarFallback className='text-lg font-semibold'>
                 {firstName?.[0] || 'A'}
                 {lastName?.[0] || 'L'}
               </AvatarFallback>
             </Avatar>
+            <label className='text-primary flex cursor-pointer items-center gap-2 text-sm font-medium hover:underline'>
+              <Upload className='h-4 w-4' />
+              Change Image
+              <input
+                type='file'
+                accept='image/*'
+                className='hidden'
+                onChange={handleAvatarChange}
+              />
+            </label>
           </div>
-        </CardHeader>
 
-        <CardContent className='mt-2 space-y-6'>
-          <div>
-            <Label>Email</Label>
-            <Input
-              value={email}
-              disabled
-              className='bg-muted/20 text-muted-foreground mt-2'
-            />
-          </div>
-
-          <div className='grid grid-cols-1 gap-6 sm:grid-cols-2'>
+          {/* 🧾 Profile Fields */}
+          <div className='space-y-6'>
             <div>
-              <Label>First Name</Label>
+              <Label>Email</Label>
               <Input
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                className='mt-2'
+                value={email}
+                disabled
+                className='bg-muted/20 text-muted-foreground mt-2'
               />
             </div>
-            <div>
-              <Label>Last Name</Label>
-              <Input
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                className='mt-2'
-              />
+
+            <div className='grid grid-cols-1 gap-6 sm:grid-cols-2'>
+              <div>
+                <Label>First Name</Label>
+                <Input
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  className='mt-2'
+                />
+              </div>
+              <div>
+                <Label>Last Name</Label>
+                <Input
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  className='mt-2'
+                />
+              </div>
             </div>
           </div>
 
-          <div>
-            <Label>Profile Picture</Label>
-            <Input
-              type='file'
-              accept='image/*'
-              onChange={handleAvatarChange}
-              className='mt-2'
-            />
+          <div className='flex justify-end'>
+            <Button
+              onClick={handleSave}
+              disabled={loading || uploading}
+              className='bg-primary text-primary-foreground hover:bg-primary/90 font-semibold transition-colors'
+            >
+              {loading ? 'Saving...' : 'Save Changes'}
+            </Button>
           </div>
-
-          <Button
-            onClick={handleSave}
-            disabled={loading || uploading}
-            className='bg-primary text-primary-foreground hover:bg-primary/90 mt-4 w-full font-semibold transition-colors sm:w-auto'
-          >
-            {loading ? 'Saving...' : 'Save Changes'}
-          </Button>
         </CardContent>
       </CardModern>
     </div>

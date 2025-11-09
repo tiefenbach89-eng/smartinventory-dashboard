@@ -313,6 +313,17 @@ export default function ProductsPage() {
                 </Select>
               )}
 
+              {/* ✅ Bildvorschau – identisch zu Add Stock */}
+              {selected?.image_url && (
+                <div className='flex justify-center'>
+                  <img
+                    src={selected.image_url}
+                    alt={selected.artikelbezeichnung}
+                    className='border-border/40 mt-2 mb-4 h-32 w-32 rounded-md border object-cover shadow-sm'
+                  />
+                </div>
+              )}
+
               <div className='grid gap-4'>
                 <div>
                   <label className='mb-1 block text-sm font-medium'>
@@ -338,6 +349,7 @@ export default function ProductsPage() {
               </div>
 
               <div className='flex justify-end pt-2'>
+                {/* 🔹 Template-Farbe statt Rot */}
                 <Button
                   size='sm'
                   onClick={() => handleStockChange('remove')}

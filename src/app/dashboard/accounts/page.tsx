@@ -40,6 +40,17 @@ import {
   SelectContent,
   SelectItem
 } from '@/components/ui/select';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger
+} from '@/components/ui/alert-dialog';
 
 // ---------------------------------------------------------------------------
 // 🔹 TYPES
@@ -169,19 +180,32 @@ export default function AccountsPage() {
   // ---------------------------------------------------------------------------
   async function toggleBan(userId: string, currentBan: boolean) {
     if (!canManageUsers) return toast.error('No permission to ban users');
+
     toast.promise(
       (async () => {
+        const supabase = createClient();
+        const {
+          data: { session }
+        } = await supabase.auth.getSession();
+        if (!session) throw new Error('Unauthorized');
+
         const res = await fetch('/api/admin/users', {
           method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session.access_token}`
+          },
           body: JSON.stringify({ user_id: userId, banned: !currentBan })
         });
+
         const json = await res.json();
         if (!res.ok || json.error)
           throw new Error(json.error || 'Toggle failed');
+
         setUsers((prev) =>
           prev.map((u) => (u.id === userId ? { ...u, banned: !currentBan } : u))
         );
+
         return !currentBan ? 'User banned' : 'User unbanned';
       })(),
       {
@@ -194,25 +218,38 @@ export default function AccountsPage() {
 
   async function approveUser(userId: string) {
     if (!canManageUsers) return toast.error('No permission to approve users');
+
     toast.promise(
       (async () => {
+        const supabase = createClient();
+        const {
+          data: { session }
+        } = await supabase.auth.getSession();
+        if (!session) throw new Error('Unauthorized');
+
         const res = await fetch('/api/admin/users', {
           method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session.access_token}`
+          },
           body: JSON.stringify({
             user_id: userId,
             approved: true,
             banned: false
           })
         });
+
         const json = await res.json();
         if (!res.ok || json.error)
           throw new Error(json.error || 'Approval failed');
+
         setUsers((prev) =>
           prev.map((u) =>
             u.id === userId ? { ...u, approved: true, banned: false } : u
           )
         );
+
         return 'User approved successfully';
       })(),
       { loading: 'Approving...', success: (m) => m, error: (e) => String(e) }
@@ -221,16 +258,28 @@ export default function AccountsPage() {
 
   async function deleteUser(userId: string) {
     if (!canDeleteUsers) return toast.error('No permission to delete users');
+
     toast.promise(
       (async () => {
+        const supabase = createClient();
+        const {
+          data: { session }
+        } = await supabase.auth.getSession();
+        if (!session) throw new Error('Unauthorized');
+
         const res = await fetch('/api/admin/users', {
           method: 'DELETE',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session.access_token}`
+          },
           body: JSON.stringify({ user_id: userId })
         });
+
         const json = await res.json();
         if (!res.ok || json.error)
           throw new Error(json.error || 'Delete failed');
+
         setUsers((prev) => prev.filter((u) => u.id !== userId));
         return 'User deleted';
       })(),
@@ -357,9 +406,9 @@ export default function AccountsPage() {
                         <TableRow>
                           <TableHead>User</TableHead>
                           <TableHead>Role</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead>Approved</TableHead>
+                          <TableHead>Status / Approval</TableHead>
                           <TableHead>Created</TableHead>
+                          <TableHead>Last Login</TableHead>
                           <TableHead className='text-right'>Actions</TableHead>
                         </TableRow>
                       </TableHeader>
@@ -411,59 +460,130 @@ export default function AccountsPage() {
                               )}
                             </TableCell>
 
+                            {/* Combined Status + Approval (Soft Style) */}
                             <TableCell>
-                              {u.banned ? (
-                                <Badge className='bg-red-500/20 text-red-500'>
-                                  Banned
-                                </Badge>
-                              ) : (
-                                <Badge className='bg-green-500/20 text-green-600'>
-                                  Active
-                                </Badge>
-                              )}
+                              <div className='flex flex-wrap gap-2'>
+                                {u.banned ? (
+                                  <Badge className='rounded-lg border border-red-500/20 bg-red-500/15 px-2 py-[2px] text-xs font-medium text-red-400 backdrop-blur-sm'>
+                                    Banned
+                                  </Badge>
+                                ) : (
+                                  <Badge className='rounded-lg border border-green-500/20 bg-green-500/15 px-2 py-[2px] text-xs font-medium text-green-400 backdrop-blur-sm'>
+                                    Active
+                                  </Badge>
+                                )}
+
+                                {u.approved ? (
+                                  <Badge className='rounded-lg border border-emerald-500/20 bg-emerald-500/15 px-2 py-[2px] text-xs font-medium text-emerald-400 backdrop-blur-sm'>
+                                    Approved
+                                  </Badge>
+                                ) : (
+                                  <Badge className='rounded-lg border border-yellow-500/20 bg-yellow-500/15 px-2 py-[2px] text-xs font-medium text-yellow-400 backdrop-blur-sm'>
+                                    Pending
+                                  </Badge>
+                                )}
+                              </div>
                             </TableCell>
 
-                            <TableCell>
-                              {u.approved ? 'Yes' : 'Pending'}
-                            </TableCell>
+                            {/* Created */}
                             <TableCell>
                               {new Date(u.created_at).toLocaleDateString(
                                 'en-GB'
                               )}
                             </TableCell>
 
+                            {/* Last Login */}
+                            <TableCell>
+                              {u.last_sign_in_at
+                                ? new Date(
+                                    u.last_sign_in_at
+                                  ).toLocaleDateString('en-GB')
+                                : '—'}
+                            </TableCell>
+
                             <TableCell className='text-right'>
-                              <div className='flex justify-end gap-2'>
-                                {canManageUsers && (
-                                  <Button
-                                    size='icon'
-                                    variant='outline'
-                                    onClick={() => toggleBan(u.id, u.banned)}
-                                  >
-                                    {u.banned ? (
-                                      <Unlock className='h-4 w-4 text-green-500' />
-                                    ) : (
-                                      <Lock className='h-4 w-4 text-red-500' />
-                                    )}
-                                  </Button>
-                                )}
+                              <div className='flex flex-wrap justify-end gap-2'>
+                                {/* --- Ban / Unban Button --- */}
                                 {canManageUsers && (
                                   <Button
                                     size='sm'
-                                    className='bg-yellow-500 text-black hover:bg-yellow-600'
-                                    onClick={() => approveUser(u.id)}
+                                    onClick={() => toggleBan(u.id, u.banned)}
+                                    className={`border-border/30 text-foreground bg-muted/70 hover:bg-muted/90 relative h-8 rounded-2xl border px-3 text-sm font-medium transition-all duration-200 ${
+                                      u.banned
+                                        ? 'hover:text-emerald-500 hover:shadow-[0_0_10px_-2px_rgba(16,185,129,0.5)]'
+                                        : 'hover:text-red-500 hover:shadow-[0_0_10px_-2px_rgba(239,68,68,0.5)]'
+                                    }`}
                                   >
-                                    {u.approved ? 'Approved' : 'Approve'}
+                                    {u.banned ? (
+                                      <>
+                                        <Unlock className='mr-1 h-4 w-4' />{' '}
+                                        Unban
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Lock className='mr-1 h-4 w-4' /> Ban
+                                      </>
+                                    )}
                                   </Button>
                                 )}
-                                {canDeleteUsers && (
+
+                                {/* --- Approve Button --- */}
+                                {canManageUsers && (
                                   <Button
-                                    size='icon'
-                                    variant='destructive'
-                                    onClick={() => deleteUser(u.id)}
+                                    size='sm'
+                                    onClick={() => approveUser(u.id)}
+                                    disabled={u.approved}
+                                    className={`border-border/30 text-foreground bg-muted/70 hover:bg-muted/90 relative h-8 rounded-2xl border px-3 text-sm font-medium transition-all duration-200 hover:text-yellow-500 hover:shadow-[0_0_10px_-2px_rgba(234,179,8,0.5)] ${u.approved ? 'cursor-default opacity-70' : ''}`}
                                   >
-                                    <Trash2 className='h-4 w-4' />
+                                    {u.approved ? (
+                                      <>
+                                        <ShieldCheck className='mr-1 h-4 w-4 text-yellow-500' />{' '}
+                                        Approved
+                                      </>
+                                    ) : (
+                                      <>
+                                        <ShieldCheck className='mr-1 h-4 w-4' />{' '}
+                                        Approve
+                                      </>
+                                    )}
                                   </Button>
+                                )}
+                                {/* --- Delete Button mit Sicherheitsdialog --- */}
+                                {canDeleteUsers && (
+                                  <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                      <Button
+                                        size='sm'
+                                        className={`border-border/30 text-foreground bg-muted/70 hover:bg-muted/90 relative h-8 rounded-2xl border px-3 text-sm font-medium transition-all duration-200 hover:text-red-500 hover:shadow-[0_0_10px_-2px_rgba(239,68,68,0.5)]`}
+                                      >
+                                        <Trash2 className='mr-1 h-4 w-4' />{' '}
+                                        Delete
+                                      </Button>
+                                    </AlertDialogTrigger>
+
+                                    <AlertDialogContent>
+                                      <AlertDialogHeader>
+                                        <AlertDialogTitle>
+                                          Delete User?
+                                        </AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                          This action cannot be undone. Are you
+                                          sure you want to permanently remove
+                                          this user and all related data?
+                                        </AlertDialogDescription>
+                                      </AlertDialogHeader>
+                                      <AlertDialogFooter>
+                                        <AlertDialogCancel>
+                                          Cancel
+                                        </AlertDialogCancel>
+                                        <AlertDialogAction
+                                          onClick={() => deleteUser(u.id)}
+                                        >
+                                          Delete
+                                        </AlertDialogAction>
+                                      </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                  </AlertDialog>
                                 )}
                               </div>
                             </TableCell>
@@ -486,45 +606,83 @@ export default function AccountsPage() {
                   Recent stock actions by users.
                 </CardDescription>
               </CardHeader>
+
               <CardContent>
                 {loadingActivity ? (
                   <div className='flex justify-center py-6'>
                     <Loader2 className='text-muted-foreground h-6 w-6 animate-spin' />
                   </div>
+                ) : activity.length === 0 ? (
+                  <p className='text-muted-foreground py-6 text-center text-sm'>
+                    No recent user activity found.
+                  </p>
                 ) : (
-                  <div className='border-border/40 bg-card/60 overflow-x-auto rounded-xl border shadow-sm backdrop-blur-sm'>
-                    <Table>
+                  <div className='border-border/40 from-muted/40 to-muted/10 overflow-x-auto rounded-2xl border bg-gradient-to-b shadow-md backdrop-blur-sm'>
+                    <Table className='text-sm'>
                       <TableHeader>
-                        <TableRow>
-                          <TableHead>Date</TableHead>
-                          <TableHead>User</TableHead>
-                          <TableHead>Action</TableHead>
-                          <TableHead>Article</TableHead>
-                          <TableHead>Qty</TableHead>
+                        <TableRow className='border-border/20'>
+                          <TableHead className='text-muted-foreground w-[120px]'>
+                            Date
+                          </TableHead>
+                          <TableHead className='text-muted-foreground min-w-[160px]'>
+                            User
+                          </TableHead>
+                          <TableHead className='text-muted-foreground w-[120px]'>
+                            Action
+                          </TableHead>
+                          <TableHead className='text-muted-foreground min-w-[160px]'>
+                            Article
+                          </TableHead>
+                          <TableHead className='text-muted-foreground w-[80px] text-right'>
+                            Qty
+                          </TableHead>
                         </TableRow>
                       </TableHeader>
+
                       <TableBody>
                         {activity.map((a, i) => (
-                          <TableRow key={i}>
-                            <TableCell>
+                          <TableRow
+                            key={i}
+                            className='hover:bg-muted/50 rounded-lg transition-colors duration-150'
+                          >
+                            {/* Date */}
+                            <TableCell className='text-muted-foreground'>
                               {new Date(a.timestamp).toLocaleDateString(
-                                'en-GB'
+                                'de-DE'
                               )}
                             </TableCell>
-                            <TableCell>{a.benutzer || '—'}</TableCell>
-                            <TableCell>
-                              <Badge
-                                className={
-                                  a.menge_diff >= 0
-                                    ? 'bg-green-500/20 text-green-600'
-                                    : 'bg-red-500/20 text-red-500'
-                                }
-                              >
-                                {a.menge_diff >= 0 ? 'Added' : 'Removed'}
-                              </Badge>
+
+                            {/* User */}
+                            <TableCell className='font-medium'>
+                              {a.benutzer || '—'}
                             </TableCell>
+
+                            {/* Action */}
+                            <TableCell>
+                              {a.menge_diff >= 0 ? (
+                                <Badge
+                                  variant='outline'
+                                  className='rounded-xl border-emerald-500/30 bg-emerald-500/10 px-3 py-0.5 font-medium text-emerald-400'
+                                >
+                                  Added
+                                </Badge>
+                              ) : (
+                                <Badge
+                                  variant='outline'
+                                  className='rounded-xl border-red-500/30 bg-red-500/10 px-3 py-0.5 font-medium text-red-400'
+                                >
+                                  Removed
+                                </Badge>
+                              )}
+                            </TableCell>
+
+                            {/* Article */}
                             <TableCell>{a.artikelname || '—'}</TableCell>
-                            <TableCell>{a.menge_diff}</TableCell>
+
+                            {/* Quantity */}
+                            <TableCell className='text-right font-semibold'>
+                              {a.menge_diff}
+                            </TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
