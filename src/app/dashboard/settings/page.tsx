@@ -46,17 +46,15 @@ export default function SettingsPage() {
     loadUser();
   }, [supabase]);
 
-  // 🔁 Nach E-Mail-Bestätigung neu laden (kommt über ?email-updated=1)
+  // 🔁 Automatisches Neuladen der Userdaten (Option 6)
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('email-updated') === '1') {
-      supabase.auth.getUser().then(({ data }) => {
-        if (data?.user?.email) {
-          setEmail(data.user.email);
-          toast.success('✅ Email updated successfully');
-        }
-      });
-    }
+    const interval = setInterval(async () => {
+      const {
+        data: { user }
+      } = await supabase.auth.getUser();
+      if (user?.email) setEmail(user.email);
+    }, 10000); // alle 10 Sekunden prüfen
+    return () => clearInterval(interval);
   }, [supabase]);
 
   // 🔐 Passwort ändern
@@ -79,34 +77,18 @@ export default function SettingsPage() {
     }
   }
 
-  // ✉️ E-Mail ändern mit Redirect zu /auth/confirm-email
+  // ✉️ E-Mail ändern – Supabase nutzt eigene Bestätigungsseite
   async function handleEmailChange() {
     if (!newEmail) return;
     try {
       setLoading(true);
 
-      const baseUrl =
-        typeof window !== 'undefined'
-          ? window.location.origin
-          : process.env.NEXT_PUBLIC_SITE_URL ||
-            'https://smartinventory-dashboard.vercel.app';
-
-      // ✅ Workaround mit explizitem Typ-Ignore – sicher und kompatibel
-
-      const { error } = await supabase.auth.updateUser(
-        { email: newEmail },
-        {
-          emailRedirectTo: `${baseUrl}/auth/confirm-email`,
-          // Erzwingt Client-Side Hash-Redirect für Email-Confirmation
-          redirectType: 'query'
-        } as any // <- erzwingt akzeptierten Typ
-      );
-
+      const { error } = await supabase.auth.updateUser({ email: newEmail });
       if (error) throw error;
 
-      toast.message('Email confirmation sent', {
+      toast.message('Confirmation email sent', {
         description:
-          '📩 Please check your inbox to confirm the new email address.',
+          '📩 Please check your new inbox and confirm the email change via the Supabase confirmation page.',
         duration: 5000
       });
 
