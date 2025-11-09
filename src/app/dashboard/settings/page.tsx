@@ -88,7 +88,8 @@ export default function SettingsPage() {
       const baseUrl =
         typeof window !== 'undefined'
           ? window.location.origin
-          : process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+          : process.env.NEXT_PUBLIC_SITE_URL ||
+            'https://smartinventory-dashboard.vercel.app';
 
       const { error } = await supabase.auth.updateUser(
         { email: newEmail },
