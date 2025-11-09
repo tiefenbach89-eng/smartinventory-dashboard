@@ -35,6 +35,7 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
+  // 🔹 Initiales Laden der Userdaten
   useEffect(() => {
     async function loadUser() {
       const {
@@ -45,6 +46,20 @@ export default function SettingsPage() {
     loadUser();
   }, [supabase]);
 
+  // 🔁 Nach E-Mail-Bestätigung neu laden (kommt über ?email-updated=1)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('email-updated') === '1') {
+      supabase.auth.getUser().then(({ data }) => {
+        if (data?.user?.email) {
+          setEmail(data.user.email);
+          toast.success('✅ Email updated successfully');
+        }
+      });
+    }
+  }, [supabase]);
+
+  // 🔐 Passwort ändern
   async function handlePasswordChange() {
     if (password !== confirm) {
       toast.error('Passwords do not match.');
@@ -64,12 +79,12 @@ export default function SettingsPage() {
     }
   }
 
+  // ✉️ E-Mail ändern mit Redirect zu /auth/confirm-email
   async function handleEmailChange() {
     if (!newEmail) return;
     try {
       setLoading(true);
 
-      // 🔹 ermittelt dynamisch die Basis-URL
       const baseUrl =
         typeof window !== 'undefined'
           ? window.location.origin
@@ -78,8 +93,7 @@ export default function SettingsPage() {
       const { error } = await supabase.auth.updateUser(
         { email: newEmail },
         {
-          // ✅ korrekter Redirect-Pfad in deiner App
-          emailRedirectTo: `${baseUrl}/dashboard/settings`
+          emailRedirectTo: `${baseUrl}/auth/confirm-email`
         }
       );
 
@@ -101,6 +115,7 @@ export default function SettingsPage() {
     }
   }
 
+  // 🗑️ Account löschen
   async function handleDeleteAccount() {
     try {
       setDeleting(true);
@@ -116,6 +131,7 @@ export default function SettingsPage() {
     }
   }
 
+  // ⬇️ Render
   return (
     <div className='flex justify-center overflow-y-auto px-4 py-10 sm:px-6 lg:px-8'>
       <CardModern className='w-full max-w-2xl space-y-8 p-6 shadow-md sm:p-8'>

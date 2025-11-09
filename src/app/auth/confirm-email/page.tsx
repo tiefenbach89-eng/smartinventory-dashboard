@@ -1,10 +1,10 @@
 'use client';
-import { useEffect } from 'react';
+
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Loader2, CheckCircle2, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
-import { useState } from 'react';
 
 export default function ConfirmEmailPage() {
   const supabase = createClient();
@@ -12,32 +12,54 @@ export default function ConfirmEmailPage() {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>(
     'loading'
   );
+  const [message, setMessage] = useState<string>(
+    'Confirming your new email address...'
+  );
 
   useEffect(() => {
-    async function confirm() {
+    async function confirmEmail() {
       try {
-        const { data, error } = await supabase.auth.getUser();
+        // ✅ Supabase tauscht hier den Code aus der URL gegen eine Session aus
+        const { error } = await supabase.auth.exchangeCodeForSession(
+          window.location.href
+        );
+
         if (error) throw error;
 
         setStatus('success');
+        setMessage('Email confirmed! Redirecting to account settings...');
+
         toast.success('✅ Email updated successfully', {
           description:
             'You will be redirected to your account settings shortly.',
           duration: 4000
         });
 
-        setTimeout(() => router.replace('/settings'), 2500);
+        // ✅ Redirect in den richtigen Pfad deiner App
+        setTimeout(
+          () => router.replace('/dashboard/settings?email-updated=1'),
+          2500
+        );
       } catch (err: any) {
+        console.error('Email confirmation error:', err);
         setStatus('error');
+        setMessage(
+          err.message || 'Something went wrong during email confirmation.'
+        );
+
         toast.error('❌ Confirmation failed', {
           description: err.message || 'Something went wrong.',
           duration: 5000
         });
 
-        setTimeout(() => router.replace('/settings'), 3000);
+        setTimeout(
+          () => router.replace('/dashboard/settings?email-updated=0'),
+          3000
+        );
       }
     }
-    confirm();
+
+    confirmEmail();
   }, [supabase, router]);
 
   return (
@@ -45,9 +67,7 @@ export default function ConfirmEmailPage() {
       {status === 'loading' && (
         <>
           <Loader2 className='text-primary mb-2 h-8 w-8 animate-spin' />
-          <p className='text-muted-foreground text-sm'>
-            Confirming your new email address...
-          </p>
+          <p className='text-muted-foreground text-sm'>{message}</p>
         </>
       )}
 
