@@ -98,7 +98,7 @@ export default function SettingsPage() {
         {
           emailRedirectTo: `${baseUrl}/auth/confirm-email`,
           // Erzwingt Client-Side Hash-Redirect für Email-Confirmation
-          redirectType: 'hash'
+          redirectType: 'query'
         } as any // <- erzwingt akzeptierten Typ
       );
 

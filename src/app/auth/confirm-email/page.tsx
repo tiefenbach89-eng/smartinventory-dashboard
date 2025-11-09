@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Loader2, CheckCircle2, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 export default function ConfirmEmailPage() {
   const supabase = createClient();
   const router = useRouter();
+  const params = useSearchParams();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>(
     'loading'
   );
@@ -16,15 +17,20 @@ export default function ConfirmEmailPage() {
   useEffect(() => {
     async function confirm() {
       try {
-        // 🔹 1. Token aus der URL holen
-        const hash = window.location.hash;
-        const params = new URLSearchParams(hash.replace('#', ''));
-        const access_token = params.get('access_token');
-        const refresh_token = params.get('refresh_token');
+        // 1️⃣ Token aus URL (query oder hash)
+        let access_token = params.get('access_token');
+        let refresh_token = params.get('refresh_token');
+
+        if (!access_token) {
+          const hash = window.location.hash;
+          const hashParams = new URLSearchParams(hash.replace('#', ''));
+          access_token = hashParams.get('access_token');
+          refresh_token = hashParams.get('refresh_token');
+        }
 
         if (!access_token) throw new Error('No access token found in URL');
 
-        // 🔹 2. Session aus Token wiederherstellen
+        // 2️⃣ Session mit Token wiederherstellen
         const { data, error } = await supabase.auth.setSession({
           access_token,
           refresh_token: refresh_token ?? ''
@@ -32,17 +38,19 @@ export default function ConfirmEmailPage() {
 
         if (error) throw error;
 
-        // 🔹 3. Erfolgsmeldung + Weiterleitung
+        // 3️⃣ Erfolgsmeldung + Weiterleitung
         setStatus('success');
         toast.success('✅ Email updated successfully', {
-          description:
-            'You will be redirected to your account settings shortly.',
+          description: 'Redirecting to your account settings...',
           duration: 4000
         });
 
-        setTimeout(() => router.replace('/dashboard/settings'), 2500);
+        setTimeout(
+          () => router.replace('/dashboard/settings?email-updated=1'),
+          2500
+        );
       } catch (err: any) {
-        console.error(err);
+        console.error('Email confirmation error:', err);
         setStatus('error');
         toast.error('❌ Confirmation failed', {
           description: err.message || 'Something went wrong.',
@@ -53,7 +61,7 @@ export default function ConfirmEmailPage() {
     }
 
     confirm();
-  }, [supabase, router]);
+  }, [supabase, router, params]);
 
   return (
     <div className='flex min-h-screen flex-col items-center justify-center space-y-3 text-center'>
