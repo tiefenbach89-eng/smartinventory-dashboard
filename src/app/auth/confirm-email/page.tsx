@@ -17,62 +17,53 @@ export default function ConfirmEmailPage() {
   useEffect(() => {
     const run = async () => {
       try {
-        // 1) Query-Params
-        let access_token = params.get('access_token') ?? undefined;
-        let refresh_token = params.get('refresh_token') ?? undefined;
-        const code = params.get('code') ?? undefined; // PKCE
-        const token_hash = params.get('token_hash') ?? undefined; // email_change
-        const type = params.get('type') ?? undefined;
+        // 1️⃣ Parameter erfassen
+        const type = params.get('type') ?? 'email_change';
+        const code = params.get('code') ?? '';
+        const token_hash = params.get('token_hash') ?? '';
+        const access_token = params.get('access_token') ?? '';
 
-        // 2) Hash-Params (Fallback)
-        if (!access_token && !code && !token_hash) {
-          const hash = window.location.hash;
-          const h = new URLSearchParams(hash.replace('#', ''));
-          access_token = access_token ?? h.get('access_token') ?? undefined;
-          refresh_token = refresh_token ?? h.get('refresh_token') ?? undefined;
-        }
+        console.log('🔍 Params:', { type, code, token_hash, access_token });
 
-        // A) Tokens direkt vorhanden -> Session setzen
+        // 2️⃣ Wenn Access Token vorhanden → Session setzen
         if (access_token) {
           const { error } = await supabase.auth.setSession({
             access_token,
-            refresh_token: refresh_token ?? ''
+            refresh_token: ''
           });
           if (error) throw error;
-          success();
-          return;
+          return handleSuccess();
         }
 
-        // B) PKCE-Code -> Session tauschen
+        // 3️⃣ Wenn Code vorhanden → Versuche PKCE-Exchange (Standardweg)
         if (code) {
           const { error } = await supabase.auth.exchangeCodeForSession(code);
-          if (error) throw error;
-          success();
-          return;
+          if (!error) return handleSuccess();
+          console.warn(
+            '⚠️ exchangeCodeForSession failed, fallback to verifyOtp',
+            error.message
+          );
         }
 
-        // C) token_hash für email_change verifizieren (kein Login nötig)
-        if (token_hash || type === 'email_change') {
-          const { error } = await supabase.auth.verifyOtp({
-            type: 'email_change',
-            token_hash: token_hash ?? ''
-          } as any);
-          if (error) throw error;
-          success();
-          return;
-        }
+        // 4️⃣ Fallback für Email-Change über verifyOtp
+        const { error } = await supabase.auth.verifyOtp({
+          type: 'email_change',
+          token_hash: token_hash || code
+        } as any);
 
-        throw new Error('No token found in URL');
+        if (error) throw error;
+
+        handleSuccess();
       } catch (err: any) {
-        console.error('Email confirmation error:', err);
-        fail(err?.message ?? 'Confirmation failed');
+        console.error('❌ Confirm error:', err);
+        handleError(err.message || 'Confirmation failed');
       }
     };
 
-    const success = () => {
+    const handleSuccess = () => {
       setStatus('success');
       toast.success('✅ Email confirmed successfully', {
-        description: 'Redirecting to your account settings...',
+        description: 'Redirecting to your settings...',
         duration: 4000
       });
       setTimeout(
@@ -81,35 +72,31 @@ export default function ConfirmEmailPage() {
       );
     };
 
-    const fail = (msg: string) => {
+    const handleError = (msg: string) => {
       setStatus('error');
       toast.error('❌ Confirmation failed', {
         description: msg,
         duration: 5000
       });
-      setTimeout(() => router.replace('/dashboard/settings'), 2500);
+      setTimeout(() => router.replace('/dashboard/settings'), 3000);
     };
 
     run();
-  }, [params, router, supabase]);
+  }, [params, supabase, router]);
 
   return (
     <div className='flex min-h-screen flex-col items-center justify-center space-y-3 text-center'>
       {status === 'loading' && (
         <>
-          <Loader2 className='text-muted-foreground mb-2 h-8 w-8 animate-spin' />
-          <p className='text-muted-foreground text-sm'>
-            Confirming your new email…
-          </p>
+          <Loader2 className='text-primary mb-2 h-8 w-8 animate-spin' />
+          <p className='text-muted-foreground text-sm'>Verifying your email…</p>
         </>
       )}
       {status === 'success' && (
         <>
           <CheckCircle2 className='mb-2 h-10 w-10 text-emerald-500' />
           <p className='font-medium'>Email confirmed!</p>
-          <p className='text-muted-foreground text-sm'>
-            Redirecting to settings…
-          </p>
+          <p className='text-muted-foreground text-sm'>Redirecting…</p>
         </>
       )}
       {status === 'error' && (
