@@ -68,12 +68,27 @@ export default function SettingsPage() {
     if (!newEmail) return;
     try {
       setLoading(true);
-      const { error } = await supabase.auth.updateUser({ email: newEmail });
+
+      const { error } = await supabase.auth.updateUser(
+        { email: newEmail },
+        {
+          emailRedirectTo: `${window.location.origin}/auth/confirm-email`
+        }
+      );
+
       if (error) throw error;
-      toast.success('📩 Check your inbox to confirm the new email.');
+
+      toast.message('Email confirmation sent', {
+        description:
+          '📩 Please check your inbox to confirm the new email address.',
+        duration: 5000
+      });
+
       setNewEmail('');
     } catch (err: any) {
-      toast.error('❌ ' + err.message);
+      toast.error('❌ Failed to update email', {
+        description: err.message || 'An unknown error occurred.'
+      });
     } finally {
       setLoading(false);
     }
