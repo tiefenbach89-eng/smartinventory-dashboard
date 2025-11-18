@@ -35,15 +35,15 @@ import {
   TableBody,
   TableCell
 } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslations } from 'next-intl';
 
 /* ---------------------------------- Types --------------------------------- */
 
 type ViewMode = 'monthly' | 'live';
 
-type MonthlyPoint = {
+export type MonthlyPoint = {
   label: string;
   value: number;
   monthStartISO: string;
@@ -52,14 +52,14 @@ type MonthlyPoint = {
   changePct?: number | null;
 };
 
-type LivePoint = {
+export type LivePoint = {
   label: string;
   value: number;
   dateLabel: string;
   kommentar?: string | null;
 };
 
-type DrilldownRow = {
+export type DrilldownRow = {
   artikelnummer: string;
   artikelname: string | null;
   total_qty: number;
@@ -91,16 +91,21 @@ function fmtEUR(v: number | null | undefined) {
 
 export default function AreaGraph() {
   const supabase = createClient();
+  const t = useTranslations('overview');
+
   const [mode, setMode] = React.useState<ViewMode>('monthly');
   const [loading, setLoading] = React.useState(true);
+
   const [monthlyData, setMonthlyData] = React.useState<MonthlyPoint[]>([]);
   const [liveData, setLiveData] = React.useState<LivePoint[]>([]);
+
   const [openDrill, setOpenDrill] = React.useState(false);
   const [drillTitle, setDrillTitle] = React.useState('');
   const [drillRange, setDrillRange] = React.useState<{
     from: string;
     to: string;
   } | null>(null);
+
   const [drillRows, setDrillRows] = React.useState<DrilldownRow[]>([]);
   const [drillLoading, setDrillLoading] = React.useState(false);
 
@@ -110,7 +115,9 @@ export default function AreaGraph() {
     (async () => {
       try {
         setLoading(true);
+
         const twelveMonthsAgo = addMonths(new Date(), -12);
+
         const { data: lagerwert, error } = await supabase
           .from('lagerwert_log')
           .select('timestamp, lagerwert, kommentar')
@@ -123,8 +130,8 @@ export default function AreaGraph() {
           (r.kommentar ?? '').toLowerCase().includes('automatisch')
         );
 
-        // Monatsweise gruppieren
         const buckets: Record<string, number[]> = {};
+
         filtered.forEach((r) => {
           const d = new Date(r.timestamp);
           const key = `${d.getFullYear()}-${d.getMonth()}`;
@@ -141,16 +148,15 @@ export default function AreaGraph() {
             const avg = vals.length
               ? vals.reduce((a, b) => a + b, 0) / vals.length
               : 0;
-            const start = startOfMonth(m);
-            const end = endOfMonth(m);
+
             return {
               label: m.toLocaleString('en-US', {
                 month: 'short',
                 year: '2-digit'
               }),
               value: Math.round(avg),
-              monthStartISO: start.toISOString(),
-              monthEndISO: end.toISOString(),
+              monthStartISO: startOfMonth(m).toISOString(),
+              monthEndISO: endOfMonth(m).toISOString(),
               prettyMonth: m.toLocaleDateString('de-DE', {
                 month: 'long',
                 year: 'numeric'
@@ -158,9 +164,8 @@ export default function AreaGraph() {
               changePct: null
             };
           })
-          .filter((m) => m.value > 0);
+          .filter((p) => p.value > 0);
 
-        // Prozentuale Veränderung
         for (let i = 1; i < monthly.length; i++) {
           const prev = monthly[i - 1].value || 0.00001;
           monthly[i].changePct = ((monthly[i].value - prev) / prev) * 100;
@@ -168,15 +173,15 @@ export default function AreaGraph() {
 
         setMonthlyData(monthly);
 
-        // Live snapshots (letzte 200)
         const { data: live, error: errLive } = await supabase
           .from('lagerwert_log')
           .select('timestamp, lagerwert, kommentar')
           .gte('timestamp', twelveMonthsAgo.toISOString())
           .order('timestamp', { ascending: true });
+
         if (errLive) throw errLive;
 
-        const livePts = (live ?? [])
+        const livePts: LivePoint[] = (live ?? [])
           .filter((r) =>
             (r.kommentar ?? '').toLowerCase().includes('automatisch')
           )
@@ -199,17 +204,19 @@ export default function AreaGraph() {
               kommentar: r.kommentar
             };
           });
+
         setLiveData(livePts);
       } catch (e) {
         console.error('❌ Fetch error:', e);
-        toast.error('Failed to load inventory value history.');
+        toast.error(t('areaLoadError'));
       } finally {
         setLoading(false);
       }
     })();
-  }, [supabase]);
+  }, [supabase, t]);
 
   /* ---------------------------- Drilldown loader --------------------------- */
+
   async function handleOpenDrill(p: MonthlyPoint) {
     try {
       setDrillTitle(p.prettyMonth);
@@ -224,14 +231,17 @@ export default function AreaGraph() {
         .lte('timestamp', p.monthEndISO);
 
       if (error) throw error;
+
       const adds = (data ?? []).filter((r) => Number(r.menge_diff) > 0);
 
       const map: Record<string, DrilldownRow> = {};
+
       for (const r of adds) {
         const key = r.artikelnummer;
         const qty = Number(r.menge_diff) || 0;
         const price = r.preis_snapshot ? Number(r.preis_snapshot) : null;
-        if (!map[key])
+
+        if (!map[key]) {
           map[key] = {
             artikelnummer: key,
             artikelname: r.artikelname ?? null,
@@ -239,6 +249,8 @@ export default function AreaGraph() {
             unit_price: price,
             total_value: 0
           };
+        }
+
         map[key].total_qty += qty;
         if (price != null) map[key].unit_price = price;
       }
@@ -247,68 +259,70 @@ export default function AreaGraph() {
         ...r,
         total_value: r.unit_price != null ? r.unit_price * r.total_qty : 0
       }));
+
       setDrillRows(rows.sort((a, b) => b.total_value - a.total_value));
     } catch (e) {
       console.error('❌ Drilldown error:', e);
-      toast.error('Failed to load monthly article data.');
+      toast.error(t('areaDrillError'));
     } finally {
       setDrillLoading(false);
     }
   }
 
   /* ------------------------------ Render logic ----------------------------- */
+
   const chartData = mode === 'monthly' ? monthlyData : liveData;
   const isMonthly = mode === 'monthly';
 
   return (
     <Card className='flex h-full flex-col'>
+      {/* ----------------------------- Header ----------------------------- */}
       <CardHeader className='flex flex-row items-start justify-between gap-3'>
         <div>
-          <CardTitle>Inventory Value Over Time</CardTitle>
+          <CardTitle>{t('areaTitle')}</CardTitle>
           <CardDescription>
-            {isMonthly
-              ? 'Historical monthly warehouse value (avg per month, last 12 months)'
-              : 'Live snapshots of current warehouse value'}
+            {isMonthly ? t('areaSubtitleMonthly') : t('areaSubtitleLive')}
           </CardDescription>
         </div>
 
-        {/* ✅ Buttons im "Edit / Add Stock" Look, dezent & theme-konsistent */}
         <div className='flex items-center gap-2'>
           <Button
             size='sm'
-            className={`h-8 rounded-2xl px-3 text-sm font-medium transition-colors ${
+            className={`h-8 rounded-2xl px-3 text-sm font-medium ${
               mode === 'monthly'
-                ? 'bg-muted/70 text-primary border-primary/30 hover:bg-muted/90 border shadow-sm'
-                : 'bg-muted/40 text-muted-foreground border-border/30 hover:bg-muted/60 hover:text-primary border'
+                ? 'bg-muted/70 text-primary border-primary/30 border'
+                : 'bg-muted/40 text-muted-foreground border'
             }`}
             onClick={() => setMode('monthly')}
           >
-            Monthly Overview
+            {t('areaBtnMonthly')}
           </Button>
 
           <Button
             size='sm'
-            className={`h-8 rounded-2xl px-3 text-sm font-medium transition-colors ${
+            className={`h-8 rounded-2xl px-3 text-sm font-medium ${
               mode === 'live'
-                ? 'bg-muted/70 text-primary border-primary/30 hover:bg-muted/90 border shadow-sm'
-                : 'bg-muted/40 text-muted-foreground border-border/30 hover:bg-muted/60 hover:text-primary border'
+                ? 'bg-muted/70 text-primary border-primary/30 border'
+                : 'bg-muted/40 text-muted-foreground border'
             }`}
             onClick={() => setMode('live')}
           >
-            Live Snapshots
+            {t('areaBtnLive')}
           </Button>
         </div>
       </CardHeader>
+
+      {/* ----------------------------- Chart ----------------------------- */}
 
       <CardContent className='flex flex-1 items-center justify-center px-2 pt-4 sm:px-6 sm:pt-6'>
         {loading ? (
           <Loader2 className='text-muted-foreground h-6 w-6 animate-spin' />
         ) : chartData.length === 0 ? (
-          <p className='text-muted-foreground text-sm'>No data available.</p>
+          <p className='text-muted-foreground text-sm'>{t('areaNoData')}</p>
         ) : (
           <ResponsiveContainer width='100%' height={300}>
             <AreaChart
-              data={chartData as any[]}
+              data={chartData}
               margin={{ top: 8, left: 12, right: 12, bottom: 5 }}
               onClick={(e: any) => {
                 if (isMonthly && e?.activePayload?.[0]?.payload)
@@ -331,83 +345,68 @@ export default function AreaGraph() {
               </defs>
 
               <CartesianGrid vertical={false} opacity={0.15} />
+
               <XAxis
                 dataKey='label'
                 tickLine={false}
                 axisLine={false}
                 tickMargin={8}
-                minTickGap={16}
-                tick={{
-                  fill: 'var(--muted-foreground)',
-                  fontSize: 12,
-                  fontFamily: 'inherit'
-                }}
               />
-              <YAxis
-                domain={['dataMin - 10', 'dataMax + 10']}
-                tick={{
-                  fill: 'var(--muted-foreground)',
-                  fontSize: 12,
-                  fontFamily: 'inherit'
-                }}
-              />
+
+              <YAxis domain={['dataMin - 10', 'dataMax + 10']} />
+
               <ReTooltip
-                cursor={{ strokeDasharray: '3 3', stroke: 'var(--primary)' }}
                 content={({ active, payload }) => {
-                  if (active && payload && payload.length) {
-                    if (isMonthly) {
-                      const d = payload[0].payload as MonthlyPoint;
-                      return (
-                        <div className='bg-background/95 border-border/40 rounded-2xl border px-4 py-3 shadow-lg backdrop-blur-md'>
-                          <div className='text-primary mb-1 font-semibold'>
-                            {d.prettyMonth}
-                          </div>
-                          <div className='text-foreground text-sm'>
-                            Average value:{' '}
-                            <span className='font-semibold'>
-                              {fmtEUR(d.value)}
-                            </span>
-                          </div>
-                          {typeof d.changePct === 'number' && (
-                            <div
-                              className={`text-xs font-medium ${
-                                d.changePct >= 0
-                                  ? 'text-emerald-400'
-                                  : 'text-red-400'
-                              }`}
-                            >
-                              {d.changePct >= 0 ? 'Change: +' : 'Change: '}
-                              {d.changePct.toFixed(1)}%
-                            </div>
-                          )}
-                          <div className='text-muted-foreground mt-2 text-xs'>
-                            Click to view monthly details
-                          </div>
+                  if (!active || !payload?.length) return null;
+
+                  const d = payload[0].payload;
+
+                  if (isMonthly) {
+                    return (
+                      <div className='bg-background/95 border-border/40 rounded-2xl border px-4 py-3 shadow-lg backdrop-blur-md'>
+                        <div className='text-primary mb-1 font-semibold'>
+                          {d.prettyMonth}
                         </div>
-                      );
-                    } else {
-                      const d = payload[0].payload as LivePoint;
-                      return (
-                        <div className='bg-background/95 border-border/40 rounded-2xl border px-4 py-3 shadow-lg backdrop-blur-md'>
-                          <div className='text-primary mb-1 font-semibold'>
-                            {d.dateLabel}
-                          </div>
-                          <div className='text-foreground text-sm'>
-                            Inventory Value:{' '}
-                            <span className='font-semibold'>
-                              {fmtEUR(d.value)}
-                            </span>
-                          </div>
-                          {d.kommentar && (
-                            <div className='text-muted-foreground mt-1 text-xs italic'>
-                              {d.kommentar}
-                            </div>
-                          )}
+                        <div className='text-foreground text-sm'>
+                          {t('areaTooltipAvg')}:{' '}
+                          <strong>{fmtEUR(d.value)}</strong>
                         </div>
-                      );
-                    }
+
+                        {typeof d.changePct === 'number' && (
+                          <div
+                            className={`text-xs font-medium ${
+                              d.changePct >= 0
+                                ? 'text-emerald-400'
+                                : 'text-red-400'
+                            }`}
+                          >
+                            {t('areaTooltipChange')} {d.changePct.toFixed(1)}%
+                          </div>
+                        )}
+
+                        <div className='text-muted-foreground mt-2 text-xs'>
+                          {t('areaTooltipClick')}
+                        </div>
+                      </div>
+                    );
                   }
-                  return null;
+
+                  return (
+                    <div className='bg-background/95 border-border/40 rounded-2xl border px-4 py-3 shadow-lg backdrop-blur-md'>
+                      <div className='text-primary mb-1 font-semibold'>
+                        {d.dateLabel}
+                      </div>
+                      <div className='text-foreground text-sm'>
+                        {t('areaTooltipValue')}:{' '}
+                        <strong>{fmtEUR(d.value)}</strong>
+                      </div>
+                      {d.kommentar && (
+                        <div className='text-muted-foreground mt-1 text-xs italic'>
+                          {d.kommentar}
+                        </div>
+                      )}
+                    </div>
+                  );
                 }}
               />
 
@@ -418,48 +417,31 @@ export default function AreaGraph() {
                 stroke='var(--primary)'
                 strokeWidth={2.5}
                 activeDot={{ r: 5 }}
-                isAnimationActive
-                animationDuration={900}
-                animationEasing='ease-in-out'
               />
             </AreaChart>
           </ResponsiveContainer>
         )}
       </CardContent>
 
+      {/* ----------------------------- Footer ----------------------------- */}
       <CardFooter className='flex items-center justify-between'>
-        <div className='text-muted-foreground flex flex-col gap-1 text-sm'>
-          <span className='font-medium'>
-            {isMonthly
-              ? 'Average monthly warehouse value (last 12 months)'
-              : 'Live snapshots from automatic updates'}
-          </span>
+        <div className='text-muted-foreground text-sm'>
+          {isMonthly ? t('areaFooterMonthly') : t('areaFooterLive')}
         </div>
+
         {isMonthly && (
           <span className='text-muted-foreground text-xs'>
-            Tip: Click a month to see which articles were added.
+            {t('areaFooterTip')}
           </span>
         )}
       </CardFooter>
 
-      {/* --------------------------- Drilldown Dialog --------------------------- */}
+      {/* ----------------------------- Drilldown ----------------------------- */}
       <Dialog open={openDrill} onOpenChange={setOpenDrill}>
-        <DialogContent className='bg-background/90 max-w-4xl rounded-2xl border-none p-0 shadow-2xl backdrop-blur-lg'>
-          <DialogHeader className='px-6 pt-6'>
-            <DialogTitle className='text-lg font-semibold'>
-              Monthly additions
-            </DialogTitle>
-            <DialogDescription className='text-muted-foreground text-sm'>
-              {drillTitle}
-              {drillRange && (
-                <>
-                  {' '}
-                  · {new Date(drillRange.from).toLocaleDateString(
-                    'de-DE'
-                  )} – {new Date(drillRange.to).toLocaleDateString('de-DE')}
-                </>
-              )}
-            </DialogDescription>
+        <DialogContent className='max-w-4xl'>
+          <DialogHeader>
+            <DialogTitle>{t('areaDrillTitle')}</DialogTitle>
+            <DialogDescription>{drillTitle}</DialogDescription>
           </DialogHeader>
 
           {drillLoading ? (
@@ -468,45 +450,41 @@ export default function AreaGraph() {
             </div>
           ) : drillRows.length === 0 ? (
             <p className='text-muted-foreground py-4 text-center text-sm'>
-              No product additions in this month.
+              {t('areaDrillEmpty')}
             </p>
           ) : (
             <div className='border-border/40 mt-2 overflow-hidden rounded-b-2xl border-t'>
               <Table className='min-w-full text-sm'>
                 <TableHeader className='bg-muted/10'>
                   <TableRow>
-                    <TableHead className='w-[130px]'>Article #</TableHead>
-                    <TableHead>Name</TableHead>
+                    <TableHead className='w-[130px]'>
+                      {t('areaDrillColArticle')}
+                    </TableHead>
+                    <TableHead>{t('areaDrillColName')}</TableHead>
                     <TableHead className='w-[110px] text-right'>
-                      Added Qty
+                      {t('areaDrillColQty')}
                     </TableHead>
                     <TableHead className='w-[130px] text-right'>
-                      Unit Price
+                      {t('areaDrillColPrice')}
                     </TableHead>
                     <TableHead className='w-[140px] text-right'>
-                      Total Value
+                      {t('areaDrillColTotal')}
                     </TableHead>
                   </TableRow>
                 </TableHeader>
+
                 <TableBody>
                   {drillRows.map((r) => (
-                    <TableRow
-                      key={r.artikelnummer}
-                      className='hover:bg-muted/30 transition-colors duration-150'
-                    >
-                      <TableCell className='font-medium'>
-                        {r.artikelnummer}
-                      </TableCell>
-                      <TableCell className='text-foreground'>
-                        {r.artikelname ?? '—'}
-                      </TableCell>
+                    <TableRow key={r.artikelnummer}>
+                      <TableCell>{r.artikelnummer}</TableCell>
+                      <TableCell>{r.artikelname ?? '—'}</TableCell>
                       <TableCell className='text-right'>
                         {r.total_qty}
                       </TableCell>
                       <TableCell className='text-right'>
                         {r.unit_price != null ? fmtEUR(r.unit_price) : '—'}
                       </TableCell>
-                      <TableCell className='text-right font-semibold'>
+                      <TableCell className='text-right'>
                         {fmtEUR(r.total_value)}
                       </TableCell>
                     </TableRow>

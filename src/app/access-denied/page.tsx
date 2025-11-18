@@ -6,14 +6,17 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
 
+// 🌍 next-intl
+import { useTranslations } from 'next-intl';
+
 export default function AccessDeniedPage() {
   const router = useRouter();
   const [visible, setVisible] = useState(true);
+  const t = useTranslations('AccessDenied');
 
   const handleRedirect = (path: string) => {
-    // Trigger exit animation first
     setVisible(false);
-    setTimeout(() => router.push(path), 400); // wait for fade-out
+    setTimeout(() => router.push(path), 400);
   };
 
   return (
@@ -41,14 +44,13 @@ export default function AccessDeniedPage() {
             </motion.div>
 
             {/* Text */}
-            <h1 className='text-foreground mb-2 text-6xl font-bold'>403</h1>
+            <h1 className='text-foreground mb-2 text-6xl font-bold'>
+              {t('code')}
+            </h1>
             <h2 className='text-foreground mb-3 text-2xl font-semibold'>
-              Access Denied
+              {t('title')}
             </h2>
-            <p className='text-muted-foreground mb-8'>
-              Sorry, you don’t have permission to view this page or perform this
-              action.
-            </p>
+            <p className='text-muted-foreground mb-8'>{t('description')}</p>
 
             {/* Buttons */}
             <div className='flex justify-center'>
@@ -57,7 +59,7 @@ export default function AccessDeniedPage() {
                 className='px-6 py-2'
                 onClick={() => handleRedirect('/dashboard/overview')}
               >
-                Back to Home
+                {t('back')}
               </Button>
             </div>
           </motion.div>

@@ -1,7 +1,6 @@
 'use client';
 
 import { IconChevronRight } from '@tabler/icons-react';
-
 import {
   Collapsible,
   CollapsibleContent,
@@ -19,60 +18,107 @@ import {
   SidebarMenuSubItem
 } from '@/components/ui/sidebar';
 import { Icon } from '@/components/icons';
+import { useTranslations } from 'next-intl';
+import { cn } from '@/lib/utils';
 
-export function NavMain({
-  items
-}: {
-  items: {
-    title: string;
+type NavMainItem = {
+  key: string;
+  title?: string;
+  url: string;
+  icon?: Icon;
+  isActive?: boolean;
+  items?: {
+    key: string;
+    title?: string;
     url: string;
-    icon?: Icon;
-    isActive?: boolean;
-    items?: {
-      title: string;
-      url: string;
-    }[];
   }[];
-}) {
+};
+
+export function NavMain({ items }: { items: NavMainItem[] }) {
+  const t = useTranslations('nav');
+
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>Platform</SidebarGroupLabel>
-      <SidebarGroupContent className='flex flex-col gap-2'>
+      <SidebarGroupLabel className='text-muted-foreground/80 text-xs font-semibold tracking-wide uppercase'>
+        {t('platform')}
+      </SidebarGroupLabel>
+
+      <SidebarGroupContent className='mt-1 flex flex-col gap-1'>
         <SidebarMenu>
-          {items.map((item) => (
-            <Collapsible
-              key={item.title}
-              asChild
-              defaultOpen={item.isActive}
-              className='group/collapsible'
-            >
-              <SidebarMenuItem>
-                <CollapsibleTrigger asChild>
+          {items.map((item) => {
+            const hasChildren = !!item.items?.length;
+            const label = t(item.key);
+
+            // 🔹 Einfacher Button-Style für Hauptpunkte
+            const buttonClass = cn(
+              'min-w-8 justify-start gap-2 rounded-xl px-3 py-2 text-sm font-medium',
+              'text-muted-foreground hover:text-foreground hover:bg-accent/70',
+              'transition-all duration-200 ease-out',
+              item.isActive && [
+                'bg-primary/10 text-primary',
+                'border border-primary/30 shadow-sm'
+              ]
+            );
+
+            if (!hasChildren) {
+              // 👉 Einfache Einträge (Overview, Accounts usw.)
+              return (
+                <SidebarMenuItem key={item.key} className='px-1'>
                   <SidebarMenuButton
-                    tooltip={item.title}
-                    className='bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground min-w-8 duration-200 ease-linear'
+                    asChild
+                    tooltip={label}
+                    className={buttonClass}
                   >
-                    {item.icon && <item.icon />}
-                    <span>{item.title}</span>
-                    <IconChevronRight className='ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90' />
+                    <a href={item.url}>
+                      {item.icon && <item.icon className='h-4 w-4' />}
+                      <span className='truncate'>{label}</span>
+                    </a>
                   </SidebarMenuButton>
-                </CollapsibleTrigger>
-                <CollapsibleContent>
-                  <SidebarMenuSub>
-                    {item.items?.map((subItem) => (
-                      <SidebarMenuSubItem key={subItem.title}>
-                        <SidebarMenuSubButton asChild>
-                          <a href={subItem.url}>
-                            <span>{subItem.title}</span>
-                          </a>
-                        </SidebarMenuSubButton>
-                      </SidebarMenuSubItem>
-                    ))}
-                  </SidebarMenuSub>
-                </CollapsibleContent>
-              </SidebarMenuItem>
-            </Collapsible>
-          ))}
+                </SidebarMenuItem>
+              );
+            }
+
+            // 👉 Einträge MIT Sub-Menü (Products)
+            return (
+              <Collapsible
+                key={item.key}
+                asChild
+                defaultOpen={item.isActive}
+                className='group/collapsible'
+              >
+                <SidebarMenuItem className='px-1'>
+                  <CollapsibleTrigger asChild>
+                    <SidebarMenuButton tooltip={label} className={buttonClass}>
+                      {item.icon && <item.icon className='h-4 w-4' />}
+                      <span className='truncate'>{label}</span>
+                      <IconChevronRight className='text-muted-foreground ml-auto h-3 w-3 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90' />
+                    </SidebarMenuButton>
+                  </CollapsibleTrigger>
+
+                  <CollapsibleContent className='mt-1 pl-2'>
+                    <SidebarMenuSub>
+                      {item.items?.map((subItem) => (
+                        <SidebarMenuSubItem key={subItem.key}>
+                          <SidebarMenuSubButton
+                            asChild
+                            className={cn(
+                              'rounded-lg px-3 py-1.5 text-xs',
+                              'text-muted-foreground hover:text-foreground hover:bg-accent/60',
+                              'transition-colors duration-150'
+                            )}
+                          >
+                            <a href={subItem.url}>
+                              <span className='truncate'>{t(subItem.key)}</span>
+                            </a>
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      ))}
+                    </SidebarMenuSub>
+                  </CollapsibleContent>
+                </SidebarMenuItem>
+              </Collapsible>
+            );
+          })}
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>

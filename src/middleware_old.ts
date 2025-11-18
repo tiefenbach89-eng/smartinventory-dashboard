@@ -1,10 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
+import createIntlMiddleware from 'next-intl/middleware';
+
+// 1) next-intl Middleware (kein URL-Prefix)
+const intl = createIntlMiddleware({
+  locales: ['en', 'de'],
+  defaultLocale: 'en',
+  localePrefix: 'never' // keine /en /de in der URL nötig
+});
 
 export async function middleware(req: NextRequest) {
-  const res = NextResponse.next();
+  // Zuerst Locale-Handling (setzt u.a. Cookie NEXT_LOCALE)
+  const intlResponse = intl(req);
 
-  // 🧠 Kein eigenes Cookie-Objekt mehr nötig
+  // Danach Supabase-Auth verwenden (auf Basis derselben Request/Response)
+  const res = NextResponse.next({
+    request: {
+      headers: req.headers
+    }
+  });
+
+  // Cookies aus intlResponse in res übernehmen, damit NEXT_LOCALE persistiert
+  intlResponse.cookies.getAll().forEach((c) => {
+    res.cookies.set(c);
+  });
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -24,7 +44,7 @@ export async function middleware(req: NextRequest) {
     data: { user }
   } = await supabase.auth.getUser();
 
-  // 🚫 Zugriffsschutz für /dashboard
+  // Schutz für Dashboard
   if (req.nextUrl.pathname.startsWith('/dashboard') && !user) {
     const redirectUrl = req.nextUrl.clone();
     redirectUrl.pathname = '/auth/sign-in';
@@ -32,10 +52,12 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(redirectUrl);
   }
 
+  // Wenn alles ok: die von intl gesetzten Header/Cookies beibehalten
   return res;
 }
 
-// 🔒 Middleware aktiv für Dashboard + API
+// Gültig für Dashboard + API (wie zuvor)
+// next-intl läuft global, aber unser eigener Matcher bleibt hier bewusst schmal
 export const config = {
   matcher: ['/dashboard/:path*', '/(api|trpc)(.*)']
 };

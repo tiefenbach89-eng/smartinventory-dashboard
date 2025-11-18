@@ -14,6 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRolePermissions } from '@/hooks/useRolePermissions';
+import { useTranslations } from 'next-intl';
 
 // 🔸 Typisierung für Rollenrechte
 type RoleRow = {
@@ -28,6 +29,8 @@ type RoleRow = {
 
 // 🔹 Kompakte Rechte-Zusammenfassung
 function RoleBadgesSummary(r: RoleRow) {
+  const t = useTranslations('Accounts.roleTable');
+
   return (
     <div className='flex flex-wrap gap-2'>
       <Badge
@@ -36,37 +39,37 @@ function RoleBadgesSummary(r: RoleRow) {
           r.can_access_admin_panel ? 'border-primary text-primary' : ''
         }
       >
-        Admin Access
+        {t('badgeAdmin')}
       </Badge>
       <Badge
         variant='outline'
         className={r.can_manage_users ? 'border-primary text-primary' : ''}
       >
-        Manage Users
+        {t('badgeManageUsers')}
       </Badge>
       <Badge
         variant='outline'
         className={r.can_delete_users ? 'border-primary text-primary' : ''}
       >
-        Delete Users
+        {t('badgeDeleteUsers')}
       </Badge>
       <Badge
         variant='outline'
         className={r.can_manage_products ? 'border-primary text-primary' : ''}
       >
-        Manage Products
+        {t('badgeManageProducts')}
       </Badge>
       <Badge
         variant='outline'
         className={r.can_adjust_stock ? 'border-primary text-primary' : ''}
       >
-        Adjust Stock
+        {t('badgeAdjustStock')}
       </Badge>
       <Badge
         variant='outline'
         className={r.can_delete_products ? 'border-primary text-primary' : ''}
       >
-        Delete Products
+        {t('badgeDeleteProducts')}
       </Badge>
     </div>
   );
@@ -82,6 +85,8 @@ export function RoleManagementTable() {
   const { permissions } = useRolePermissions();
   const isAdmin = permissions?.role === 'admin';
 
+  const t = useTranslations('Accounts.roleTable');
+
   // 🔹 Rollen aus Supabase laden
   async function load() {
     try {
@@ -91,7 +96,11 @@ export function RoleManagementTable() {
       if (!res.ok) throw new Error(json.error || 'Failed to load roles');
       setRows(json.roles || []);
     } catch (e: any) {
-      toast.error('❌ Failed to load roles: ' + e.message);
+      toast.error(
+        t('loadError', {
+          message: e.message ?? ''
+        })
+      );
     } finally {
       setLoadingRoles(false);
     }
@@ -112,9 +121,17 @@ export function RoleManagementTable() {
       });
       const j = await res.json();
       if (!res.ok) throw new Error(j.error || 'Update failed');
-      toast.success(`Saved permissions for "${r.role}"`);
+      toast.success(
+        t('saveSuccess', {
+          role: r.role
+        })
+      );
     } catch (e: any) {
-      toast.error(e.message);
+      toast.error(
+        t('saveError', {
+          message: e.message ?? ''
+        })
+      );
     } finally {
       setSaving(null);
     }
@@ -134,7 +151,7 @@ export function RoleManagementTable() {
     return (
       <div className='text-muted-foreground flex justify-center py-10'>
         <Loader2 className='mr-2 h-5 w-5 animate-spin' />
-        Loading roles...
+        {t('loading')}
       </div>
     );
   }
@@ -152,15 +169,27 @@ export function RoleManagementTable() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className='w-[140px]'>Role</TableHead>
-              <TableHead>Summary</TableHead>
-              <TableHead className='text-center'>Admin Access</TableHead>
-              <TableHead className='text-center'>Manage Users</TableHead>
-              <TableHead className='text-center'>Delete Users</TableHead>
-              <TableHead className='text-center'>Manage Products</TableHead>
-              <TableHead className='text-center'>Adjust Stock</TableHead>
-              <TableHead className='text-center'>Delete Products</TableHead>
-              <TableHead className='text-right'>Save</TableHead>
+              <TableHead className='w-[140px]'>{t('role')}</TableHead>
+              <TableHead>{t('summary')}</TableHead>
+              <TableHead className='text-center'>
+                {t('colAdminAccess')}
+              </TableHead>
+              <TableHead className='text-center'>
+                {t('colManageUsers')}
+              </TableHead>
+              <TableHead className='text-center'>
+                {t('colDeleteUsers')}
+              </TableHead>
+              <TableHead className='text-center'>
+                {t('colManageProducts')}
+              </TableHead>
+              <TableHead className='text-center'>
+                {t('colAdjustStock')}
+              </TableHead>
+              <TableHead className='text-center'>
+                {t('colDeleteProducts')}
+              </TableHead>
+              <TableHead className='text-right'>{t('save')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -199,7 +228,7 @@ export function RoleManagementTable() {
                     onClick={() => saveRow(r)}
                     disabled={saving === r.role}
                   >
-                    {saving === r.role ? 'Saving…' : 'Save'}
+                    {saving === r.role ? t('saving') : t('save')}
                   </Button>
                 </TableCell>
               </TableRow>
@@ -211,37 +240,29 @@ export function RoleManagementTable() {
       {/* 🩶 Overlay Hinweis mit sanftem Fade-In */}
       {!isAdmin && (
         <div className='text-muted-foreground from-background/60 to-background/80 absolute inset-0 flex items-center justify-center rounded-xl bg-gradient-to-b font-medium opacity-0 backdrop-blur-[2px] transition-opacity duration-700 ease-in-out group-hover:opacity-100'>
-          <p className='text-center text-base'>
-            🔒 Limited access — admin only
-          </p>
+          <p className='text-center text-base'>{t('overlayLimited')}</p>
         </div>
       )}
 
       {/* 📘 Beschreibungsblock unterhalb der Tabelle */}
       <div className='text-muted-foreground border-border/30 mt-8 space-y-2 border-t pt-4 text-sm'>
         <p>
-          <strong>Admin Access:</strong> Grants access to administrative areas
-          such as Accounts, Settings, and Role Management.
+          <strong>{t('admin_access')}</strong> {t('admin_access_desc')}
         </p>
         <p>
-          <strong>Manage Users:</strong> Allows viewing, approving, or banning
-          users, but not editing roles.
+          <strong>{t('manage_users')}</strong> {t('manage_users_desc')}
         </p>
         <p>
-          <strong>Delete Users:</strong> Permanently removes users from the
-          system (Admin only).
+          <strong>{t('delete_users')}</strong> {t('delete_users_desc')}
         </p>
         <p>
-          <strong>Manage Products:</strong> Allows adding, editing, or
-          deactivating products.
+          <strong>{t('manage_products')}</strong> {t('manage_products_desc')}
         </p>
         <p>
-          <strong>Adjust Stock:</strong> Enables increasing or decreasing
-          product inventory.
+          <strong>{t('adjust_stock')}</strong> {t('adjust_stock_desc')}
         </p>
         <p>
-          <strong>Delete Products:</strong> Permanently removes products
-          including their full history.
+          <strong>{t('delete_products')}</strong> {t('delete_products_desc')}
         </p>
       </div>
     </div>

@@ -1,43 +1,14 @@
+// next.config.ts
 import type { NextConfig } from 'next';
-import { withSentryConfig } from '@sentry/nextjs';
+import withNextIntl from 'next-intl/plugin';
 
-// ✅ Explizit Webpack statt Turbopack erzwingen
-const baseConfig: NextConfig = {
-  // Wichtig: Deaktiviert Turbopack global
+const config: NextConfig = {
   experimental: {
-    // @ts-expect-error - Next.js 16 types missing turbo flag
+    // nur, damit du Webpack erzwingst – das ist okay
+    // @ts-expect-error
     turbo: false
-  },
-
-  webpack: (config) => config,
-
-  images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'api.slingacademy.com',
-        port: ''
-      }
-    ]
-  },
-
-  transpilePackages: ['geist']
+  }
 };
 
-let configWithPlugins = baseConfig;
-
-if (!process.env.NEXT_PUBLIC_SENTRY_DISABLED) {
-  configWithPlugins = withSentryConfig(configWithPlugins, {
-    org: process.env.NEXT_PUBLIC_SENTRY_ORG,
-    project: process.env.NEXT_PUBLIC_SENTRY_PROJECT,
-    silent: !process.env.CI,
-    widenClientFileUpload: true,
-    reactComponentAnnotation: { enabled: true },
-    tunnelRoute: '/monitoring',
-    disableLogger: true,
-    telemetry: false
-  });
-}
-
-const nextConfig = configWithPlugins;
-export default nextConfig;
+// ⬇️ Hier der wichtige Fix:
+export default withNextIntl('./i18n/index.ts')(config);

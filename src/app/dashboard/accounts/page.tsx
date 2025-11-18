@@ -52,6 +52,9 @@ import {
   AlertDialogTrigger
 } from '@/components/ui/alert-dialog';
 
+// 🌍 next-intl
+import { useTranslations } from 'next-intl';
+
 // ---------------------------------------------------------------------------
 // 🔹 TYPES
 // ---------------------------------------------------------------------------
@@ -86,6 +89,7 @@ export default function AccountsPage() {
   const router = useRouter();
   const supabase = createClient();
   const pathname = usePathname();
+  const t = useTranslations('Accounts');
 
   // ---------- STATES ----------
   const [loading, setLoading] = useState(false);
@@ -108,23 +112,21 @@ export default function AccountsPage() {
       const res = await fetch('/api/admin/users', { cache: 'no-store' });
       const json = await res.json();
       if (!res.ok || json.error)
-        throw new Error(json.error || 'Failed to load users');
+        throw new Error(json.error || t('toggleFailed'));
       setUsers(json.users || []);
     } catch {
-      toast.error('Error loading users');
+      toast.error(t('toastErrorLoadUsers'));
     } finally {
       setLoading(false);
     }
   }
 
   useEffect(() => {
-    // async Aufruf sauber kapseln
     const loadUsers = async () => {
       await fetchUsers();
     };
     loadUsers();
 
-    // Supabase Realtime für user_roles
     const channel = supabase
       .channel('user_roles-changes')
       .on(
@@ -149,7 +151,7 @@ export default function AccountsPage() {
       const json = await res.json();
       setActivity(json.data || []);
     } catch {
-      toast.error('Error loading activity');
+      toast.error(t('toastErrorLoadActivity'));
     } finally {
       setLoadingActivity(false);
     }
@@ -179,7 +181,7 @@ export default function AccountsPage() {
   // 🔹 ACTIONS
   // ---------------------------------------------------------------------------
   async function toggleBan(userId: string, currentBan: boolean) {
-    if (!canManageUsers) return toast.error('No permission to ban users');
+    if (!canManageUsers) return toast.error(t('noPermissionBan'));
 
     toast.promise(
       (async () => {
@@ -187,7 +189,7 @@ export default function AccountsPage() {
         const {
           data: { session }
         } = await supabase.auth.getSession();
-        if (!session) throw new Error('Unauthorized');
+        if (!session) throw new Error(t('unauthorized'));
 
         const res = await fetch('/api/admin/users', {
           method: 'PATCH',
@@ -200,16 +202,16 @@ export default function AccountsPage() {
 
         const json = await res.json();
         if (!res.ok || json.error)
-          throw new Error(json.error || 'Toggle failed');
+          throw new Error(json.error || t('toggleFailed'));
 
         setUsers((prev) =>
           prev.map((u) => (u.id === userId ? { ...u, banned: !currentBan } : u))
         );
 
-        return !currentBan ? 'User banned' : 'User unbanned';
+        return !currentBan ? t('userBanned') : t('userUnbanned');
       })(),
       {
-        loading: 'Applying change...',
+        loading: t('loadingApplyingChange'),
         success: (m) => m,
         error: (e) => String(e)
       }
@@ -217,7 +219,7 @@ export default function AccountsPage() {
   }
 
   async function approveUser(userId: string) {
-    if (!canManageUsers) return toast.error('No permission to approve users');
+    if (!canManageUsers) return toast.error(t('noPermissionApprove'));
 
     toast.promise(
       (async () => {
@@ -225,7 +227,7 @@ export default function AccountsPage() {
         const {
           data: { session }
         } = await supabase.auth.getSession();
-        if (!session) throw new Error('Unauthorized');
+        if (!session) throw new Error(t('unauthorized'));
 
         const res = await fetch('/api/admin/users', {
           method: 'PATCH',
@@ -242,7 +244,7 @@ export default function AccountsPage() {
 
         const json = await res.json();
         if (!res.ok || json.error)
-          throw new Error(json.error || 'Approval failed');
+          throw new Error(json.error || t('approvalFailed'));
 
         setUsers((prev) =>
           prev.map((u) =>
@@ -250,14 +252,18 @@ export default function AccountsPage() {
           )
         );
 
-        return 'User approved successfully';
+        return t('userApproved');
       })(),
-      { loading: 'Approving...', success: (m) => m, error: (e) => String(e) }
+      {
+        loading: t('loadingApproving'),
+        success: (m) => m,
+        error: (e) => String(e)
+      }
     );
   }
 
   async function deleteUser(userId: string) {
-    if (!canDeleteUsers) return toast.error('No permission to delete users');
+    if (!canDeleteUsers) return toast.error(t('noPermissionDelete'));
 
     toast.promise(
       (async () => {
@@ -265,7 +271,7 @@ export default function AccountsPage() {
         const {
           data: { session }
         } = await supabase.auth.getSession();
-        if (!session) throw new Error('Unauthorized');
+        if (!session) throw new Error(t('unauthorized'));
 
         const res = await fetch('/api/admin/users', {
           method: 'DELETE',
@@ -278,13 +284,13 @@ export default function AccountsPage() {
 
         const json = await res.json();
         if (!res.ok || json.error)
-          throw new Error(json.error || 'Delete failed');
+          throw new Error(json.error || t('deleteFailed'));
 
         setUsers((prev) => prev.filter((u) => u.id !== userId));
-        return 'User deleted';
+        return t('userDeleted');
       })(),
       {
-        loading: 'Deleting user...',
+        loading: t('loadingDeletingUser'),
         success: (m) => m,
         error: (e) => String(e)
       }
@@ -292,14 +298,14 @@ export default function AccountsPage() {
   }
 
   async function handleRoleChange(userId: string, newRole: string) {
-    if (!isAdmin) return toast.error('Only admins can change roles');
+    if (!isAdmin) return toast.error(t('onlyAdminsChangeRoles'));
     toast.promise(
       (async () => {
         const supabase = createClient();
         const {
           data: { session }
         } = await supabase.auth.getSession();
-        if (!session) throw new Error('No session found');
+        if (!session) throw new Error(t('noSession'));
         const res = await fetch('/api/admin/users', {
           method: 'PATCH',
           headers: {
@@ -310,14 +316,15 @@ export default function AccountsPage() {
         });
         const json = await res.json();
         if (!res.ok || json.error)
-          throw new Error(json.error || 'Role update failed');
+          throw new Error(json.error || t('roleUpdateFailed'));
+
         setUsers((prev) =>
           prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u))
         );
-        return `Role changed to "${newRole}"`;
+        return t('roleChanged', { role: newRole });
       })(),
       {
-        loading: 'Updating role...',
+        loading: t('loadingUpdatingRole'),
         success: (m) => m,
         error: (e) => String(e)
       }
@@ -337,7 +344,7 @@ export default function AccountsPage() {
     return (
       <div className='text-muted-foreground flex h-[80vh] items-center justify-center'>
         <Loader2 className='mr-2 h-5 w-5 animate-spin' />
-        Checking access...
+        {t('checkingAccess')}
       </div>
     );
 
@@ -351,7 +358,7 @@ export default function AccountsPage() {
       <div className='w-full space-y-6 px-4 py-6 sm:px-6 md:px-10 md:py-10'>
         <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
           <h2 className='text-center text-xl font-bold tracking-tight sm:text-left sm:text-2xl'>
-            Accounts
+            {t('title')}
           </h2>
         </div>
 
@@ -362,7 +369,7 @@ export default function AccountsPage() {
               className='group hover:bg-background/60 hover:text-foreground data-[state=active]:bg-background/90 data-[state=active]:text-foreground relative flex h-9 items-center gap-2 rounded-2xl border-none px-4 text-sm font-medium shadow-none ring-0 transition-all duration-200 outline-none focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=active]:shadow-[0_0_15px_-3px_rgba(80,120,255,0.4)]'
             >
               <UserRound className='h-4 w-4 transition-colors duration-200 group-hover:text-blue-400' />
-              Users
+              {t('tabUsers')}
             </TabsTrigger>
 
             <TabsTrigger
@@ -370,7 +377,7 @@ export default function AccountsPage() {
               className='group hover:bg-background/60 hover:text-foreground data-[state=active]:bg-background/90 data-[state=active]:text-foreground relative flex h-9 items-center gap-2 rounded-2xl border-none px-4 text-sm font-medium shadow-none ring-0 transition-all duration-200 outline-none focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=active]:shadow-[0_0_15px_-3px_rgba(0,255,100,0.35)]'
             >
               <ActivitySquare className='h-4 w-4 transition-colors duration-200 group-hover:text-green-400' />
-              Activity
+              {t('tabActivity')}
             </TabsTrigger>
 
             {canManageUsers && (
@@ -379,7 +386,7 @@ export default function AccountsPage() {
                 className='group hover:bg-background/60 hover:text-foreground data-[state=active]:bg-background/90 data-[state=active]:text-foreground relative flex h-9 items-center gap-2 rounded-2xl border-none px-4 text-sm font-medium shadow-none ring-0 transition-all duration-200 outline-none focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=active]:shadow-[0_0_15px_-3px_rgba(80,160,255,0.35)]'
               >
                 <ShieldCheck className='h-4 w-4 transition-colors duration-200 group-hover:text-sky-400' />
-                Role Management
+                {t('tabRoles')}
               </TabsTrigger>
             )}
           </TabsList>
@@ -388,9 +395,9 @@ export default function AccountsPage() {
           <TabsContent value='users' className='mt-6'>
             <CardModern className='space-y-8 p-4 sm:p-6 md:p-8'>
               <CardHeader>
-                <CardTitle>User Management</CardTitle>
+                <CardTitle>{t('userManagementTitle')}</CardTitle>
                 <CardDescription>
-                  Manage roles, bans, and access control.
+                  {t('userManagementDescription')}
                 </CardDescription>
               </CardHeader>
 
@@ -404,12 +411,14 @@ export default function AccountsPage() {
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>User</TableHead>
-                          <TableHead>Role</TableHead>
-                          <TableHead>Status / Approval</TableHead>
-                          <TableHead>Created</TableHead>
-                          <TableHead>Last Login</TableHead>
-                          <TableHead className='text-right'>Actions</TableHead>
+                          <TableHead>{t('colUser')}</TableHead>
+                          <TableHead>{t('colRole')}</TableHead>
+                          <TableHead>{t('colStatusApproval')}</TableHead>
+                          <TableHead>{t('colCreated')}</TableHead>
+                          <TableHead>{t('colLastLogin')}</TableHead>
+                          <TableHead className='text-right'>
+                            {t('colActions')}
+                          </TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -460,26 +469,26 @@ export default function AccountsPage() {
                               )}
                             </TableCell>
 
-                            {/* Combined Status + Approval (Soft Style) */}
+                            {/* Combined Status + Approval */}
                             <TableCell>
                               <div className='flex flex-wrap gap-2'>
                                 {u.banned ? (
                                   <Badge className='rounded-lg border border-red-500/20 bg-red-500/15 px-2 py-[2px] text-xs font-medium text-red-400 backdrop-blur-sm'>
-                                    Banned
+                                    {t('statusBanned')}
                                   </Badge>
                                 ) : (
                                   <Badge className='rounded-lg border border-green-500/20 bg-green-500/15 px-2 py-[2px] text-xs font-medium text-green-400 backdrop-blur-sm'>
-                                    Active
+                                    {t('statusActive')}
                                   </Badge>
                                 )}
 
                                 {u.approved ? (
                                   <Badge className='rounded-lg border border-emerald-500/20 bg-emerald-500/15 px-2 py-[2px] text-xs font-medium text-emerald-400 backdrop-blur-sm'>
-                                    Approved
+                                    {t('statusApproved')}
                                   </Badge>
                                 ) : (
                                   <Badge className='rounded-lg border border-yellow-500/20 bg-yellow-500/15 px-2 py-[2px] text-xs font-medium text-yellow-400 backdrop-blur-sm'>
-                                    Pending
+                                    {t('statusPending')}
                                   </Badge>
                                 )}
                               </div>
@@ -503,7 +512,7 @@ export default function AccountsPage() {
 
                             <TableCell className='text-right'>
                               <div className='flex flex-wrap justify-end gap-2'>
-                                {/* --- Ban / Unban Button --- */}
+                                {/* Ban / Unban */}
                                 {canManageUsers && (
                                   <Button
                                     size='sm'
@@ -517,69 +526,73 @@ export default function AccountsPage() {
                                     {u.banned ? (
                                       <>
                                         <Unlock className='mr-1 h-4 w-4' />{' '}
-                                        Unban
+                                        {t('btnUnban')}
                                       </>
                                     ) : (
                                       <>
-                                        <Lock className='mr-1 h-4 w-4' /> Ban
+                                        <Lock className='mr-1 h-4 w-4' />{' '}
+                                        {t('btnBan')}
                                       </>
                                     )}
                                   </Button>
                                 )}
 
-                                {/* --- Approve Button --- */}
+                                {/* Approve */}
                                 {canManageUsers && (
                                   <Button
                                     size='sm'
                                     onClick={() => approveUser(u.id)}
                                     disabled={u.approved}
-                                    className={`border-border/30 text-foreground bg-muted/70 hover:bg-muted/90 relative h-8 rounded-2xl border px-3 text-sm font-medium transition-all duration-200 hover:text-yellow-500 hover:shadow-[0_0_10px_-2px_rgba(234,179,8,0.5)] ${u.approved ? 'cursor-default opacity-70' : ''}`}
+                                    className={`border-border/30 text-foreground bg-muted/70 hover:bg-muted/90 relative h-8 rounded-2xl border px-3 text-sm font-medium transition-all duration-200 hover:text-yellow-500 hover:shadow-[0_0_10px_-2px_rgba(234,179,8,0.5)] ${
+                                      u.approved
+                                        ? 'cursor-default opacity-70'
+                                        : ''
+                                    }`}
                                   >
                                     {u.approved ? (
                                       <>
                                         <ShieldCheck className='mr-1 h-4 w-4 text-yellow-500' />{' '}
-                                        Approved
+                                        {t('btnApproved')}
                                       </>
                                     ) : (
                                       <>
                                         <ShieldCheck className='mr-1 h-4 w-4' />{' '}
-                                        Approve
+                                        {t('btnApprove')}
                                       </>
                                     )}
                                   </Button>
                                 )}
-                                {/* --- Delete Button mit Sicherheitsdialog --- */}
+
+                                {/* Delete mit Dialog */}
                                 {canDeleteUsers && (
                                   <AlertDialog>
                                     <AlertDialogTrigger asChild>
                                       <Button
                                         size='sm'
-                                        className={`border-border/30 text-foreground bg-muted/70 hover:bg-muted/90 relative h-8 rounded-2xl border px-3 text-sm font-medium transition-all duration-200 hover:text-red-500 hover:shadow-[0_0_10px_-2px_rgba(239,68,68,0.5)]`}
+                                        className='border-border/30 text-foreground bg-muted/70 hover:bg-muted/90 relative h-8 rounded-2xl border px-3 text-sm font-medium transition-all duration-200 hover:text-red-500 hover:shadow-[0_0_10px_-2px_rgba(239,68,68,0.5)]'
                                       >
                                         <Trash2 className='mr-1 h-4 w-4' />{' '}
-                                        Delete
+                                        {t('btnDelete')}
                                       </Button>
                                     </AlertDialogTrigger>
 
                                     <AlertDialogContent>
                                       <AlertDialogHeader>
                                         <AlertDialogTitle>
-                                          Delete User?
+                                          {t('dialogDeleteTitle')}
                                         </AlertDialogTitle>
                                         <AlertDialogDescription>
-                                          This action cannot be undone. Are you
-                                          sure you want to permanently remove
-                                          this user and all related data?
+                                          {t('dialogDeleteDescription')}
                                         </AlertDialogDescription>
                                       </AlertDialogHeader>
                                       <AlertDialogFooter>
                                         <AlertDialogCancel>
-                                          Cancel
+                                          {t('dialogCancel')}
                                         </AlertDialogCancel>
                                         <AlertDialogAction
                                           onClick={() => deleteUser(u.id)}
                                         >
-                                          Delete
+                                          {t('dialogDelete')}
                                         </AlertDialogAction>
                                       </AlertDialogFooter>
                                     </AlertDialogContent>
@@ -601,10 +614,8 @@ export default function AccountsPage() {
           <TabsContent value='activity' className='mt-6'>
             <CardModern className='space-y-8 p-4 sm:p-6 md:p-8'>
               <CardHeader>
-                <CardTitle>User Activity (30 Days)</CardTitle>
-                <CardDescription>
-                  Recent stock actions by users.
-                </CardDescription>
+                <CardTitle>{t('activityTitle')}</CardTitle>
+                <CardDescription>{t('activityDescription')}</CardDescription>
               </CardHeader>
 
               <CardContent>
@@ -614,7 +625,7 @@ export default function AccountsPage() {
                   </div>
                 ) : activity.length === 0 ? (
                   <p className='text-muted-foreground py-6 text-center text-sm'>
-                    No recent user activity found.
+                    {t('emptyActivity')}
                   </p>
                 ) : (
                   <div className='border-border/40 from-muted/40 to-muted/10 overflow-x-auto rounded-2xl border bg-gradient-to-b shadow-md backdrop-blur-sm'>
@@ -622,19 +633,19 @@ export default function AccountsPage() {
                       <TableHeader>
                         <TableRow className='border-border/20'>
                           <TableHead className='text-muted-foreground w-[120px]'>
-                            Date
+                            {t('activityColDate')}
                           </TableHead>
                           <TableHead className='text-muted-foreground min-w-[160px]'>
-                            User
+                            {t('activityColUser')}
                           </TableHead>
                           <TableHead className='text-muted-foreground w-[120px]'>
-                            Action
+                            {t('activityColAction')}
                           </TableHead>
                           <TableHead className='text-muted-foreground min-w-[160px]'>
-                            Article
+                            {t('activityColArticle')}
                           </TableHead>
                           <TableHead className='text-muted-foreground w-[80px] text-right'>
-                            Qty
+                            {t('activityColQty')}
                           </TableHead>
                         </TableRow>
                       </TableHeader>
@@ -645,41 +656,36 @@ export default function AccountsPage() {
                             key={i}
                             className='hover:bg-muted/50 rounded-lg transition-colors duration-150'
                           >
-                            {/* Date */}
                             <TableCell className='text-muted-foreground'>
                               {new Date(a.timestamp).toLocaleDateString(
                                 'de-DE'
                               )}
                             </TableCell>
 
-                            {/* User */}
                             <TableCell className='font-medium'>
                               {a.benutzer || '—'}
                             </TableCell>
 
-                            {/* Action */}
                             <TableCell>
                               {a.menge_diff >= 0 ? (
                                 <Badge
                                   variant='outline'
                                   className='rounded-xl border-emerald-500/30 bg-emerald-500/10 px-3 py-0.5 font-medium text-emerald-400'
                                 >
-                                  Added
+                                  {t('actionAdded')}
                                 </Badge>
                               ) : (
                                 <Badge
                                   variant='outline'
                                   className='rounded-xl border-red-500/30 bg-red-500/10 px-3 py-0.5 font-medium text-red-400'
                                 >
-                                  Removed
+                                  {t('actionRemoved')}
                                 </Badge>
                               )}
                             </TableCell>
 
-                            {/* Article */}
                             <TableCell>{a.artikelname || '—'}</TableCell>
 
-                            {/* Quantity */}
                             <TableCell className='text-right font-semibold'>
                               {a.menge_diff}
                             </TableCell>
@@ -698,9 +704,9 @@ export default function AccountsPage() {
             <TabsContent value='roles' className='mt-6'>
               <CardModern className='space-y-8 p-4 sm:p-6 md:p-8'>
                 <CardHeader>
-                  <CardTitle>Role Management</CardTitle>
+                  <CardTitle>{t('roleManagementTitle')}</CardTitle>
                   <CardDescription>
-                    Define what each role can do across the system.
+                    {t('roleManagementDescription')}
                   </CardDescription>
                 </CardHeader>
 

@@ -31,17 +31,20 @@ import {
   TableHeader,
   TableRow
 } from '@/components/ui/table';
+import { useTranslations } from 'next-intl';
 
 export const description = 'Stock movements — interactive bar chart';
 
-const chartConfig = {
-  added: { label: 'Added', color: 'var(--primary)' },
-  removed: { label: 'Removed', color: 'var(--primary)' },
-  lowstock: { label: 'Low Stock', color: 'var(--primary)' }
-} satisfies ChartConfig;
-
 export function BarGraph() {
   const supabase = createClient();
+  const t = useTranslations('overview'); // <-- flacher Namespace
+
+  const chartConfig: ChartConfig = {
+    added: { label: t('barAdded'), color: 'var(--primary)' },
+    removed: { label: t('barRemoved'), color: 'var(--primary)' },
+    lowstock: { label: t('barLowStock'), color: 'var(--primary)' }
+  };
+
   const [activeChart, setActiveChart] =
     React.useState<keyof typeof chartConfig>('added');
 
@@ -108,12 +111,12 @@ export function BarGraph() {
         });
       } catch (err) {
         console.error('❌ Failed to load chart data:', err);
-        toast.error('Could not load stock data.');
+        toast.error(t('barLoadError'));
       }
     };
 
     fetchData();
-  }, [supabase]);
+  }, [supabase, t]);
 
   if (!isClient) return null;
 
@@ -123,12 +126,14 @@ export function BarGraph() {
       <Card className='flex h-full flex-col'>
         <CardHeader className='flex flex-col items-stretch space-y-0 border-b !p-0 sm:flex-row'>
           <div className='flex flex-1 flex-col justify-center gap-1 px-6 !py-0'>
-            <CardTitle>Stock Overview - Interactive</CardTitle>
+            <CardTitle>{t('barTitle')}</CardTitle>
             <CardDescription>
               <span className='hidden @[540px]/card:block'>
-                Daily additions, removals, and low-stock alerts
+                {t('barSubtitleDesktop')}
               </span>
-              <span className='@[540px]/card:hidden'>Last days</span>
+              <span className='@[540px]/card:hidden'>
+                {t('barSubtitleMobile')}
+              </span>
             </CardDescription>
           </div>
 
@@ -148,7 +153,7 @@ export function BarGraph() {
                   {chartConfig[key].label}
                 </span>
                 <span className='text-lg leading-none font-bold sm:text-3xl'>
-                  {totals[key as keyof typeof totals]?.toLocaleString()}
+                  {totals[key].toLocaleString()}
                 </span>
               </button>
             ))}
@@ -175,7 +180,9 @@ export function BarGraph() {
                   />
                 </linearGradient>
               </defs>
+
               <CartesianGrid vertical={false} />
+
               <XAxis
                 dataKey='date'
                 tickLine={false}
@@ -184,28 +191,35 @@ export function BarGraph() {
                 minTickGap={32}
                 tickFormatter={(value) => {
                   const date = new Date(value);
-                  return date.toLocaleDateString('en-US', {
-                    month: 'short',
-                    day: 'numeric'
+                  return t('dateShort', {
+                    date: date.toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric'
+                    })
                   });
                 }}
               />
+
               <ChartTooltip
                 cursor={{ fill: 'var(--primary)', opacity: 0.1 }}
                 content={
                   <ChartTooltipContent
                     className='w-[150px]'
                     nameKey={activeChart}
-                    labelFormatter={(value) =>
-                      new Date(value).toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric'
-                      })
-                    }
+                    labelFormatter={(value) => {
+                      const date = new Date(value);
+                      return t('dateLong', {
+                        date: date.toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric'
+                        })
+                      });
+                    }}
                   />
                 }
               />
+
               {activeChart !== 'lowstock' && (
                 <Bar
                   dataKey={activeChart}
@@ -222,22 +236,24 @@ export function BarGraph() {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className='max-w-2xl'>
           <DialogHeader>
-            <DialogTitle>Low Stock Items ({lowStockItems.length})</DialogTitle>
+            <DialogTitle>
+              {t('barLowStockModalTitle', { count: lowStockItems.length })}
+            </DialogTitle>
           </DialogHeader>
 
           {lowStockItems.length === 0 ? (
             <p className='text-muted-foreground text-sm'>
-              🎉 All products are above minimum stock.
+              {t('barLowStockNone')}
             </p>
           ) : (
             <div className='max-h-[400px] overflow-y-auto'>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Article</TableHead>
-                    <TableHead>Supplier</TableHead>
-                    <TableHead>Stock</TableHead>
-                    <TableHead>Min</TableHead>
+                    <TableHead>{t('barColumnArticle')}</TableHead>
+                    <TableHead>{t('barColumnSupplier')}</TableHead>
+                    <TableHead>{t('barColumnStock')}</TableHead>
+                    <TableHead>{t('barColumnMin')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

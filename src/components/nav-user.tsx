@@ -25,6 +25,7 @@ import {
   SidebarMenuItem,
   useSidebar
 } from '@/components/ui/sidebar';
+import { useTranslations } from 'next-intl';
 
 export function NavUser({
   user
@@ -36,6 +37,7 @@ export function NavUser({
   };
 }) {
   const { isMobile } = useSidebar();
+  const t = useTranslations('userNav'); // 🔥 Translation namespace
 
   return (
     <SidebarMenu>
@@ -50,13 +52,16 @@ export function NavUser({
                 <AvatarImage src={user.avatar} alt={user.name} />
                 <AvatarFallback className='rounded-lg'>CN</AvatarFallback>
               </Avatar>
+
               <div className='grid flex-1 text-left text-sm leading-tight'>
                 <span className='truncate font-semibold'>{user.name}</span>
                 <span className='truncate text-xs'>{user.email}</span>
               </div>
+
               <IconChevronsDown className='ml-auto size-4' />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
+
           <DropdownMenuContent
             className='w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg'
             side={isMobile ? 'bottom' : 'right'}
@@ -75,32 +80,41 @@ export function NavUser({
                 </div>
               </div>
             </DropdownMenuLabel>
+
             <DropdownMenuSeparator />
+
+            {/* Upgrade Group */}
             <DropdownMenuGroup>
               <DropdownMenuItem>
                 <IconSparkles className='mr-2 h-4 w-4' />
-                Upgrade to Pro
+                {t('upgrade')}
               </DropdownMenuItem>
             </DropdownMenuGroup>
+
             <DropdownMenuSeparator />
+
+            {/* Account group */}
             <DropdownMenuGroup>
               <DropdownMenuItem>
                 <IconCircleCheck className='mr-2 h-4 w-4' />
-                Account
+                {t('account')}
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <IconCreditCard className='mr-2 h-4 w-4' />
-                Billing
+                {t('billing')}
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <IconBell className='mr-2 h-4 w-4' />
-                Notifications
+                {t('notifications')}
               </DropdownMenuItem>
             </DropdownMenuGroup>
+
             <DropdownMenuSeparator />
+
+            {/* Logout */}
             <DropdownMenuItem>
               <IconLogout className='mr-2 h-4 w-4' />
-              Log out
+              {t('logout')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

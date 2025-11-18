@@ -15,9 +15,13 @@ import {
 import { toast } from 'sonner';
 import { Loader2, Eye, EyeOff } from 'lucide-react';
 
+import { useTranslations } from 'next-intl';
+
 export default function UpdatePasswordPage() {
   const supabase = createClient();
   const router = useRouter();
+  const t = useTranslations('UpdatePassword');
+
   const [password, setPassword] = React.useState('');
   const [confirmPassword, setConfirmPassword] = React.useState('');
   const [showPassword, setShowPassword] = React.useState(false);
@@ -27,19 +31,24 @@ export default function UpdatePasswordPage() {
   async function handleUpdate(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
+
     try {
       if (password !== confirmPassword) {
-        toast.error('Passwords do not match.');
+        toast.error(t('passwordsDontMatch'));
         setLoading(false);
         return;
       }
+
       const { error } = await supabase.auth.updateUser({ password });
-      if (error) throw error;
-      toast.success('Password updated successfully.');
+
+      if (error) throw new Error('updateFailed');
+
+      toast.success(t('success'));
       router.push('/auth/sign-in');
     } catch (err: any) {
       console.error('❌ Update failed:', err);
-      toast.error(err.message || 'Failed to update password.');
+
+      toast.error(t(err.message as any) || t('failed'));
     } finally {
       setLoading(false);
     }
@@ -51,19 +60,16 @@ export default function UpdatePasswordPage() {
         <div className='mx-auto w-full max-w-sm'>
           <Card>
             <CardHeader>
-              <CardTitle className='text-2xl font-bold'>
-                Set a new password
-              </CardTitle>
-              <CardDescription>
-                Enter and confirm your new password below
-              </CardDescription>
+              <CardTitle className='text-2xl font-bold'>{t('title')}</CardTitle>
+              <CardDescription>{t('description')}</CardDescription>
             </CardHeader>
+
             <CardContent>
               <form onSubmit={handleUpdate} className='space-y-4'>
                 <div className='relative'>
                   <Input
                     type={showPassword ? 'text' : 'password'}
-                    placeholder='New password'
+                    placeholder={t('password')}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
@@ -84,7 +90,7 @@ export default function UpdatePasswordPage() {
                 <div className='relative'>
                   <Input
                     type={showConfirmPassword ? 'text' : 'password'}
-                    placeholder='Confirm new password'
+                    placeholder={t('confirmPassword')}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
@@ -105,11 +111,11 @@ export default function UpdatePasswordPage() {
                 <Button type='submit' className='w-full' disabled={loading}>
                   {loading ? (
                     <>
-                      <Loader2 className='mr-2 h-4 w-4 animate-spin' />{' '}
-                      Updating...
+                      <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                      {t('updating')}
                     </>
                   ) : (
-                    'Update password'
+                    t('button')
                   )}
                 </Button>
               </form>
@@ -120,11 +126,9 @@ export default function UpdatePasswordPage() {
 
       <div className='bg-muted hidden lg:flex lg:flex-col lg:items-center lg:justify-center'>
         <blockquote className='max-w-md space-y-2 text-center'>
-          <p className='text-lg leading-relaxed font-medium'>
-            “Your password has been reset successfully. Welcome back!”
-          </p>
+          <p className='text-lg leading-relaxed font-medium'>{t('quote')}</p>
           <footer className='text-muted-foreground text-sm'>
-            — SmartInventory Support
+            {t('brand')}
           </footer>
         </blockquote>
       </div>

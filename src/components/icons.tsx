@@ -67,4 +67,7 @@ export const Icons = {
   github: IconBrandGithub,
   twitter: IconBrandTwitter,
   check: IconCheck
-};
+} as const;
+
+// 🔑 Keys für Nav-Config exportieren
+export type IconKey = keyof typeof Icons;

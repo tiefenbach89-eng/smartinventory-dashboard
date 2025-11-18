@@ -20,6 +20,9 @@ import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useUser } from '@/hooks/useUser';
 
+// 🌍 next-intl
+import { useTranslations } from 'next-intl';
+
 export default function OverViewLayout({
   sales,
   pie_stats,
@@ -33,6 +36,8 @@ export default function OverViewLayout({
 }) {
   const supabase = createClient();
   const user = useUser();
+
+  const t = useTranslations('Overview'); // <– NEW
 
   const [productCount, setProductCount] = useState(0);
   const [totalStock, setTotalStock] = useState(0);
@@ -109,54 +114,63 @@ export default function OverViewLayout({
   const displayName =
     firstName || lastName
       ? `${firstName} ${lastName}`.trim()
-      : user?.email || 'Guest';
+      : user?.email || t('guest');
+
+  // 🚀 KPI Daten strukturieren
+  const cards = [
+    {
+      icon: <IconPackage className='mr-1' />,
+      badge: t('card1.badge'),
+      title: t('card1.title'),
+      value: t('card1.value', {
+        products: productCount,
+        stock: totalStock
+      }),
+      desc: t('card1.desc'),
+      sub: t('card1.sub')
+    },
+    {
+      icon: <IconArrowDown className='mr-1' />,
+      badge: t('card2.badge'),
+      title: t('card2.title'),
+      value: t('card2.value', {
+        amount: totalWithdrawals
+      }),
+      desc: t('card2.desc'),
+      sub: t('card2.sub')
+    },
+    {
+      icon: <IconArrowUp className='mr-1' />,
+      badge: t('card3.badge'),
+      title: t('card3.title'),
+      value: t('card3.value', {
+        amount: totalAdded
+      }),
+      desc: t('card3.desc'),
+      sub: t('card3.sub')
+    },
+    {
+      icon: <IconUser className='mr-1' />,
+      badge: t('card4.badge', { count: activeUserCount }),
+      title: t('card4.title'),
+      value: activeUser || '—',
+      desc: t('card4.desc'),
+      sub: t('card4.sub')
+    }
+  ];
 
   return (
     <PageContainer>
       <div className='flex flex-1 flex-col space-y-6'>
-        {/* 👋 Greeting */}
         <div className='flex items-center justify-between'>
           <h2 className='text-2xl font-bold tracking-tight'>
-            Hi, {displayName}
+            {t('greeting', { name: displayName })}
           </h2>
         </div>
 
-        {/* 🟡 KPI Cards */}
+        {/* KPI Cards */}
         <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4'>
-          {[
-            {
-              title: 'Total Products & Stock',
-              value: `${productCount} Products / ${totalStock} Units`,
-              desc: 'Current active SKUs and total quantity',
-              sub: 'Live data from current inventory, reflecting all stock movements in real time',
-              icon: <IconPackage className='mr-1' />,
-              badge: 'OK'
-            },
-            {
-              title: 'Total Withdrawals (30d)',
-              value: `${totalWithdrawals} pcs removed`,
-              desc: 'Items withdrawn in the last 30 days',
-              sub: 'Live inventory overview — updated instantly from recent stock changes',
-              icon: <IconArrowDown className='mr-1' />,
-              badge: '30d'
-            },
-            {
-              title: 'Total Added (30d)',
-              value: `${totalAdded} pcs added`,
-              desc: 'Items restocked in the last 30 days',
-              sub: 'Real-time inventory feed based on recent activity and stock logs',
-              icon: <IconArrowUp className='mr-1' />,
-              badge: '30d'
-            },
-            {
-              title: 'Most Active User (30d)',
-              value: activeUser || '—',
-              desc: 'Top user by logged movements',
-              sub: 'Automatically updated from stock transactions — last 30 days of user activity',
-              icon: <IconUser className='mr-1' />,
-              badge: `${activeUserCount} actions`
-            }
-          ].map((kpi, i) => (
+          {cards.map((kpi, i) => (
             <Card
               key={i}
               className='border-border/40 from-primary/10 via-card/70 to-background/30 hover:border-primary/40 hover:shadow-primary/20 rounded-2xl border bg-gradient-to-b shadow-md backdrop-blur-sm transition-all duration-300 hover:shadow-lg'
@@ -184,7 +198,7 @@ export default function OverViewLayout({
           ))}
         </div>
 
-        {/* 📊 Charts */}
+        {/* Charts */}
         <div className='grid grid-cols-1 items-stretch gap-6 md:grid-cols-2'>
           {[bar_stats, sales, area_stats, pie_stats].map((chart, i) => (
             <div

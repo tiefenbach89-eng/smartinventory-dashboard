@@ -17,19 +17,20 @@ import { PieGraph } from './pie-graph';
 import { RecentSales } from './recent-sales';
 import { IconTrendingUp, IconTrendingDown } from '@tabler/icons-react';
 import { Badge } from '@/components/ui/badge';
+import { useTranslations } from 'next-intl';
 
 export default function OverViewPage() {
+  const t = useTranslations('overview');
+
   return (
     <PageContainer>
       <div className='flex flex-1 flex-col space-y-6'>
         {/* 👋 Begrüßung */}
         <div className='flex items-center justify-between'>
-          <h2 className='text-2xl font-bold tracking-tight'>
-            Hi, Welcome back
-          </h2>
+          <h2 className='text-2xl font-bold tracking-tight'>{t('welcome')}</h2>
           <div className='hidden items-center space-x-2 md:flex'>
             <Button className='bg-amber-500 font-semibold text-black hover:bg-amber-600'>
-              Download
+              {t('download')}
             </Button>
           </div>
         </div>
@@ -37,9 +38,9 @@ export default function OverViewPage() {
         {/* 🧭 Tabs */}
         <Tabs defaultValue='overview' className='space-y-6'>
           <TabsList className='bg-card/40 border-border/40 w-fit rounded-xl border backdrop-blur-sm'>
-            <TabsTrigger value='overview'>Overview</TabsTrigger>
+            <TabsTrigger value='overview'>{t('tabOverview')}</TabsTrigger>
             <TabsTrigger value='analytics' disabled>
-              Analytics
+              {t('tabAnalytics')}
             </TabsTrigger>
           </TabsList>
 
@@ -49,34 +50,34 @@ export default function OverViewPage() {
             <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:px-6 xl:grid-cols-4'>
               {[
                 {
-                  title: 'Total Revenue',
+                  title: t('kpiRevenueTitle'),
                   value: '$1,250.00',
-                  desc: 'Trending up this month',
-                  sub: 'Visitors for the last 6 months',
+                  desc: t('kpiRevenueDesc'),
+                  sub: t('kpiRevenueSub'),
                   icon: <IconTrendingUp />,
                   change: '+12.5%'
                 },
                 {
-                  title: 'New Customers',
+                  title: t('kpiCustomersTitle'),
                   value: '1,234',
-                  desc: 'Down 20% this period',
-                  sub: 'Acquisition needs attention',
+                  desc: t('kpiCustomersDesc'),
+                  sub: t('kpiCustomersSub'),
                   icon: <IconTrendingDown />,
                   change: '-20%'
                 },
                 {
-                  title: 'Active Accounts',
+                  title: t('kpiAccountsTitle'),
                   value: '45,678',
-                  desc: 'Strong user retention',
-                  sub: 'Engagement exceed targets',
+                  desc: t('kpiAccountsDesc'),
+                  sub: t('kpiAccountsSub'),
                   icon: <IconTrendingUp />,
                   change: '+12.5%'
                 },
                 {
-                  title: 'Growth Rate',
+                  title: t('kpiGrowthTitle'),
                   value: '4.5%',
-                  desc: 'Steady performance increase',
-                  sub: 'Meets growth projections',
+                  desc: t('kpiGrowthDesc'),
+                  sub: t('kpiGrowthSub'),
                   icon: <IconTrendingUp />,
                   change: '+4.5%'
                 }

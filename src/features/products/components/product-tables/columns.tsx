@@ -1,40 +1,43 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { ColumnDef } from '@tanstack/react-table'
+import { useState } from 'react';
+import { ColumnDef } from '@tanstack/react-table';
 import {
   Dialog,
   DialogContent,
   DialogTitle,
   DialogFooter,
   DialogHeader,
-  DialogDescription,
-} from '@/components/ui/dialog'
-import { VisuallyHidden } from '@radix-ui/react-visually-hidden'
-import { Button } from '@/components/ui/button'
-import { toast } from 'sonner'
-import { createClient } from '@/lib/supabase/client'
+  DialogDescription
+} from '@/components/ui/dialog';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
+import { createClient } from '@/lib/supabase/client';
 
 export interface ProductRow {
-  id: string
-  name: string
-  supplier: string
-  price: number
-  description: string
-  stock: string
-  photo_url: string
+  id: string;
+  name: string;
+  supplier: string;
+  price: number;
+  description: string;
+  stock: string;
+  photo_url: string;
 }
 
-/** 🔹 Separate Komponente für das Bild mit Dialog */
-function ProductImage({ url, alt }: { url: string; alt: string }) {
-  const [open, setOpen] = useState(false)
+// Simple Typ für unsere Übersetzungsfunktion (namespaced: ProductListing)
+type TFn = (key: string, values?: Record<string, any>) => string;
+
+/** 🔹 Bild-Komponente mit Dialog */
+function ProductImage({ url, alt, t }: { url: string; alt: string; t: TFn }) {
+  const [open, setOpen] = useState(false);
 
   if (!url) {
     return (
-      <div className="h-10 w-10 rounded-md bg-muted text-xs flex items-center justify-center text-muted-foreground">
-        No Image
+      <div className='bg-muted text-muted-foreground flex h-10 w-10 items-center justify-center rounded-md text-xs'>
+        {t('noImage')}
       </div>
-    )
+    );
   }
 
   return (
@@ -44,44 +47,40 @@ function ProductImage({ url, alt }: { url: string; alt: string }) {
         src={url}
         alt={alt}
         onDoubleClick={() => setOpen(true)}
-        className="h-16 w-16 rounded-md object-cover cursor-pointer hover:scale-105 transition-transform"
+        className='h-16 w-16 cursor-pointer rounded-md object-cover transition-transform hover:scale-105'
       />
 
       {/* Dialog mit großem Bild */}
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-3xl p-0 border-none shadow-lg">
+        <DialogContent className='max-w-3xl border-none p-0 shadow-lg'>
           {/* Unsichtbarer Titel für Barrierefreiheit */}
           <VisuallyHidden>
-            <DialogTitle>Product image: {alt}</DialogTitle>
+            <DialogTitle>{alt}</DialogTitle>
           </VisuallyHidden>
 
-          <img
-            src={url}
-            alt={alt}
-            className="w-full h-auto rounded-lg"
-          />
+          <img src={url} alt={alt} className='h-auto w-full rounded-lg' />
         </DialogContent>
       </Dialog>
     </>
-  )
+  );
 }
 
-/** 🔹 Delete-Button mit Dialog im shadcn-Stil */
-function DeleteButton({ product }: { product: ProductRow }) {
-  const supabase = createClient()
-  const [open, setOpen] = useState(false)
-  const [loading, setLoading] = useState(false)
+/** 🔹 Delete-Button mit Dialog */
+function DeleteButton({ product, t }: { product: ProductRow; t: TFn }) {
+  const supabase = createClient();
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleDelete = async () => {
     try {
-      setLoading(true)
-      toast.loading('Deleting product...')
+      setLoading(true);
+      toast.loading(t('toastDeleting'));
 
       // 1️⃣ Optional: Bild aus Supabase Storage löschen
       if (product.photo_url) {
-        const fileName = product.photo_url.split('/').pop()
+        const fileName = product.photo_url.split('/').pop();
         if (fileName) {
-          await supabase.storage.from('product-images').remove([fileName])
+          await supabase.storage.from('product-images').remove([fileName]);
         }
       }
 
@@ -89,121 +88,123 @@ function DeleteButton({ product }: { product: ProductRow }) {
       const { error } = await supabase
         .from('artikel')
         .delete()
-        .eq('artikelnummer', product.id)
+        .eq('artikelnummer', product.id);
 
-      if (error) throw error
+      if (error) throw error;
 
-      toast.success(`✅ "${product.name}" deleted successfully!`)
-      setOpen(false)
+      toast.success(t('toastDeleted'));
+      setOpen(false);
     } catch (err: any) {
-      console.error('❌ Delete error:', err)
-      toast.error('Failed to delete product: ' + err.message)
+      toast.error(
+        t('toastDeleteFailed', {
+          message: err?.message ?? 'Unknown error'
+        })
+      );
     } finally {
-      setLoading(false)
-      toast.dismiss()
+      setLoading(false);
+      toast.dismiss();
     }
-  }
+  };
 
   return (
     <>
       <Button
-        variant="destructive"
-        size="sm"
+        variant='destructive'
+        size='sm'
         onClick={() => setOpen(true)}
-        className="bg-red-600 hover:bg-red-700 text-white"
+        className='bg-red-600 text-white hover:bg-red-700'
       >
-        Delete
+        {t('delete')}
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete Product</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to permanently delete{' '}
-              <span className="font-semibold text-foreground">
-                {product.name}
-              </span>
-              ? This action cannot be undone.
-            </DialogDescription>
+            <DialogTitle>{t('deleteTitle')}</DialogTitle>
+            <DialogDescription>{t('deleteDescription')}</DialogDescription>
           </DialogHeader>
-          <DialogFooter className="flex justify-end space-x-2">
+          <DialogFooter className='flex justify-end space-x-2'>
             <Button
-              variant="outline"
+              variant='outline'
               onClick={() => setOpen(false)}
               disabled={loading}
             >
-              Cancel
+              {t('cancel')}
             </Button>
             <Button
-              variant="destructive"
+              variant='destructive'
               onClick={handleDelete}
               disabled={loading}
-              className="bg-red-600 hover:bg-red-700 text-white"
+              className='bg-red-600 text-white hover:bg-red-700'
             >
-              {loading ? 'Deleting...' : 'Confirm Delete'}
+              {loading ? t('toastDeleting') : t('delete')}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </>
-  )
+  );
 }
 
-export const columns: ColumnDef<ProductRow>[] = [
+/**
+ * 🔹 Factory-Funktion für Columns
+ * Wird von der aufrufenden Komponente mit `t = useTranslations('ProductListing')` versorgt.
+ */
+export const createProductColumns = (t: TFn): ColumnDef<ProductRow>[] => [
   {
     accessorKey: 'photo_url',
-    header: 'Image',
+    header: t('colImage'),
     cell: ({ row }) => (
       <ProductImage
         url={row.original.photo_url}
         alt={row.original.name || 'Product Image'}
+        t={t}
       />
-    ),
+    )
   },
   {
     accessorKey: 'id',
-    header: 'Article Number',
+    header: t('colArticle'),
     cell: ({ row }) => (
-      <div className="text-sm text-muted-foreground">{row.original.id}</div>
-    ),
+      <div className='text-muted-foreground text-sm'>{row.original.id}</div>
+    )
   },
   {
     accessorKey: 'name',
-    header: 'Name',
-    cell: ({ row }) => <div className="font-medium">{row.original.name}</div>,
+    header: t('colName'),
+    cell: ({ row }) => <div className='font-medium'>{row.original.name}</div>
   },
   {
     accessorKey: 'supplier',
-    header: 'Supplier',
+    header: t('colSupplier'),
     cell: ({ row }) => (
-      <span className="text-muted-foreground">{row.original.supplier}</span>
-    ),
+      <span className='text-muted-foreground'>{row.original.supplier}</span>
+    )
   },
   {
     accessorKey: 'price',
-    header: 'Price (€)',
+    header: t('colPrice'),
     cell: ({ row }) => (
-      <div className="font-semibold">{row.original.price.toFixed(2)} €</div>
-    ),
+      <div className='font-semibold'>{row.original.price.toFixed(2)} €</div>
+    )
   },
   {
     accessorKey: 'description',
-    header: 'Description',
+    header: t('colDescription'),
     cell: ({ row }) => (
-      <span className="text-muted-foreground">{row.original.description}</span>
-    ),
+      <span className='text-muted-foreground'>{row.original.description}</span>
+    )
   },
   {
     accessorKey: 'stock',
-    header: 'Stock / Min',
+    header: t('colStock'),
     cell: ({ row }) => (
-      <span className="text-muted-foreground">{row.original.stock}</span>
-    ),
+      <span className='text-muted-foreground'>{row.original.stock}</span>
+    )
   },
   {
     id: 'actions',
-    header: 'Actions',
-    cell: ({ row }) => <DeleteButton product={row.original} />,
-  },
-]
+    header: t('colActions'),
+    cell: ({ row }) => <DeleteButton product={row.original} t={t} />
+  }
+];

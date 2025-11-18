@@ -6,38 +6,41 @@ import { createClient } from '@/lib/supabase/client';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
+// 🌍 next-intl
+import { useTranslations } from 'next-intl';
+
 export default function AuthCallbackPage() {
   const router = useRouter();
   const supabase = createClient();
+  const t = useTranslations('Callback');
 
   useEffect(() => {
     const handleSession = async () => {
-      // 🔹 Versuche, Session abzufangen (nach Email-Bestätigung)
       const { data, error } = await supabase.auth.getSession();
 
       if (error) {
         console.error('❌ Supabase session error:', error);
-        toast.error('Something went wrong verifying your email.');
+        toast.error(t('verifyFailed'));
         router.push('/auth/sign-in');
         return;
       }
 
       const session = data?.session;
+
       if (session?.user) {
-        toast.success('Your email has been verified successfully!');
-        router.push('/auth/sign-in');
-      } else {
-        router.push('/auth/sign-in');
+        toast.success(t('verifySuccess'));
       }
+
+      router.push('/auth/sign-in');
     };
 
     handleSession();
-  }, [router, supabase]);
+  }, [router, supabase, t]);
 
   return (
     <div className='flex h-screen flex-col items-center justify-center text-center'>
       <Loader2 className='text-muted-foreground mb-4 h-6 w-6 animate-spin' />
-      <p className='text-muted-foreground text-sm'>Verifying your account...</p>
+      <p className='text-muted-foreground text-sm'>{t('verifying')}</p>
     </div>
   );
 }

@@ -1,10 +1,18 @@
-export const CATEGORY_OPTIONS = [
-  { value: 'Electronics', label: 'Electronics' },
-  { value: 'Furniture', label: 'Furniture' },
-  { value: 'Clothing', label: 'Clothing' },
-  { value: 'Toys', label: 'Toys' },
-  { value: 'Groceries', label: 'Groceries' },
-  { value: 'Books', label: 'Books' },
-  { value: 'Jewelry', label: 'Jewelry' },
-  { value: 'Beauty Products', label: 'Beauty Products' }
-];
+'use client';
+
+import { useTranslations } from 'next-intl';
+
+export const useCategoryOptions = () => {
+  const t = useTranslations('productCategories');
+
+  return [
+    { value: 'electronics', label: t('electronics') },
+    { value: 'furniture', label: t('furniture') },
+    { value: 'clothing', label: t('clothing') },
+    { value: 'toys', label: t('toys') },
+    { value: 'groceries', label: t('groceries') },
+    { value: 'books', label: t('books') },
+    { value: 'jewelry', label: t('jewelry') },
+    { value: 'beauty', label: t('beauty') }
+  ];
+};

@@ -8,7 +8,6 @@ import {
   CardContent,
   CardDescription
 } from '@/components/ui/card';
-import { CardModern } from '@/components/ui/card-modern';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -26,53 +25,63 @@ import {
   TableHeader,
   TableRow
 } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { toast } from 'sonner';
-import { Loader2, Pencil, History, Trash2 } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuTrigger,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import {
   AlertDialog,
-  AlertDialogTrigger,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogFooter,
-  AlertDialogTitle,
-  AlertDialogDescription,
+  AlertDialogAction,
   AlertDialogCancel,
-  AlertDialogAction
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger
 } from '@/components/ui/alert-dialog';
+import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
+import { Loader2, Pencil, History, Trash2, Upload, Filter } from 'lucide-react';
+
+// 🌍 next-intl
+import { useTranslations } from 'next-intl';
 
 export default function ProductListing() {
+  const t = useTranslations('ProductListing');
   const supabase = createClient();
+
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<'all' | 'low' | 'instock'>('all');
+
   const [editProduct, setEditProduct] = useState<any | null>(null);
   const [viewLogs, setViewLogs] = useState<any | null>(null);
+
   const [logs, setLogs] = useState<any[]>([]);
   const [logsLoading, setLogsLoading] = useState(false);
+
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [newImage, setNewImage] = useState<File | null>(null);
+
+  const [deleteTarget, setDeleteTarget] = useState<any | null>(null);
 
   // Load products
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
       const { data, error } = await supabase.from('artikel').select('*');
-      if (error) toast.error('Error loading products: ' + error.message);
+      if (error) toast.error(t('errorLoadProducts'));
       else setProducts(data || []);
       setLoading(false);
     };
     fetchProducts();
-  }, [supabase]);
+  }, [supabase, t]);
 
   const filtered = products
     .filter((p) =>
@@ -87,43 +96,83 @@ export default function ProductListing() {
       return true;
     });
 
+  // Save product
   async function handleSave() {
     if (!editProduct) return;
-    const { artikelnummer, bestand, sollbestand, beschreibung } = editProduct;
-    const { error } = await supabase
-      .from('artikel')
-      .update({ bestand, sollbestand, beschreibung })
-      .eq('artikelnummer', artikelnummer);
-    if (error) toast.error('Update failed: ' + error.message);
-    else {
-      toast.success('✅ Product updated successfully.');
-      setEditProduct(null);
-      const { data } = await supabase.from('artikel').select('*');
-      setProducts(data || []);
-    }
-  }
-
-  async function handleDelete(articleNumber: string) {
     try {
-      toast.loading('Deleting product...');
+      toast.loading(t('toastUpdating'));
+      let imageUrl = editProduct.image_url;
+
+      if (newImage) {
+        const fileName = `${editProduct.artikelnummer}_${Date.now()}_${newImage.name}`;
+        const { error: uploadError } = await supabase.storage
+          .from('product-images')
+          .upload(fileName, newImage);
+
+        if (uploadError) throw uploadError;
+
+        const { data } = supabase.storage
+          .from('product-images')
+          .getPublicUrl(fileName);
+
+        imageUrl = data.publicUrl;
+      }
+
       const { error } = await supabase
         .from('artikel')
-        .delete()
-        .eq('artikelnummer', articleNumber);
+        .update({
+          sollbestand: editProduct.sollbestand,
+          beschreibung: editProduct.beschreibung,
+          image_url: imageUrl
+        })
+        .eq('artikelnummer', editProduct.artikelnummer);
+
       if (error) throw error;
-      setProducts(products.filter((p) => p.artikelnummer !== articleNumber));
-      toast.success('Product deleted successfully.');
+
+      toast.success(t('toastUpdated'));
+      setEditProduct(null);
+      setNewImage(null);
+
+      const { data } = await supabase.from('artikel').select('*');
+      setProducts(data || []);
     } catch (err: any) {
-      toast.error('Delete failed: ' + err.message);
+      toast.error(t('toastUpdateFailed', { message: err.message }));
     } finally {
       toast.dismiss();
     }
   }
 
+  // Delete product
+  async function confirmDelete() {
+    if (!deleteTarget) return;
+    try {
+      toast.loading(t('toastDeleting'));
+      const { error } = await supabase
+        .from('artikel')
+        .delete()
+        .eq('artikelnummer', deleteTarget.artikelnummer);
+
+      if (error) throw error;
+
+      setProducts(
+        products.filter((p) => p.artikelnummer !== deleteTarget.artikelnummer)
+      );
+
+      toast.success(t('toastDeleted'));
+      setDeleteTarget(null);
+    } catch (err: any) {
+      toast.error(t('toastDeleteFailed', { message: err.message }));
+    } finally {
+      toast.dismiss();
+    }
+  }
+
+  // Load logs
   async function fetchLogs(articleNumber: string) {
     try {
       setLogsLoading(true);
       setViewLogs(articleNumber);
+
       const { data, error } = await supabase
         .from('artikel_log')
         .select(
@@ -131,162 +180,322 @@ export default function ProductListing() {
         )
         .eq('artikelnummer', articleNumber)
         .order('timestamp', { ascending: false });
+
       if (error) throw error;
+
       setLogs(data || []);
     } catch (err: any) {
-      toast.error('Failed to load logs: ' + err.message);
+      toast.error(t('toastLogFailed', { message: err.message }));
     } finally {
       setLogsLoading(false);
     }
   }
 
   return (
-    <div className='w-full px-6 py-10'>
-      <div className='space-y-8'>
-        <CardHeader className='flex flex-col sm:flex-row sm:items-center sm:justify-between'>
-          <div>
-            <CardTitle className='text-2xl font-semibold'>
-              Product Management
-            </CardTitle>
-            <CardDescription className='text-muted-foreground mt-1 text-sm'>
-              Manage products and track inventory movements.
-            </CardDescription>
-          </div>
+    <div className='w-full px-4 py-6 sm:px-6 md:px-10 md:py-10'>
+      <CardHeader className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
+        <div>
+          <h3 className='text-lg font-semibold tracking-tight'>{t('title')}</h3>
+          <CardDescription className='text-muted-foreground mt-1 text-sm'>
+            {t('subtitle')}
+          </CardDescription>
+        </div>
 
-          <div className='mt-4 flex items-center gap-2 sm:mt-0'>
-            <Input
-              placeholder='Search products...'
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className='max-w-xs'
-            />
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant='outline'>View</Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align='end'>
-                <DropdownMenuLabel>Filter</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => setFilter('all')}>
-                  Show All
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setFilter('instock')}>
-                  In Stock
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setFilter('low')}>
-                  Low Stock
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </CardHeader>
+        <div className='flex items-center gap-2'>
+          <Input
+            placeholder={t('searchPlaceholder')}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className='bg-background/70 h-8 max-w-xs text-sm'
+          />
 
-        <CardContent>
-          {loading ? (
-            <div className='flex justify-center py-6'>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                size='sm'
+                variant='outline'
+                className='flex h-8 items-center gap-2 rounded-xl'
+              >
+                <Filter className='h-4 w-4' /> {t('filter')}
+              </Button>
+            </DropdownMenuTrigger>
+
+            <DropdownMenuContent align='end' className='w-36'>
+              <DropdownMenuLabel>{t('filterTitle')}</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+
+              <DropdownMenuItem onClick={() => setFilter('all')}>
+                {t('filterAll')}
+              </DropdownMenuItem>
+
+              <DropdownMenuItem onClick={() => setFilter('instock')}>
+                {t('filterInstock')}
+              </DropdownMenuItem>
+
+              <DropdownMenuItem onClick={() => setFilter('low')}>
+                {t('filterLow')}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </CardHeader>
+
+      <CardContent>
+        {loading ? (
+          <div className='flex justify-center py-6'>
+            <Loader2 className='text-muted-foreground h-6 w-6 animate-spin' />
+          </div>
+        ) : (
+          <div className='border-border/40 bg-card/60 overflow-hidden rounded-xl border shadow-sm backdrop-blur-sm'>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t('colImage')}</TableHead>
+                  <TableHead>{t('colArticle')}</TableHead>
+                  <TableHead>{t('colName')}</TableHead>
+                  <TableHead>{t('colSupplier')}</TableHead>
+                  <TableHead>{t('colPrice')}</TableHead>
+                  <TableHead>{t('colDescription')}</TableHead>
+                  <TableHead>{t('colStock')}</TableHead>
+                  <TableHead>{t('colActions')}</TableHead>
+                </TableRow>
+              </TableHeader>
+
+              <TableBody>
+                {filtered.map((p) => (
+                  <TableRow key={p.artikelnummer}>
+                    <TableCell>
+                      {p.image_url ? (
+                        <img
+                          src={p.image_url}
+                          alt={p.artikelbezeichnung}
+                          className='h-10 w-10 cursor-pointer rounded-md object-cover transition-transform hover:scale-105'
+                          onDoubleClick={() => setImagePreview(p.image_url)}
+                        />
+                      ) : (
+                        <div className='bg-muted text-muted-foreground flex h-10 w-10 items-center justify-center rounded-md text-xs'>
+                          {t('noImage')}
+                        </div>
+                      )}
+                    </TableCell>
+
+                    <TableCell>{p.artikelnummer}</TableCell>
+                    <TableCell>{p.artikelbezeichnung}</TableCell>
+                    <TableCell>{p.lieferant}</TableCell>
+                    <TableCell>{p.preis?.toFixed(2)}</TableCell>
+
+                    <TableCell className='max-w-[200px] truncate'>
+                      {p.beschreibung || '—'}
+                    </TableCell>
+
+                    <TableCell>
+                      {p.bestand} / {p.sollbestand || 0}
+                    </TableCell>
+
+                    <TableCell className='flex flex-wrap gap-2'>
+                      {/* Edit */}
+                      <Button size='sm' onClick={() => setEditProduct(p)}>
+                        <Pencil className='mr-1 h-4 w-4' />
+                        {t('edit')}
+                      </Button>
+
+                      {/* Logs */}
+                      <Button
+                        size='sm'
+                        onClick={() => fetchLogs(p.artikelnummer)}
+                      >
+                        <History className='mr-1 h-4 w-4' />
+                        {t('logs')}
+                      </Button>
+
+                      {/* Delete */}
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            size='sm'
+                            onClick={() => setDeleteTarget(p)}
+                            className='bg-muted'
+                          >
+                            <Trash2 className='mr-1 h-4 w-4' />
+                            {t('delete')}
+                          </Button>
+                        </AlertDialogTrigger>
+
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>
+                              {t('deleteTitle')}
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                              {t('deleteDescription')}
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
+                            <AlertDialogAction onClick={confirmDelete}>
+                              {t('delete')}
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </CardContent>
+
+      {/* EDIT DIALOG */}
+      <Dialog open={!!editProduct} onOpenChange={() => setEditProduct(null)}>
+        <DialogContent className='max-w-lg'>
+          <DialogHeader>
+            <DialogTitle>{t('editTitle')}</DialogTitle>
+            <DialogDescription>{t('editSubtitle')}</DialogDescription>
+          </DialogHeader>
+
+          {editProduct && (
+            <div className='space-y-4'>
+              <div className='flex flex-col items-center gap-3'>
+                <img
+                  src={
+                    editProduct.image_url ||
+                    'https://placehold.co/150x150?text=No+Image'
+                  }
+                  alt='Product'
+                  className='h-32 w-32 rounded-md border object-cover'
+                />
+
+                <label className='text-primary flex cursor-pointer items-center gap-2 text-sm font-medium hover:underline'>
+                  <Upload className='h-4 w-4' />
+                  {t('changeImage')}
+
+                  <input
+                    type='file'
+                    accept='image/*'
+                    className='hidden'
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        setNewImage(file);
+                        setEditProduct({
+                          ...editProduct,
+                          image_url: URL.createObjectURL(file)
+                        });
+                      }
+                    }}
+                  />
+                </label>
+              </div>
+
+              <div>
+                <label className='text-sm font-medium'>
+                  {t('description')}
+                </label>
+                <Input
+                  value={editProduct.beschreibung || ''}
+                  onChange={(e) =>
+                    setEditProduct({
+                      ...editProduct,
+                      beschreibung: e.target.value
+                    })
+                  }
+                />
+              </div>
+
+              <div>
+                <label className='text-sm font-medium'>{t('minStock')}</label>
+                <Input
+                  type='number'
+                  value={editProduct.sollbestand || 0}
+                  onChange={(e) =>
+                    setEditProduct({
+                      ...editProduct,
+                      sollbestand: +e.target.value
+                    })
+                  }
+                />
+              </div>
+
+              <div className='flex justify-end gap-2'>
+                <Button variant='outline' onClick={() => setEditProduct(null)}>
+                  {t('cancel')}
+                </Button>
+
+                <Button onClick={handleSave}>{t('saveChanges')}</Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* LOGS DIALOG */}
+      <Dialog open={!!viewLogs} onOpenChange={() => setViewLogs(null)}>
+        <DialogContent className='bg-background/90 w-full max-w-6xl rounded-2xl border-none p-0 shadow-2xl backdrop-blur-lg'>
+          <DialogHeader className='px-7 pt-7'>
+            <DialogTitle>{t('logTitle')}</DialogTitle>
+            <DialogDescription>{t('logSubtitle')}</DialogDescription>
+          </DialogHeader>
+
+          {logsLoading ? (
+            <div className='flex justify-center py-12'>
               <Loader2 className='text-muted-foreground h-6 w-6 animate-spin' />
             </div>
+          ) : logs.length === 0 ? (
+            <p className='text-muted-foreground py-8 text-center text-sm'>
+              {t('logEmpty')}
+            </p>
           ) : (
-            <div className='border-border/40 bg-card/60 overflow-hidden rounded-xl border shadow-sm backdrop-blur-sm'>
-              <Table>
-                <TableHeader>
+            <div className='border-border/40 mt-3 max-h-[70vh] overflow-y-auto rounded-b-2xl border-t'>
+              <Table className='min-w-full text-sm'>
+                <TableHeader className='bg-background/90 sticky top-0 z-10 backdrop-blur-md'>
                   <TableRow>
-                    <TableHead>Image</TableHead>
-                    <TableHead>Article Number</TableHead>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Supplier</TableHead>
-                    <TableHead>Price (€)</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>Stock / Min</TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableHead>{t('logDate')}</TableHead>
+                    <TableHead>{t('logAction')}</TableHead>
+                    <TableHead>{t('logQty')}</TableHead>
+                    <TableHead>{t('logUser')}</TableHead>
+                    <TableHead>{t('logDelivery')}</TableHead>
+                    <TableHead>{t('logComment')}</TableHead>
                   </TableRow>
                 </TableHeader>
+
                 <TableBody>
-                  {filtered.map((p) => (
-                    <TableRow
-                      key={p.artikelnummer}
-                      // ⬇️ neutral hover (no team color tint, no click-select)
-                      className='hover:bg-muted/20 transition-colors duration-150'
-                    >
+                  {logs.map((l, i) => (
+                    <TableRow key={i}>
                       <TableCell>
-                        {p.image_url ? (
-                          <img
-                            src={
-                              p.image_url.trim() !== ''
-                                ? p.image_url
-                                : 'https://placehold.co/100x100?text=No+Image'
-                            }
-                            alt={p.artikelbezeichnung || 'Product Image'}
-                            className='h-10 w-10 cursor-pointer rounded-md object-cover transition-transform hover:scale-105'
-                            onDoubleClick={() =>
-                              setImagePreview(
-                                p.image_url.trim() !== ''
-                                  ? p.image_url
-                                  : 'https://placehold.co/600x600?text=No+Image'
-                              )
-                            }
-                          />
+                        {new Date(l.timestamp).toLocaleDateString('en-GB')}
+                      </TableCell>
+
+                      <TableCell>
+                        <Badge
+                          className={
+                            l.menge_diff >= 0
+                              ? 'bg-emerald-500/15 text-emerald-400'
+                              : 'bg-red-500/15 text-red-400'
+                          }
+                        >
+                          {l.menge_diff >= 0 ? t('added') : t('removed')}
+                        </Badge>
+                      </TableCell>
+
+                      <TableCell>{Math.abs(l.menge_diff)}</TableCell>
+
+                      <TableCell>{l.benutzer || 'System'}</TableCell>
+
+                      <TableCell>
+                        {l.lieferscheinnr ? (
+                          <span className='bg-primary/10 text-primary rounded-md px-2 py-[2px] font-mono text-xs'>
+                            {l.lieferscheinnr}
+                          </span>
                         ) : (
-                          <div className='bg-muted text-muted-foreground flex h-10 w-10 items-center justify-center rounded-md text-xs'>
-                            No Image
-                          </div>
+                          <span className='text-muted-foreground'>—</span>
                         )}
                       </TableCell>
 
-                      <TableCell>{p.artikelnummer}</TableCell>
-                      <TableCell>{p.artikelbezeichnung}</TableCell>
-                      <TableCell>{p.lieferant}</TableCell>
-                      <TableCell>{p.preis?.toFixed(2)}</TableCell>
-                      <TableCell className='max-w-[200px] truncate'>
-                        {p.beschreibung || '—'}
-                      </TableCell>
-                      <TableCell>
-                        Stock: {p.bestand} / Min: {p.sollbestand || 0}
-                      </TableCell>
-
-                      <TableCell className='flex flex-wrap gap-2'>
-                        <Button
-                          size='sm'
-                          variant='outline'
-                          onClick={() => setEditProduct(p)}
-                        >
-                          <Pencil className='mr-1 h-4 w-4' /> Edit
-                        </Button>
-
-                        <Button
-                          size='sm'
-                          variant='outline'
-                          onClick={() => fetchLogs(p.artikelnummer)}
-                        >
-                          <History className='mr-1 h-4 w-4' /> Movements
-                        </Button>
-
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button size='sm' variant='destructive'>
-                              <Trash2 className='mr-1 h-4 w-4' /> Delete
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>
-                                Delete product?
-                              </AlertDialogTitle>
-                              <AlertDialogDescription>
-                                This action cannot be undone. The product will
-                                be permanently removed.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => handleDelete(p.artikelnummer)}
-                              >
-                                Delete
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+                      <TableCell className='text-muted-foreground max-w-[300px] truncate'>
+                        {l.kommentar || '—'}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -294,199 +503,21 @@ export default function ProductListing() {
               </Table>
             </div>
           )}
-        </CardContent>
+        </DialogContent>
+      </Dialog>
 
-        {/* Edit Modal */}
-        <Dialog open={!!editProduct} onOpenChange={() => setEditProduct(null)}>
-          <DialogContent className='max-w-lg'>
-            <DialogHeader>
-              <DialogTitle>Edit Product</DialogTitle>
-              <DialogDescription>
-                Adjust product details. Core data like article number or name is
-                not editable.
-              </DialogDescription>
-            </DialogHeader>
-
-            {editProduct && (
-              <div className='mt-4 space-y-5'>
-                {editProduct.image_url && (
-                  <div className='flex justify-center'>
-                    <img
-                      src={editProduct.image_url}
-                      alt='Product Image'
-                      className='border-border/40 h-32 w-32 rounded-md border object-cover shadow-sm'
-                    />
-                  </div>
-                )}
-
-                <div>
-                  <label className='mb-1 block text-sm font-medium'>
-                    Article Number
-                  </label>
-                  <Input value={editProduct.artikelnummer} disabled />
-                </div>
-                <div>
-                  <label className='mb-1 block text-sm font-medium'>
-                    Product Name
-                  </label>
-                  <Input value={editProduct.artikelbezeichnung} disabled />
-                </div>
-                <div>
-                  <label className='mb-1 block text-sm font-medium'>
-                    Supplier
-                  </label>
-                  <Input value={editProduct.lieferant} disabled />
-                </div>
-                <div>
-                  <label className='mb-1 block text-sm font-medium'>
-                    Price (€)
-                  </label>
-                  <Input value={editProduct.preis} disabled />
-                </div>
-                <div>
-                  <label className='mb-1 block text-sm font-medium'>
-                    Minimum Stock
-                  </label>
-                  <Input
-                    type='number'
-                    value={editProduct.sollbestand || 0}
-                    onChange={(e) =>
-                      setEditProduct({
-                        ...editProduct,
-                        sollbestand: +e.target.value
-                      })
-                    }
-                  />
-                </div>
-                <div>
-                  <label className='mb-1 block text-sm font-medium'>
-                    Description
-                  </label>
-                  <Input
-                    value={editProduct.beschreibung || ''}
-                    placeholder='Optional'
-                    onChange={(e) =>
-                      setEditProduct({
-                        ...editProduct,
-                        beschreibung: e.target.value
-                      })
-                    }
-                  />
-                </div>
-
-                <div className='flex justify-end gap-2 pt-2'>
-                  <Button
-                    variant='outline'
-                    onClick={() => setEditProduct(null)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    onClick={handleSave}
-                    className='bg-primary text-primary-foreground hover:bg-primary/90 transition-colors'
-                  >
-                    Save Changes
-                  </Button>
-                </div>
-              </div>
-            )}
-          </DialogContent>
-        </Dialog>
-
-        {/* Logs Modal */}
-        <Dialog open={!!viewLogs} onOpenChange={() => setViewLogs(null)}>
-          <DialogContent className='w-full max-w-4xl'>
-            <DialogTitle>
-              Movement History for:{' '}
-              <span className='font-semibold'>
-                {products.find((p) => p.artikelnummer === viewLogs)
-                  ?.artikelbezeichnung || 'Unknown'}
-              </span>
-              <span className='text-muted-foreground block text-sm'>
-                Article #{viewLogs}
-              </span>
-            </DialogTitle>
-
-            {logsLoading ? (
-              <div className='flex justify-center py-6'>
-                <Loader2 className='text-muted-foreground h-6 w-6 animate-spin' />
-              </div>
-            ) : logs.length === 0 ? (
-              <p className='text-muted-foreground text-sm'>
-                No movements found.
-              </p>
-            ) : (
-              <div className='mt-3 overflow-hidden rounded-md border'>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Action</TableHead>
-                      <TableHead className='text-right'>Quantity</TableHead>
-                      <TableHead>User</TableHead>
-                      <TableHead>Delivery Note</TableHead>
-                      <TableHead>Comment</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {logs.map((log, i) => (
-                      <TableRow key={i}>
-                        <TableCell>
-                          {new Date(log.timestamp).toLocaleDateString('en-GB')}
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            className={
-                              log.menge_diff >= 0
-                                ? 'border-green-500/30 bg-green-500/20 text-green-400'
-                                : 'border-red-500/30 bg-red-500/20 text-red-400'
-                            }
-                          >
-                            {log.menge_diff >= 0 ? 'Added' : 'Removed'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className='text-right font-semibold'>
-                          {Math.abs(log.menge_diff)}
-                        </TableCell>
-                        <TableCell>{log.benutzer || 'System'}</TableCell>
-                        <TableCell>
-                          {log.lieferscheinnr ? (
-                            <span className='text-primary font-medium'>
-                              {log.lieferscheinnr}
-                            </span>
-                          ) : (
-                            <span className='text-muted-foreground'>—</span>
-                          )}
-                        </TableCell>
-                        <TableCell>{log.kommentar || '—'}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </DialogContent>
-        </Dialog>
-
-        {/* Image Preview */}
-        <Dialog
-          open={!!imagePreview}
-          onOpenChange={() => setImagePreview(null)}
-        >
-          <DialogContent className='max-w-3xl border-none p-0 shadow-lg'>
-            <VisuallyHidden>
-              <DialogTitle>Product Image Preview</DialogTitle>
-            </VisuallyHidden>
-            {imagePreview && (
-              <img
-                src={imagePreview}
-                alt='Product Preview'
-                className='h-auto w-full rounded-lg'
-              />
-            )}
-          </DialogContent>
-        </Dialog>
-      </div>
+      {/* IMAGE PREVIEW */}
+      <Dialog open={!!imagePreview} onOpenChange={() => setImagePreview(null)}>
+        <DialogContent className='bg-background/90 max-w-3xl border-none p-0 shadow-2xl backdrop-blur-lg'>
+          {imagePreview && (
+            <img
+              src={imagePreview}
+              alt='preview'
+              className='h-auto w-full rounded-xl object-contain'
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -4,6 +4,7 @@ import * as React from 'react';
 import { IconTrendingUp } from '@tabler/icons-react';
 import { Label, Pie, PieChart } from 'recharts';
 import { createClient } from '@/lib/supabase/client';
+import { useTranslations } from 'next-intl';
 
 import {
   Card,
@@ -29,6 +30,8 @@ type SupplierData = {
 
 export function PieGraph() {
   const supabase = createClient();
+  const t = useTranslations('overview'); // <-- kein "pie" Namespace
+
   const [chartData, setChartData] = React.useState<SupplierData[]>([]);
   const [loading, setLoading] = React.useState(true);
 
@@ -44,7 +47,7 @@ export function PieGraph() {
 
         const grouped: Record<string, number> = {};
         data?.forEach((row) => {
-          const name = (row.lieferant ?? 'Unknown Supplier').trim();
+          const name = (row.lieferant ?? t('pieUnknown')).trim();
           const value = (Number(row.preis) || 0) * (Number(row.bestand) || 0);
           grouped[name] = (grouped[name] || 0) + value;
         });
@@ -61,14 +64,14 @@ export function PieGraph() {
         setChartData(formatted);
       } catch (err: any) {
         console.error('❌ PieChart error:', err);
-        toast.error('Failed to load supplier distribution.');
+        toast.error(t('pieLoadError'));
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, [supabase]);
+  }, [supabase, t]);
 
   const totalValue = React.useMemo(
     () => chartData.reduce((acc, curr) => acc + curr.value, 0),
@@ -86,20 +89,19 @@ export function PieGraph() {
   return (
     <Card className='flex h-full flex-col'>
       <CardHeader>
-        <CardTitle>Supplier Distribution</CardTitle>
+        <CardTitle>{t('pieTitle')}</CardTitle>
         <CardDescription>
           <span className='hidden @[540px]/card:block'>
-            Total inventory value per supplier
+            {t('pieSubtitleDesktop')}
           </span>
-          <span className='@[540px]/card:hidden'>Supplier share</span>
+          <span className='@[540px]/card:hidden'>{t('pieSubtitleMobile')}</span>
         </CardDescription>
       </CardHeader>
 
-      {/* Der Hauptbereich dehnt sich vollständig, auch bei leerem Inhalt */}
       <CardContent className='flex flex-1 items-center justify-center px-2 pt-4 sm:px-6 sm:pt-6'>
         <ChartContainer
           config={{
-            value: { label: 'Value (€)' }
+            value: { label: t('pieValueLabel') }
           }}
           className='mx-auto aspect-square h-[250px]'
         >
@@ -163,7 +165,7 @@ export function PieGraph() {
                           y={(viewBox.cy || 0) + 24}
                           className='fill-muted-foreground text-sm'
                         >
-                          Total Value
+                          {t('pieTotalLabel')}
                         </tspan>
                       </text>
                     );
@@ -178,13 +180,15 @@ export function PieGraph() {
       <CardFooter className='flex-col gap-2 text-sm'>
         {chartData.length > 0 && (
           <div className='flex items-center gap-2 leading-none font-medium'>
-            {chartData[0].supplier} leads with{' '}
-            {((chartData[0].value / totalValue) * 100).toFixed(1)} %{' '}
+            {t('pieLeader', {
+              supplier: chartData[0].supplier,
+              percent: ((chartData[0].value / totalValue) * 100).toFixed(1)
+            })}{' '}
             <IconTrendingUp className='h-4 w-4' />
           </div>
         )}
         <div className='text-muted-foreground leading-none'>
-          Based on current inventory data
+          {t('pieFooter')}
         </div>
       </CardFooter>
     </Card>

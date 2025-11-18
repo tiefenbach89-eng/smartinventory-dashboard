@@ -16,9 +16,13 @@ import { CardModern } from '@/components/ui/card-modern';
 import { toast } from 'sonner';
 import { Loader2, Eye, EyeOff } from 'lucide-react';
 
+import { useTranslations } from 'next-intl';
+
 export default function SignUpPage() {
   const supabase = createClient();
   const router = useRouter();
+  const t = useTranslations('SignUp');
+
   const [loading, setLoading] = React.useState(false);
   const [showPassword, setShowPassword] = React.useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
@@ -44,13 +48,13 @@ export default function SignUpPage() {
         !password ||
         !confirmPassword
       ) {
-        toast.error('Please fill in all required fields.');
+        toast.error(t('fillAllFields'));
         setLoading(false);
         return;
       }
 
       if (password !== confirmPassword) {
-        toast.error('Passwords do not match.');
+        toast.error(t('passwordsDontMatch'));
         setLoading(false);
         return;
       }
@@ -64,9 +68,10 @@ export default function SignUpPage() {
         }
       });
 
-      if (error) throw error;
+      if (error) throw new Error('signupFailed');
       const userId = data.user?.id;
-      if (!userId) throw new Error('User registration failed.');
+
+      if (!userId) throw new Error('registrationFailed');
 
       const res = await fetch('/api/auth/create-user', {
         method: 'POST',
@@ -75,16 +80,14 @@ export default function SignUpPage() {
       });
 
       const json = await res.json();
-      if (!res.ok || json.error)
-        throw new Error(json.error || 'Failed to create user role entry');
+      if (!res.ok || json.error) throw new Error('roleEntryFailed');
 
-      toast.success(
-        'Account created! Please verify your email before logging in.'
-      );
+      toast.success(t('verifyEmail'));
       router.push('/auth/sign-in');
     } catch (err: any) {
       console.error('❌ Sign-up failed:', err);
-      toast.error(err.message || 'Sign-up failed.');
+
+      toast.error(t(err.message as any) || t('signupFailed'));
     } finally {
       setLoading(false);
     }
@@ -94,20 +97,21 @@ export default function SignUpPage() {
     <div className='grid min-h-screen lg:grid-cols-2'>
       <div className='flex flex-col justify-center px-8 py-12'>
         <div className='mx-auto w-full max-w-sm'>
-          <CardModern className='border-border/40 from-primary/10 via-card/70 to-background/30 hover:border-primary/40 hover:shadow-primary/25 over:translate-y-0 animate-gradient-move w-full max-w-md border bg-gradient-to-b p-8 shadow-sm backdrop-blur-md transition-all duration-500 hover:shadow-[0_0_25px_var(--tw-shadow-color)]'>
+          <CardModern className='border-border/40 from-primary/10 via-card/70 to-background/30 hover:border-primary/40 hover:shadow-primary/25 animate-gradient-move w-full max-w-md border bg-gradient-to-b p-8 shadow-sm backdrop-blur-md transition-all duration-500 hover:shadow-[0_0_25px_var(--tw-shadow-color)]'>
             <CardHeader>
               <CardTitle className='text-2xl font-semibold'>
-                Create Account
+                {t('title')}
               </CardTitle>
               <CardDescription className='text-muted-foreground mt-1 text-sm'>
-                Enter your details to register.
+                {t('description')}
               </CardDescription>
             </CardHeader>
+
             <CardContent>
               <form onSubmit={handleSignUp} className='space-y-4'>
                 <div className='grid grid-cols-2 gap-3'>
                   <Input
-                    placeholder='First name'
+                    placeholder={t('firstName')}
                     value={form.first_name}
                     onChange={(e) =>
                       setForm({ ...form, first_name: e.target.value })
@@ -115,7 +119,7 @@ export default function SignUpPage() {
                     required
                   />
                   <Input
-                    placeholder='Last name'
+                    placeholder={t('lastName')}
                     value={form.last_name}
                     onChange={(e) =>
                       setForm({ ...form, last_name: e.target.value })
@@ -123,9 +127,10 @@ export default function SignUpPage() {
                     required
                   />
                 </div>
+
                 <Input
                   type='email'
-                  placeholder='Email address'
+                  placeholder={t('email')}
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
                   required
@@ -134,7 +139,7 @@ export default function SignUpPage() {
                 <div className='relative'>
                   <Input
                     type={showPassword ? 'text' : 'password'}
-                    placeholder='Password'
+                    placeholder={t('password')}
                     value={form.password}
                     onChange={(e) =>
                       setForm({ ...form, password: e.target.value })
@@ -157,7 +162,7 @@ export default function SignUpPage() {
                 <div className='relative'>
                   <Input
                     type={showConfirmPassword ? 'text' : 'password'}
-                    placeholder='Confirm password'
+                    placeholder={t('confirmPassword')}
                     value={form.confirmPassword}
                     onChange={(e) =>
                       setForm({ ...form, confirmPassword: e.target.value })
@@ -180,19 +185,21 @@ export default function SignUpPage() {
                 <Button type='submit' className='w-full' disabled={loading}>
                   {loading ? (
                     <>
-                      <Loader2 className='mr-2 h-4 w-4 animate-spin' /> Creating
-                      account...
+                      <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                      {t('creating')}
                     </>
                   ) : (
-                    'Sign Up'
+                    t('button')
                   )}
                 </Button>
               </form>
 
-              <p className='text-muted-foreground mt-4 text-center text-sm'>
-                Already have an account?{' '}
+              {/* ⛔️ LANGUAGE SWITCH BLOCK — ENTFERNT */}
+
+              <p className='text-muted-foreground mt-6 text-center text-sm'>
+                {t('alreadyAccount')}{' '}
                 <Link href='/auth/sign-in' className='text-primary underline'>
-                  Sign In
+                  {t('signIn')}
                 </Link>
               </p>
             </CardContent>
@@ -202,12 +209,9 @@ export default function SignUpPage() {
 
       <div className='bg-muted hidden lg:flex lg:flex-col lg:items-center lg:justify-center'>
         <blockquote className='max-w-md space-y-2 text-center'>
-          <p className='text-lg leading-relaxed font-medium'>
-            “Streamline your operations and take control of your inventory
-            today.”
-          </p>
+          <p className='text-lg leading-relaxed font-medium'>{t('quote')}</p>
           <footer className='text-muted-foreground text-sm'>
-            — SmartInventory
+            {t('brand')}
           </footer>
         </blockquote>
       </div>

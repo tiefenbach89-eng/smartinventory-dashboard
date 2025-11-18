@@ -16,8 +16,13 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Upload } from 'lucide-react';
 import { toast } from 'sonner';
 
+// 🌍 next-intl
+import { useTranslations } from 'next-intl';
+
 export default function ProfilePage() {
   const supabase = createClient();
+  const t = useTranslations('Profile');
+
   const [email, setEmail] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -55,9 +60,9 @@ export default function ProfilePage() {
         }
       });
       if (error) throw error;
-      toast.success('✅ Profile updated');
+      toast.success(t('toastUpdated'));
     } catch (err: any) {
-      toast.error('❌ ' + err.message);
+      toast.error(t('toastError', { message: err.message || '' }));
     } finally {
       setLoading(false);
     }
@@ -79,9 +84,9 @@ export default function ProfilePage() {
         .from('profile-avatars')
         .getPublicUrl(fileName);
       setAvatarUrl(data.publicUrl);
-      toast.success('🖼️ Profile picture uploaded');
+      toast.success(t('toastAvatarUploaded'));
     } catch (err: any) {
-      toast.error('❌ ' + err.message);
+      toast.error(t('toastError', { message: err.message || '' }));
     } finally {
       setUploading(false);
     }
@@ -91,14 +96,14 @@ export default function ProfilePage() {
     <div className='flex justify-center overflow-y-auto px-4 py-10 sm:px-6 lg:px-8'>
       <CardModern className='w-full max-w-2xl space-y-8 p-6 shadow-md sm:p-8'>
         <CardHeader>
-          <CardTitle className='text-2xl font-semibold'>Profile</CardTitle>
+          <CardTitle className='text-2xl font-semibold'>{t('title')}</CardTitle>
           <CardDescription className='text-muted-foreground mt-1 text-sm'>
-            Manage your personal details and avatar.
+            {t('description')}
           </CardDescription>
         </CardHeader>
 
         <CardContent className='space-y-8'>
-          {/* 🖼️ Avatar Change Section (wie bei Product Edit) */}
+          {/* 🖼️ Avatar */}
           <div className='flex flex-col items-center gap-3'>
             <Avatar className='border-primary/40 h-32 w-32 border-2 shadow-lg'>
               <AvatarImage src={avatarUrl || undefined} />
@@ -109,7 +114,7 @@ export default function ProfilePage() {
             </Avatar>
             <label className='text-primary flex cursor-pointer items-center gap-2 text-sm font-medium hover:underline'>
               <Upload className='h-4 w-4' />
-              Change Image
+              {t('changeImage')}
               <input
                 type='file'
                 accept='image/*'
@@ -122,7 +127,7 @@ export default function ProfilePage() {
           {/* 🧾 Profile Fields */}
           <div className='space-y-6'>
             <div>
-              <Label>Email</Label>
+              <Label>{t('emailLabel')}</Label>
               <Input
                 value={email}
                 disabled
@@ -132,7 +137,7 @@ export default function ProfilePage() {
 
             <div className='grid grid-cols-1 gap-6 sm:grid-cols-2'>
               <div>
-                <Label>First Name</Label>
+                <Label>{t('firstNameLabel')}</Label>
                 <Input
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
@@ -140,7 +145,7 @@ export default function ProfilePage() {
                 />
               </div>
               <div>
-                <Label>Last Name</Label>
+                <Label>{t('lastNameLabel')}</Label>
                 <Input
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
@@ -156,7 +161,7 @@ export default function ProfilePage() {
               disabled={loading || uploading}
               className='bg-primary text-primary-foreground hover:bg-primary/90 font-semibold transition-colors'
             >
-              {loading ? 'Saving...' : 'Save Changes'}
+              {loading ? t('saving') : t('save')}
             </Button>
           </div>
         </CardContent>

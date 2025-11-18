@@ -3,17 +3,18 @@ import {
   fakeProducts,
   type Product as MockProduct
 } from '@/constants/mock-api';
-import ClientWrapper from './client-wrapper'; // Client Component (mit 'use client' in der Datei selbst)
+import ClientWrapper from './client-wrapper'; // Client Component
 
 export default async function Page({
   params
 }: {
   params: Promise<{ productId: string }>;
 }) {
-  // ⬅️ WICHTIG: params ist ein Promise — hier awaiten
+  // ⬅️ params awaiten
   const { productId } = await params;
 
-  let pageTitle = 'List New Product';
+  // Nur der Key-Name, OHNE Namespace
+  let pageTitleKey: string = 'createTitle';
 
   // Standarddaten (Neues Produkt)
   let safeProduct = {
@@ -26,7 +27,7 @@ export default async function Page({
     image: [] as File[]
   };
 
-  // Bestehendes Produkt laden
+  // Wenn bestehendes Produkt
   if (productId !== 'new') {
     const parsedId = Number(productId);
     if (Number.isNaN(parsedId)) notFound();
@@ -36,7 +37,9 @@ export default async function Page({
 
     const product = data.product as MockProduct;
 
-    pageTitle = 'Edit Product';
+    // Key für Bearbeitungs-Titel
+    pageTitleKey = 'editTitle';
+
     safeProduct = {
       artikelnummer: parsedId,
       name: product.name ?? '',
@@ -48,6 +51,5 @@ export default async function Page({
     };
   }
 
-  // ClientWrapper rendert die Client-Form
-  return <ClientWrapper product={safeProduct} pageTitle={pageTitle} />;
+  return <ClientWrapper product={safeProduct} pageTitleKey={pageTitleKey} />;
 }

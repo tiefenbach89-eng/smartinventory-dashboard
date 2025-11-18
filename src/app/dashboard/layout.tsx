@@ -1,9 +1,10 @@
+// src/app/dashboard/layout.tsx
 'use client';
 
 import * as React from 'react';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import AppSidebar from '@/components/layout/app-sidebar';
-import Header from '@/components/layout/header'; // dein Header oben (ohne Searchbar & GitHub)
+import Header from '@/components/layout/header';
 
 export default function DashboardLayout({
   children
@@ -12,10 +13,7 @@ export default function DashboardLayout({
 }) {
   return (
     <SidebarProvider defaultOpen={false}>
-      {/* 👇 linke Sidebar */}
       <AppSidebar />
-
-      {/* 👇 Hauptinhalt mit Header */}
       <SidebarInset>
         <Header />
         {children}

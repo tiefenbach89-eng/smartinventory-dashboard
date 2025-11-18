@@ -17,6 +17,7 @@ import { useRouter } from 'next/navigation';
 import type { User } from '@supabase/supabase-js';
 import { LogOut, User as UserIcon, Settings } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslations } from 'next-intl';
 
 export function UserNav() {
   const router = useRouter();
@@ -25,6 +26,7 @@ export function UserNav() {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [first, setFirst] = useState('');
   const [last, setLast] = useState('');
+  const t = useTranslations('userNav');
 
   // 🧠 Auth-Status überwachen
   useEffect(() => {
@@ -69,11 +71,11 @@ export function UserNav() {
   async function handleSignOut() {
     try {
       await supabase.auth.signOut();
-      toast.success('Signed out successfully.');
+      toast.success(t('signOutSuccess'));
       router.push('/auth/sign-in');
     } catch (err) {
       console.error('❌ Logout failed:', err);
-      toast.error('Logout failed.');
+      toast.error(t('signOutError'));
     }
   }
 
@@ -110,11 +112,11 @@ export function UserNav() {
         <DropdownMenuGroup>
           <DropdownMenuItem onClick={() => router.push('/dashboard/profile')}>
             <UserIcon className='mr-2 h-4 w-4' />
-            Profile
+            {t('profile')}
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => router.push('/dashboard/settings')}>
             <Settings className='mr-2 h-4 w-4' />
-            Settings
+            {t('settings')}
           </DropdownMenuItem>
         </DropdownMenuGroup>
 
@@ -126,7 +128,7 @@ export function UserNav() {
           className='cursor-pointer text-red-600 focus:text-red-700'
         >
           <LogOut className='mr-2 h-4 w-4' />
-          Sign out
+          {t('logout')}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

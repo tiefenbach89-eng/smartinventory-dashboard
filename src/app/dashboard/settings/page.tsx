@@ -25,8 +25,12 @@ import {
   AlertDialogTrigger
 } from '@/components/ui/alert-dialog';
 
+// 🌍 next-intl
+import { useTranslations } from 'next-intl';
+
 export default function SettingsPage() {
   const supabase = createClient();
+  const t = useTranslations('Settings');
 
   const [email, setEmail] = useState('');
   const [newEmail, setNewEmail] = useState('');
@@ -46,38 +50,38 @@ export default function SettingsPage() {
     loadUser();
   }, [supabase]);
 
-  // 🔁 Automatisches Neuladen der Userdaten (Option 6)
+  // 🔁 Automatisches Neuladen der Userdaten
   useEffect(() => {
     const interval = setInterval(async () => {
       const {
         data: { user }
       } = await supabase.auth.getUser();
       if (user?.email) setEmail(user.email);
-    }, 10000); // alle 10 Sekunden prüfen
+    }, 10000);
     return () => clearInterval(interval);
   }, [supabase]);
 
   // 🔐 Passwort ändern
   async function handlePasswordChange() {
     if (password !== confirm) {
-      toast.error('Passwords do not match.');
+      toast.error(t('passwordsDontMatch'));
       return;
     }
     try {
       setLoading(true);
       const { error } = await supabase.auth.updateUser({ password });
       if (error) throw error;
-      toast.success('✅ Password updated.');
+      toast.success(t('passwordUpdated'));
       setPassword('');
       setConfirm('');
     } catch (err: any) {
-      toast.error('❌ ' + err.message);
+      toast.error(t('genericError', { message: err.message || '' }));
     } finally {
       setLoading(false);
     }
   }
 
-  // ✉️ E-Mail ändern – Supabase nutzt eigene Bestätigungsseite
+  // ✉️ E-Mail ändern
   async function handleEmailChange() {
     if (!newEmail) return;
     try {
@@ -86,16 +90,17 @@ export default function SettingsPage() {
       const { error } = await supabase.auth.updateUser({ email: newEmail });
       if (error) throw error;
 
-      toast.message('Confirmation email sent', {
-        description:
-          '📩 Please check your new inbox and confirm the email change via the Supabase confirmation page.',
+      toast.message(t('emailChangeTitle'), {
+        description: t('emailChangeDescription'),
         duration: 5000
       });
 
       setNewEmail('');
     } catch (err: any) {
-      toast.error('❌ Failed to update email', {
-        description: err.message || 'An unknown error occurred.'
+      toast.error(t('emailUpdateFailedTitle'), {
+        description: t('emailUpdateFailedDescription', {
+          message: err.message || t('unknownError')
+        })
       });
     } finally {
       setLoading(false);
@@ -109,10 +114,10 @@ export default function SettingsPage() {
       const res = await fetch('/api/delete-user', { method: 'POST' });
       const body = await res.json();
       if (!res.ok) throw new Error(body?.error || 'Failed to delete account');
-      toast.success('🗑️ Account deleted.');
+      toast.success(t('accountDeleted'));
       window.location.href = '/auth/sign-in';
     } catch (err: any) {
-      toast.error('❌ ' + err.message);
+      toast.error(t('deleteFailed', { message: err.message || '' }));
     } finally {
       setDeleting(false);
     }
@@ -123,21 +128,21 @@ export default function SettingsPage() {
     <div className='flex justify-center overflow-y-auto px-4 py-10 sm:px-6 lg:px-8'>
       <CardModern className='w-full max-w-2xl space-y-8 p-6 shadow-md sm:p-8'>
         <CardHeader>
-          <CardTitle className='text-2xl font-semibold'>
-            Account Settings
-          </CardTitle>
+          <CardTitle className='text-2xl font-semibold'>{t('title')}</CardTitle>
           <CardDescription className='text-muted-foreground mt-1 text-sm'>
-            Manage your credentials and privacy.
+            {t('description')}
           </CardDescription>
         </CardHeader>
 
         <CardContent className='space-y-10'>
           {/* 🔐 Password */}
           <section className='border-border/40 space-y-4 border-t pt-6'>
-            <h3 className='text-lg font-semibold'>Change Password</h3>
+            <h3 className='text-lg font-semibold'>
+              {t('sectionPasswordTitle')}
+            </h3>
             <div className='grid gap-4'>
               <div>
-                <Label>New Password</Label>
+                <Label>{t('newPasswordLabel')}</Label>
                 <Input
                   type='password'
                   value={password}
@@ -146,7 +151,7 @@ export default function SettingsPage() {
                 />
               </div>
               <div>
-                <Label>Confirm Password</Label>
+                <Label>{t('confirmPasswordLabel')}</Label>
                 <Input
                   type='password'
                   value={confirm}
@@ -160,23 +165,23 @@ export default function SettingsPage() {
               disabled={loading || !password || !confirm}
               className='bg-primary text-primary-foreground hover:bg-primary/90 w-full font-semibold transition-colors sm:w-auto'
             >
-              {loading ? 'Updating...' : 'Update Password'}
+              {loading ? t('passwordUpdating') : t('passwordUpdateButton')}
             </Button>
           </section>
 
           {/* ✉️ Email */}
           <section className='border-border/40 space-y-4 border-t pt-6'>
-            <h3 className='text-lg font-semibold'>Change Email</h3>
+            <h3 className='text-lg font-semibold'>{t('sectionEmailTitle')}</h3>
             <p className='text-muted-foreground text-sm'>
-              Current: <span className='font-medium'>{email}</span>
+              {t('currentEmail')} <span className='font-medium'>{email}</span>
             </p>
             <div>
-              <Label>New Email Address</Label>
+              <Label>{t('newEmailLabel')}</Label>
               <Input
                 type='email'
                 value={newEmail}
                 onChange={(e) => setNewEmail(e.target.value)}
-                placeholder='you@domain.com'
+                placeholder={t('newEmailPlaceholder')}
                 className='mt-2'
               />
             </div>
@@ -186,18 +191,17 @@ export default function SettingsPage() {
               variant='secondary'
               className='w-full transition-colors sm:w-auto'
             >
-              {loading ? 'Updating...' : 'Update Email'}
+              {loading ? t('emailUpdating') : t('emailUpdateButton')}
             </Button>
           </section>
 
           {/* 🗑️ Delete */}
           <section className='border-border/40 space-y-4 border-t pt-6'>
             <h3 className='text-lg font-semibold text-red-500'>
-              Delete Account
+              {t('sectionDeleteTitle')}
             </h3>
             <p className='text-muted-foreground text-sm'>
-              Permanently remove your account and data. This action cannot be
-              undone.
+              {t('sectionDeleteDescription')}
             </p>
             <AlertDialog>
               <AlertDialogTrigger asChild>
@@ -206,24 +210,23 @@ export default function SettingsPage() {
                   disabled={deleting}
                   className='w-full transition-colors sm:w-auto'
                 >
-                  Delete My Account
+                  {t('deleteButton')}
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                  <AlertDialogTitle>{t('dialogDeleteTitle')}</AlertDialogTitle>
                   <AlertDialogDescription>
-                    This action cannot be undone. Your account and data will be
-                    permanently deleted.
+                    {t('dialogDeleteDescription')}
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogCancel>{t('dialogCancel')}</AlertDialogCancel>
                   <AlertDialogAction
                     onClick={handleDeleteAccount}
                     disabled={deleting}
                   >
-                    {deleting ? 'Deleting...' : 'Yes, delete account'}
+                    {deleting ? t('deleting') : t('dialogConfirmDelete')}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
