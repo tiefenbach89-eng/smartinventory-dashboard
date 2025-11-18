@@ -1,6 +1,7 @@
 'use client';
+
 import { Input } from '@/components/ui/input';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { FormFileUpload } from '@/components/forms/form-file-upload';
 import { FormInput } from '@/components/forms/form-input';
 import { FormTextarea } from '@/components/forms/form-textarea';
@@ -24,42 +25,7 @@ import { toast } from 'sonner';
 // 🌍 next-intl
 import { useTranslations } from 'next-intl';
 
-// Scanner wird dynamisch geladen – Next.js & iPad sicher
-async function scanEAN(): Promise<string | null> {
-  try {
-    if (typeof window === 'undefined') return null;
-
-    // ❗ Prüfen ob Kamera API existiert
-    if (
-      !navigator.mediaDevices ||
-      typeof navigator.mediaDevices.getUserMedia !== 'function'
-    ) {
-      toast.error('Dieses Gerät unterstützt kein Kamera-Scanning.');
-      return null;
-    }
-
-    // Dynamisch laden (Next.js SSR-Safe)
-    const { BrowserMultiFormatReader } = await import('@zxing/browser');
-    const reader = new BrowserMultiFormatReader();
-
-    // Jetzt erst scannen
-    const result = await reader.decodeOnceFromVideoDevice(undefined);
-
-    // Erfolgreich
-    if (result) {
-      const text = result.getText();
-      (reader as any).reset?.();
-      return text;
-    }
-
-    return null;
-  } catch (err) {
-    console.error(err);
-    toast.error('Scan fehlgeschlagen.');
-    return null;
-  }
-}
-
+// Allowed images
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ACCEPTED_IMAGE_TYPES = [
   'image/jpeg',
@@ -77,9 +43,97 @@ export default function ProductForm({
 }) {
   const supabase = createClient();
   const router = useRouter();
-  const t = useTranslations('ProductForm'); // ← ALLES übersetzbar
+  const t = useTranslations('ProductForm');
 
-  // Validation Schema mit Übersetzungen
+  // --- Scanner State ---
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const [isScanning, setIsScanning] = useState(false);
+  const [hasCamera, setHasCamera] = useState<boolean | null>(null);
+
+  // Kamera-Fähigkeit prüfen (Desktop ohne Cam → Button deaktivieren)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      setHasCamera(false);
+      return;
+    }
+
+    navigator.mediaDevices
+      .enumerateDevices()
+      .then((devices) => {
+        const hasVideo = devices.some((d) => d.kind === 'videoinput');
+        setHasCamera(hasVideo);
+      })
+      .catch(() => {
+        setHasCamera(false);
+      });
+
+    return () => {
+      // Cleanup – Stream stoppen, falls noch aktiv
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
+      }
+    };
+  }, []);
+
+  // --- EAN-Scan starten ---
+  async function startEANScan() {
+    try {
+      if (typeof window === 'undefined') return;
+
+      if (!hasCamera) {
+        toast.error(t('noCamera')); // 🔑 ProductForm.noCamera
+        return;
+      }
+
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        toast.error(t('eanScanFailed')); // 🔑 ProductForm.eanScanFailed
+        return;
+      }
+
+      setIsScanning(true);
+
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' }
+      });
+
+      streamRef.current = stream;
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play();
+      }
+
+      const { BrowserMultiFormatReader } = await import('@zxing/browser');
+      const reader = new BrowserMultiFormatReader();
+
+      const result = await reader.decodeOnceFromVideoElement(videoRef.current!);
+
+      // Kamera schließen
+      stream.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+      setIsScanning(false);
+
+      const scanned = result.getText();
+      form.setValue('ean', scanned);
+      toast.success(t('eanScanned')); // 🔑 ProductForm.eanScanned
+    } catch (err) {
+      console.error(err);
+
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
+      }
+
+      setIsScanning(false);
+      toast.error(t('eanScanFailed')); // 🔑 ProductForm.eanScanFailed
+    }
+  }
+
+  // --- Validation Schema ---
   const formSchema = z.object({
     artikelnummer: z.coerce
       .number()
@@ -89,6 +143,18 @@ export default function ProductForm({
     price: z.coerce.number().min(0.01, { message: t('errorPrice') }),
     minStock: z.coerce.number().min(1, { message: t('errorMinStock') }),
     description: z.string().optional(),
+    ean: z
+      .string()
+      .optional()
+      .transform((val) => (val && val.trim() === '' ? undefined : val?.trim()))
+      .refine(
+        (val) => !val || /^[0-9]+$/.test(val),
+        { message: t('errorEanDigits') } // 🔑 ProductForm.errorEanDigits
+      )
+      .refine(
+        (val) => !val || val.length === 8 || val.length === 13,
+        { message: t('errorEanLength') } // 🔑 ProductForm.errorEanLength
+      ),
     image: z
       .custom<File[]>()
       .refine((files) => files?.length === 1, t('errorImageRequired'))
@@ -96,8 +162,7 @@ export default function ProductForm({
       .refine(
         (files) => ACCEPTED_IMAGE_TYPES.includes(files?.[0]?.type),
         t('errorFileType')
-      ),
-    ean: z.string().optional() // ← EAN IST OPTIONAL
+      )
   });
 
   const [mounted, setMounted] = useState(false);
@@ -112,7 +177,7 @@ export default function ProductForm({
       price: initialData?.price ?? 0,
       minStock: initialData?.minStock ?? 0,
       description: initialData?.description ?? '',
-      ean: initialData?.ean ?? '', // ← EAN default
+      ean: initialData?.ean ?? '',
       image: []
     }
   });
@@ -130,7 +195,9 @@ export default function ProductForm({
       toast.loading(t('saving'));
 
       const file = values.image[0];
-      const fileName = `${values.name.replace(/\s+/g, '_')}_${Date.now()}_${file.name}`;
+      const fileName = `${values.name.replace(/\s+/g, '_')}_${Date.now()}_${
+        file.name
+      }`;
 
       const { error: uploadError } = await supabase.storage
         .from('product-images')
@@ -151,7 +218,7 @@ export default function ProductForm({
         lieferant: values.supplier,
         preis: values.price,
         sollbestand: values.minStock,
-        ean: values.ean || null, // ← EAN wird gespeichert
+        ean: values.ean || null,
         image_url: imageUrl
       });
 
@@ -165,6 +232,8 @@ export default function ProductForm({
       toast.dismiss();
     }
   }
+
+  const scanDisabled = !hasCamera || isScanning;
 
   return (
     <div className='w-full px-6 py-10'>
@@ -227,7 +296,7 @@ export default function ProductForm({
               />
             </div>
 
-            {/* 🔥 EAN-Feld → Eingabe + Scan */}
+            {/* 🔥 EAN-Feld mit Scan-Button */}
             <div>
               <label className='mb-1 block text-sm font-medium'>
                 {t('eanLabel')}
@@ -240,21 +309,20 @@ export default function ProductForm({
                   className='pr-16'
                 />
 
-                {/* Kamera-Scan Button */}
                 <button
                   type='button'
-                  className='text-muted-foreground hover:text-foreground absolute inset-y-0 right-2 flex h-full w-12 items-center justify-center'
-                  onClick={async () => {
-                    const scanned = await scanEAN();
-                    if (scanned) {
-                      form.setValue('ean', scanned);
-                      toast.success(t('eanScanned'));
-                    } else {
-                      toast.error(t('eanScanFailed'));
-                    }
-                  }}
+                  onClick={startEANScan}
+                  disabled={scanDisabled}
+                  className={[
+                    'absolute inset-y-0 right-2 flex h-full w-12 items-center justify-center',
+                    'opacity-80 transition',
+                    scanDisabled
+                      ? 'cursor-not-allowed opacity-40'
+                      : 'text-muted-foreground hover:text-foreground cursor-pointer hover:opacity-100'
+                  ].join(' ')}
+                  aria-label={t('eanScanButtonLabel')}
                 >
-                  {/* Big Barcode Icon (iPad friendly) */}
+                  {/* großes Barcode-Icon (Touch-freundlich) */}
                   <svg
                     xmlns='http://www.w3.org/2000/svg'
                     className='h-7 w-7'
@@ -266,6 +334,22 @@ export default function ProductForm({
                 </button>
               </div>
             </div>
+
+            {/* 📷 LIVE CAMERA PREVIEW */}
+            {isScanning && (
+              <div className='border-border/40 mt-4 rounded-md border p-2'>
+                <video
+                  ref={videoRef}
+                  className='h-48 w-full rounded-md object-cover'
+                  autoPlay
+                  muted
+                  playsInline
+                />
+                <p className='text-muted-foreground mt-1 text-xs'>
+                  {t('scanActiveText')}
+                </p>
+              </div>
+            )}
 
             {/* Beschreibung */}
             <FormTextarea

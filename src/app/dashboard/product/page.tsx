@@ -29,6 +29,13 @@ import { CardModern } from '@/components/ui/card-modern';
 // 🌍 next-intl
 import { useTranslations } from 'next-intl';
 
+// EAN Validierung: 8 oder 13 Stellen
+function isValidEAN(input: string | null | undefined) {
+  if (!input) return false;
+  const ean = input.replace(/\s/g, '');
+  return ean.length === 8 || ean.length === 13;
+}
+
 export default function ProductsPage() {
   const supabase = createClient();
 
@@ -46,14 +53,15 @@ export default function ProductsPage() {
   const [price, setPrice] = useState<number | ''>('' as any);
   const [note, setNote] = useState('');
   const [deliveryNote, setDeliveryNote] = useState('');
-  const [eanAdd, setEanAdd] = useState(''); // EAN im Add-Dialog
-  const [eanRemove, setEanRemove] = useState(''); // EAN im Remove-Dialog
+  const [eanAdd, setEanAdd] = useState('');
+  const [eanRemove, setEanRemove] = useState('');
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<any>(null);
 
-  // Scanner-Video
+  // Scanner Video
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [isScanning, setIsScanning] = useState(false);
+  const [cameraAvailable, setCameraAvailable] = useState(false);
 
   useEffect(() => setMounted(true), []);
 
@@ -71,20 +79,42 @@ export default function ProductsPage() {
       });
   }, [supabase]);
 
+  // Kamera-Fähigkeiten prüfen
+  useEffect(() => {
+    async function checkCam() {
+      if (
+        typeof navigator === 'undefined' ||
+        !navigator.mediaDevices?.enumerateDevices
+      ) {
+        setCameraAvailable(false);
+        return;
+      }
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const hasVideo = devices.some((d) => d.kind === 'videoinput');
+        setCameraAvailable(hasVideo);
+      } catch {
+        setCameraAvailable(false);
+      }
+    }
+    checkCam();
+  }, []);
+
   const selected = products.find(
     (p) => String(p.artikelnummer) === selectedProduct
   );
 
-  // ------------------------------------------------------------------
-  // EAN → Produkt automatisch auswählen
-  // ------------------------------------------------------------------
+  // ----------------------------------------------------------------------
+  // EAN → Produkt auswählen
+  // ----------------------------------------------------------------------
   async function findAndSelectProductByEAN(ean: string) {
-    if (!ean || ean.trim().length < 3) return false;
+    const trimmed = ean?.trim();
+    if (!isValidEAN(trimmed)) return false;
 
     const { data, error } = await supabase
       .from('artikel')
       .select('*')
-      .eq('ean', ean.trim())
+      .eq('ean', trimmed)
       .single();
 
     if (error || !data) {
@@ -98,25 +128,38 @@ export default function ProductsPage() {
   }
 
   async function handleEanSearchAdd() {
+    if (!isValidEAN(eanAdd)) {
+      toast.error(tAdd('searchDisabled'));
+      return;
+    }
     await findAndSelectProductByEAN(eanAdd);
   }
 
   async function handleEanSearchRemove() {
+    if (!isValidEAN(eanRemove)) {
+      toast.error(tRemove('searchDisabled'));
+      return;
+    }
     await findAndSelectProductByEAN(eanRemove);
   }
-
-  // ------------------------------------------------------------------
-  // Kamera-Scan für EAN (Add / Remove) mit Video-Vorschau
-  // ------------------------------------------------------------------
+  // ----------------------------------------------------------------------
+  // Kamera-Scan (Add / Remove) → inkl. Live-Vorschau
+  // ----------------------------------------------------------------------
   const startScan = async (mode: 'add' | 'remove') => {
     try {
       if (typeof window === 'undefined') return;
 
-      if (
-        !navigator.mediaDevices ||
-        typeof navigator.mediaDevices.getUserMedia !== 'function'
-      ) {
-        toast.error('Kamera wird von diesem Gerät nicht unterstützt.');
+      if (!cameraAvailable) {
+        toast.error(
+          mode === 'add' ? tAdd('scanNoCamera') : tRemove('scanNoCamera')
+        );
+        return;
+      }
+
+      if (!navigator.mediaDevices?.getUserMedia) {
+        toast.error(
+          mode === 'add' ? tAdd('scanNoCamera') : tRemove('scanNoCamera')
+        );
         return;
       }
 
@@ -136,26 +179,28 @@ export default function ProductsPage() {
 
       const result = await reader.decodeOnceFromVideoElement(videoRef.current!);
 
-      // Kamera stoppen
-      stream.getTracks().forEach((t) => t.stop());
+      stream.getTracks().forEach((track) => track.stop());
       setIsScanning(false);
 
-      const scanned = result.getText();
+      const scannedEAN = result.getText();
 
       if (mode === 'add') {
-        setEanAdd(scanned);
+        setEanAdd(scannedEAN);
       } else {
-        setEanRemove(scanned);
+        setEanRemove(scannedEAN);
       }
 
-      await findAndSelectProductByEAN(scanned);
-    } catch (e) {
-      console.error(e);
-      toast.error('Scan fehlgeschlagen.');
+      await findAndSelectProductByEAN(scannedEAN);
+    } catch (error) {
+      console.error(error);
+      toast.error(mode === 'add' ? tAdd('scanFailed') : tRemove('scanFailed'));
       setIsScanning(false);
     }
   };
 
+  // ----------------------------------------------------------------------
+  // Stock Änderung (Add / Remove)
+  // ----------------------------------------------------------------------
   async function handleStockChange(type: 'add' | 'remove') {
     try {
       setLoading(true);
@@ -183,11 +228,10 @@ export default function ProductsPage() {
 
       const benutzer =
         user?.user_metadata?.first_name || user?.user_metadata?.last_name
-          ? `${user?.user_metadata?.first_name ?? ''} ${
-              user?.user_metadata?.last_name ?? ''
-            }`.trim()
+          ? `${user?.user_metadata?.first_name ?? ''} ${user?.user_metadata?.last_name ?? ''}`.trim()
           : (user?.email ?? 'System');
 
+      // API-Request
       const res = await fetch('/api/stock-log', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -204,13 +248,12 @@ export default function ProductsPage() {
           benutzer,
           lieferscheinnr: type === 'add' ? deliveryNote || null : null
           // Optional:
-          // ean: type === 'add' ? eanAdd || null : eanRemove || null
+          // ean: mode === "add" ? eanAdd : eanRemove
         })
       });
 
       const json = await res.json();
-      if (!res.ok || json.error)
-        throw new Error(json.error || 'Failed to save log entry');
+      if (!res.ok || json.error) throw new Error(json.error || 'Unknown error');
 
       toast.success(
         type === 'add'
@@ -218,6 +261,7 @@ export default function ProductsPage() {
           : tRemove('toastSuccess', { name: product.artikelbezeichnung })
       );
 
+      // Reset
       setSelectedProduct('');
       setQuantity('');
       setPrice('');
@@ -243,6 +287,10 @@ export default function ProductsPage() {
 
   if (!mounted) return null;
 
+  // ----------------------------------------------------------------------
+  // RENDER
+  // ----------------------------------------------------------------------
+
   return (
     <PageContainer>
       <div className='w-full space-y-6 px-4 py-6 sm:px-6 md:px-10 md:py-10'>
@@ -252,7 +300,6 @@ export default function ProductsPage() {
             {p('title')}
           </h2>
         </div>
-
         {/* Tabs */}
         <Tabs defaultValue='add' className='w-full'>
           <TabsList className='bg-card/25 border-border/10 flex h-auto w-full flex-wrap items-center justify-center gap-2 rounded-3xl border px-2 py-2 text-sm shadow-[0_0_20px_rgba(255,255,255,0.05)] backdrop-blur-md sm:h-11 sm:w-fit sm:flex-nowrap sm:py-0'>
@@ -293,13 +340,23 @@ export default function ProductsPage() {
           <ProductListing />
         </CardModern>
 
-        {/* ADD STOCK DIALOG */}
+        {/* ---------------------------- ADD STOCK DIALOG ---------------------------- */}
         <Dialog open={openAdd} onOpenChange={setOpenAdd}>
           <DialogContent className='bg-card/95 border-border/40 w-[95vw] rounded-2xl border backdrop-blur-md sm:max-w-lg'>
             <DialogHeader>
               <DialogTitle>{tAdd('title')}</DialogTitle>
               <DialogDescription>{tAdd('description')}</DialogDescription>
             </DialogHeader>
+
+            {/* CAMERA LIVE PREVIEW */}
+            {isScanning && (
+              <div className='border-border mb-3 overflow-hidden rounded-lg border'>
+                <video
+                  ref={videoRef}
+                  className='h-64 w-full bg-black object-cover'
+                />
+              </div>
+            )}
 
             <div className='space-y-4'>
               {/* PRODUCT SELECT */}
@@ -308,29 +365,27 @@ export default function ProductsPage() {
                   {tAdd('productLabel')}
                 </label>
 
-                {mounted && (
-                  <Select
-                    value={selectedProduct}
-                    onValueChange={setSelectedProduct}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder={tAdd('placeholderProduct')} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {products.map((p) => (
-                        <SelectItem
-                          key={p.artikelnummer}
-                          value={String(p.artikelnummer)}
-                        >
-                          {p.artikelbezeichnung} ({p.artikelnummer})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
+                <Select
+                  value={selectedProduct}
+                  onValueChange={setSelectedProduct}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={tAdd('placeholderProduct')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {products.map((p) => (
+                      <SelectItem
+                        key={p.artikelnummer}
+                        value={String(p.artikelnummer)}
+                      >
+                        {p.artikelbezeichnung} ({p.artikelnummer})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
-              {/* EAN FIELD – FULL WIDTH */}
+              {/* EAN FIELD */}
               <div>
                 <label className='mb-1 block text-sm font-medium'>
                   {tAdd('eanLabel')}
@@ -344,19 +399,14 @@ export default function ProductsPage() {
                     className='pr-24'
                   />
 
-                  {/* SEARCH ICON */}
+                  {/* SEARCH ICON (disabled if not valid EAN) */}
                   <button
                     type='button'
-                    className='text-muted-foreground hover:text-foreground absolute inset-y-0 right-14 flex h-full w-10 items-center justify-center'
+                    disabled={!isValidEAN(eanAdd)}
+                    className='text-muted-foreground hover:text-foreground absolute inset-y-0 right-14 flex h-full w-10 items-center justify-center disabled:pointer-events-none disabled:opacity-30'
                     onClick={handleEanSearchAdd}
                   >
-                    <svg
-                      xmlns='http://www.w3.org/2000/svg'
-                      className='h-6 w-6'
-                      viewBox='0 0 24 24'
-                      stroke='currentColor'
-                      fill='none'
-                    >
+                    <svg className='h-6 w-6' fill='none' stroke='currentColor'>
                       <path
                         strokeWidth='2'
                         strokeLinecap='round'
@@ -366,14 +416,14 @@ export default function ProductsPage() {
                     </svg>
                   </button>
 
-                  {/* BARCODE ICON */}
+                  {/* BARCODE SCAN BUTTON */}
                   <button
                     type='button'
-                    className='text-muted-foreground hover:text-foreground absolute inset-y-0 right-2 flex h-full w-10 items-center justify-center'
+                    disabled={!cameraAvailable}
+                    className='text-muted-foreground hover:text-foreground absolute inset-y-0 right-2 flex h-full w-10 items-center justify-center disabled:pointer-events-none disabled:opacity-30'
                     onClick={() => startScan('add')}
                   >
                     <svg
-                      xmlns='http://www.w3.org/2000/svg'
                       className='h-7 w-7'
                       viewBox='0 0 24 24'
                       fill='currentColor'
@@ -384,36 +434,21 @@ export default function ProductsPage() {
                 </div>
               </div>
 
-              {isScanning && (
-                <div className='border-border/40 mt-3 rounded-md border p-2'>
-                  <video
-                    ref={videoRef}
-                    className='h-48 w-full rounded-md object-cover'
-                    autoPlay
-                    muted
-                    playsInline
-                  />
-                  <p className='text-muted-foreground mt-1 text-xs'>
-                    Kamera aktiv – bitte Barcode ins Bild halten…
-                  </p>
-                </div>
-              )}
-
-              {/* IMAGE PREVIEW */}
+              {/* IMAGE */}
               {selected?.image_url && (
                 <div className='flex justify-center'>
                   <img
                     src={selected.image_url}
                     alt={selected.artikelbezeichnung}
-                    className='h-32 w-32 rounded-md border object-cover shadow-sm'
+                    className='h-32 w-32 rounded-md border object-cover'
                   />
                 </div>
               )}
 
-              {/* REST */}
+              {/* REST FIELDS */}
               <div className='grid gap-4'>
                 <div>
-                  <label className='mb-1 block text-sm font-medium'>
+                  <label className='block text-sm font-medium'>
                     {tAdd('quantity')}
                   </label>
                   <Input
@@ -424,7 +459,7 @@ export default function ProductsPage() {
                 </div>
 
                 <div>
-                  <label className='mb-1 block text-sm font-medium'>
+                  <label className='block text-sm font-medium'>
                     {tAdd('price')}
                   </label>
                   <Input
@@ -436,7 +471,7 @@ export default function ProductsPage() {
                 </div>
 
                 <div>
-                  <label className='mb-1 block text-sm font-medium'>
+                  <label className='block text-sm font-medium'>
                     {tAdd('deliveryNote')}
                   </label>
                   <Input
@@ -446,7 +481,7 @@ export default function ProductsPage() {
                 </div>
 
                 <div>
-                  <label className='mb-1 block text-sm font-medium'>
+                  <label className='block text-sm font-medium'>
                     {tAdd('note')}
                   </label>
                   <Textarea
@@ -457,6 +492,7 @@ export default function ProductsPage() {
                 </div>
               </div>
 
+              {/* SAVE BUTTON */}
               <div className='flex justify-end pt-2'>
                 <Button size='sm' onClick={() => handleStockChange('add')}>
                   {loading ? tAdd('saving') : tAdd('save')}
@@ -466,13 +502,23 @@ export default function ProductsPage() {
           </DialogContent>
         </Dialog>
 
-        {/* REMOVE STOCK DIALOG */}
+        {/* ---------------------------- REMOVE DIALOG ---------------------------- */}
         <Dialog open={openRemove} onOpenChange={setOpenRemove}>
           <DialogContent className='bg-card/95 border-border/40 w-[95vw] rounded-2xl border backdrop-blur-md sm:max-w-lg'>
             <DialogHeader>
               <DialogTitle>{tRemove('title')}</DialogTitle>
               <DialogDescription>{tRemove('description')}</DialogDescription>
             </DialogHeader>
+
+            {/* Camera Preview */}
+            {isScanning && (
+              <div className='mb-3 overflow-hidden rounded-lg border'>
+                <video
+                  ref={videoRef}
+                  className='h-64 w-full bg-black object-cover'
+                />
+              </div>
+            )}
 
             <div className='space-y-4'>
               {/* PRODUCT SELECT */}
@@ -481,31 +527,27 @@ export default function ProductsPage() {
                   {tRemove('productLabel')}
                 </label>
 
-                {mounted && (
-                  <Select
-                    value={selectedProduct}
-                    onValueChange={setSelectedProduct}
-                  >
-                    <SelectTrigger>
-                      <SelectValue
-                        placeholder={tRemove('placeholderProduct')}
-                      />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {products.map((p) => (
-                        <SelectItem
-                          key={p.artikelnummer}
-                          value={String(p.artikelnummer)}
-                        >
-                          {p.artikelbezeichnung} ({p.artikelnummer})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
+                <Select
+                  value={selectedProduct}
+                  onValueChange={setSelectedProduct}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={tRemove('placeholderProduct')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {products.map((p) => (
+                      <SelectItem
+                        key={p.artikelnummer}
+                        value={String(p.artikelnummer)}
+                      >
+                        {p.artikelbezeichnung} ({p.artikelnummer})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
-              {/* EAN FIELD FULL WIDTH */}
+              {/* EAN REMOVE */}
               <div>
                 <label className='mb-1 block text-sm font-medium'>
                   {tRemove('eanLabel')}
@@ -519,18 +561,14 @@ export default function ProductsPage() {
                     className='pr-24'
                   />
 
-                  {/* SEARCH */}
+                  {/* SEARCH ICON */}
                   <button
                     type='button'
-                    className='text-muted-foreground hover:text-foreground absolute inset-y-0 right-14 flex h-full w-10 items-center justify-center'
+                    disabled={!isValidEAN(eanRemove)}
+                    className='text-muted-foreground hover:text-foreground absolute inset-y-0 right-14 flex h-full w-10 items-center justify-center disabled:pointer-events-none disabled:opacity-30'
                     onClick={handleEanSearchRemove}
                   >
-                    <svg
-                      className='h-6 w-6'
-                      fill='none'
-                      stroke='currentColor'
-                      viewBox='0 0 24 24'
-                    >
+                    <svg className='h-6 w-6' fill='none' stroke='currentColor'>
                       <path
                         strokeWidth='2'
                         strokeLinecap='round'
@@ -540,10 +578,11 @@ export default function ProductsPage() {
                     </svg>
                   </button>
 
-                  {/* BARCODE ICON */}
+                  {/* SCAN BUTTON */}
                   <button
                     type='button'
-                    className='text-muted-foreground hover:text-foreground absolute inset-y-0 right-2 flex h-full w-10 items-center justify-center'
+                    disabled={!cameraAvailable}
+                    className='text-muted-foreground hover:text-foreground absolute inset-y-0 right-2 flex h-full w-10 items-center justify-center disabled:pointer-events-none disabled:opacity-30'
                     onClick={() => startScan('remove')}
                   >
                     <svg
@@ -557,28 +596,13 @@ export default function ProductsPage() {
                 </div>
               </div>
 
-              {isScanning && (
-                <div className='border-border/40 mt-3 rounded-md border p-2'>
-                  <video
-                    ref={videoRef}
-                    className='h-48 w-full rounded-md object-cover'
-                    autoPlay
-                    muted
-                    playsInline
-                  />
-                  <p className='text-muted-foreground mt-1 text-xs'>
-                    Kamera aktiv – bitte Barcode ins Bild halten…
-                  </p>
-                </div>
-              )}
-
               {/* IMAGE */}
               {selected?.image_url && (
                 <div className='flex justify-center'>
                   <img
                     src={selected.image_url}
                     alt={selected.artikelbezeichnung}
-                    className='h-32 w-32 rounded-md border object-cover shadow-sm'
+                    className='h-32 w-32 rounded-md border object-cover'
                   />
                 </div>
               )}
@@ -586,7 +610,7 @@ export default function ProductsPage() {
               {/* REST */}
               <div className='grid gap-4'>
                 <div>
-                  <label className='mb-1 block text-sm font-medium'>
+                  <label className='block text-sm font-medium'>
                     {tRemove('quantity')}
                   </label>
                   <Input
@@ -597,7 +621,7 @@ export default function ProductsPage() {
                 </div>
 
                 <div>
-                  <label className='mb-1 block text-sm font-medium'>
+                  <label className='block text-sm font-medium'>
                     {tRemove('note')}
                   </label>
                   <Textarea
