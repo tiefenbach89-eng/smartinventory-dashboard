@@ -1,8 +1,7 @@
 'use client';
 
 import { SquarePlus, SquareMinus, Boxes } from 'lucide-react';
-import { BrowserMultiFormatReader } from '@zxing/browser';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import PageContainer from '@/components/layout/page-container';
 import {
@@ -51,6 +50,10 @@ export default function ProductsPage() {
   const [eanRemove, setEanRemove] = useState(''); // EAN im Remove-Dialog
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<any>(null);
+
+  // Scanner-Video
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const [isScanning, setIsScanning] = useState(false);
 
   useEffect(() => setMounted(true), []);
 
@@ -103,38 +106,53 @@ export default function ProductsPage() {
   }
 
   // ------------------------------------------------------------------
-  // Kamera-Scan für EAN (Add / Remove)
+  // Kamera-Scan für EAN (Add / Remove) mit Video-Vorschau
   // ------------------------------------------------------------------
   const startScan = async (mode: 'add' | 'remove') => {
     try {
-      // Sicherstellen, dass wir im Browser sind
       if (typeof window === 'undefined') return;
+
+      if (
+        !navigator.mediaDevices ||
+        typeof navigator.mediaDevices.getUserMedia !== 'function'
+      ) {
+        toast.error('Kamera wird von diesem Gerät nicht unterstützt.');
+        return;
+      }
+
+      setIsScanning(true);
+
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' }
+      });
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play();
+      }
 
       const { BrowserMultiFormatReader } = await import('@zxing/browser');
       const reader = new BrowserMultiFormatReader();
 
-      // ❗ KEINE Geräte-Liste mehr – wir nehmen die Standard-Kamera
-      const result = await reader.decodeOnceFromVideoDevice(undefined);
+      const result = await reader.decodeOnceFromVideoElement(videoRef.current!);
 
-      if (result) {
-        const scanned = result.getText();
+      // Kamera stoppen
+      stream.getTracks().forEach((t) => t.stop());
+      setIsScanning(false);
 
-        if (mode === 'add') {
-          setEanAdd(scanned);
-        } else {
-          setEanRemove(scanned);
-        }
+      const scanned = result.getText();
 
-        await findAndSelectProductByEAN(scanned);
+      if (mode === 'add') {
+        setEanAdd(scanned);
       } else {
-        toast.error('Scan fehlgeschlagen.');
+        setEanRemove(scanned);
       }
 
-      // reset() existiert zur Laufzeit, aber nicht im Typ -> vorsichtig casten
-      (reader as any).reset?.();
+      await findAndSelectProductByEAN(scanned);
     } catch (e) {
       console.error(e);
       toast.error('Scan fehlgeschlagen.');
+      setIsScanning(false);
     }
   };
 
@@ -366,6 +384,21 @@ export default function ProductsPage() {
                 </div>
               </div>
 
+              {isScanning && (
+                <div className='border-border/40 mt-3 rounded-md border p-2'>
+                  <video
+                    ref={videoRef}
+                    className='h-48 w-full rounded-md object-cover'
+                    autoPlay
+                    muted
+                    playsInline
+                  />
+                  <p className='text-muted-foreground mt-1 text-xs'>
+                    Kamera aktiv – bitte Barcode ins Bild halten…
+                  </p>
+                </div>
+              )}
+
               {/* IMAGE PREVIEW */}
               {selected?.image_url && (
                 <div className='flex justify-center'>
@@ -523,6 +556,21 @@ export default function ProductsPage() {
                   </button>
                 </div>
               </div>
+
+              {isScanning && (
+                <div className='border-border/40 mt-3 rounded-md border p-2'>
+                  <video
+                    ref={videoRef}
+                    className='h-48 w-full rounded-md object-cover'
+                    autoPlay
+                    muted
+                    playsInline
+                  />
+                  <p className='text-muted-foreground mt-1 text-xs'>
+                    Kamera aktiv – bitte Barcode ins Bild halten…
+                  </p>
+                </div>
+              )}
 
               {/* IMAGE */}
               {selected?.image_url && (
