@@ -36,6 +36,35 @@ function isValidEAN(input: string | null | undefined) {
   return ean.length === 8 || ean.length === 13;
 }
 
+// 🔥 Styles für animierte Scan-Linie & Scan-Rahmen
+const scanStyles = `
+  .scan-area {
+    position: absolute;
+    inset: 0.75rem;
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    border-radius: 0.75rem;
+    box-shadow: 0 0 0 9999px rgba(0,0,0,0.35);
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  .scan-line {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: rgba(16, 185, 129, 0.95);
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.95);
+    animation: scan-move 2s infinite;
+  }
+
+  @keyframes scan-move {
+    0%   { top: 8%;  }
+    50%  { top: 92%; }
+    100% { top: 8%;  }
+  }
+`;
+
 export default function ProductsPage() {
   const supabase = createClient();
 
@@ -142,8 +171,9 @@ export default function ProductsPage() {
     }
     await findAndSelectProductByEAN(eanRemove);
   }
+
   // ----------------------------------------------------------------------
-  // Kamera-Scan (Add / Remove) → inkl. Live-Vorschau
+  // Kamera-Scan (Add / Remove) → inkl. Live-Vorschau + animierter Scan-Linie
   // ----------------------------------------------------------------------
   const startScan = async (mode: 'add' | 'remove') => {
     try {
@@ -231,7 +261,6 @@ export default function ProductsPage() {
           ? `${user?.user_metadata?.first_name ?? ''} ${user?.user_metadata?.last_name ?? ''}`.trim()
           : (user?.email ?? 'System');
 
-      // API-Request
       const res = await fetch('/api/stock-log', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -247,8 +276,6 @@ export default function ProductsPage() {
           lieferant: product.lieferant,
           benutzer,
           lieferscheinnr: type === 'add' ? deliveryNote || null : null
-          // Optional:
-          // ean: mode === "add" ? eanAdd : eanRemove
         })
       });
 
@@ -294,12 +321,16 @@ export default function ProductsPage() {
   return (
     <PageContainer>
       <div className='w-full space-y-6 px-4 py-6 sm:px-6 md:px-10 md:py-10'>
+        {/* 🔥 Scan-CSS einbinden (für beide Dialoge) */}
+        <style>{scanStyles}</style>
+
         {/* Title */}
         <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
           <h2 className='text-center text-xl font-bold tracking-tight sm:text-left sm:text-2xl'>
             {p('title')}
           </h2>
         </div>
+
         {/* Tabs */}
         <Tabs defaultValue='add' className='w-full'>
           <TabsList className='bg-card/25 border-border/10 flex h-auto w-full flex-wrap items-center justify-center gap-2 rounded-3xl border px-2 py-2 text-sm shadow-[0_0_20px_rgba(255,255,255,0.05)] backdrop-blur-md sm:h-11 sm:w-fit sm:flex-nowrap sm:py-0'>
@@ -348,13 +379,23 @@ export default function ProductsPage() {
               <DialogDescription>{tAdd('description')}</DialogDescription>
             </DialogHeader>
 
-            {/* CAMERA LIVE PREVIEW */}
+            {/* CAMERA LIVE PREVIEW + animierte Linie */}
             {isScanning && (
-              <div className='border-border mb-3 overflow-hidden rounded-lg border'>
+              <div className='border-border relative mb-3 overflow-hidden rounded-lg border'>
                 <video
                   ref={videoRef}
                   className='h-64 w-full bg-black object-cover'
+                  autoPlay
+                  muted
+                  playsInline
                 />
+                {/* Scan-Rahmen + Linie */}
+                <div className='scan-area'>
+                  <div className='scan-line' />
+                </div>
+                <div className='pointer-events-none absolute bottom-2 left-1/2 w-[90%] -translate-x-1/2 rounded-md bg-black/60 px-2 py-1 text-center text-[11px] text-white'>
+                  {tAdd('scanActiveText')}
+                </div>
               </div>
             )}
 
@@ -367,7 +408,13 @@ export default function ProductsPage() {
 
                 <Select
                   value={selectedProduct}
-                  onValueChange={setSelectedProduct}
+                  onValueChange={(value) => {
+                    setSelectedProduct(value);
+                    const found = products.find(
+                      (p) => String(p.artikelnummer) === value
+                    );
+                    setEanAdd(found?.ean ?? '');
+                  }}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder={tAdd('placeholderProduct')} />
@@ -399,12 +446,16 @@ export default function ProductsPage() {
                     className='pr-24'
                   />
 
-                  {/* SEARCH ICON (disabled if not valid EAN) */}
+                  {/* SEARCH ICON mit STOP-Cursor wenn ungültig */}
                   <button
                     type='button'
-                    disabled={!isValidEAN(eanAdd)}
-                    className='text-muted-foreground hover:text-foreground absolute inset-y-0 right-14 flex h-full w-10 items-center justify-center disabled:pointer-events-none disabled:opacity-30'
                     onClick={handleEanSearchAdd}
+                    className={[
+                      'absolute inset-y-0 right-14 flex h-full w-10 items-center justify-center transition',
+                      isValidEAN(eanAdd)
+                        ? 'text-muted-foreground hover:text-foreground cursor-pointer'
+                        : 'cursor-not-allowed opacity-30'
+                    ].join(' ')}
                   >
                     <svg className='h-6 w-6' fill='none' stroke='currentColor'>
                       <path
@@ -416,12 +467,17 @@ export default function ProductsPage() {
                     </svg>
                   </button>
 
-                  {/* BARCODE SCAN BUTTON */}
+                  {/* BARCODE SCAN BUTTON mit STOP-Cursor wenn keine Kamera */}
                   <button
                     type='button'
-                    disabled={!cameraAvailable}
-                    className='text-muted-foreground hover:text-foreground absolute inset-y-0 right-2 flex h-full w-10 items-center justify-center disabled:pointer-events-none disabled:opacity-30'
-                    onClick={() => startScan('add')}
+                    onClick={() => cameraAvailable && startScan('add')}
+                    className={[
+                      'absolute inset-y-0 right-2 flex h-full w-10 items-center justify-center transition',
+                      cameraAvailable
+                        ? 'text-muted-foreground hover:text-foreground cursor-pointer'
+                        : 'cursor-not-allowed opacity-30'
+                    ].join(' ')}
+                    aria-label='Scan EAN'
                   >
                     <svg
                       className='h-7 w-7'
@@ -440,7 +496,7 @@ export default function ProductsPage() {
                   <img
                     src={selected.image_url}
                     alt={selected.artikelbezeichnung}
-                    className='h-32 w-32 rounded-md border object-cover'
+                    className='h-44 w-44 rounded-xl border object-cover shadow-lg'
                   />
                 </div>
               )}
@@ -510,13 +566,22 @@ export default function ProductsPage() {
               <DialogDescription>{tRemove('description')}</DialogDescription>
             </DialogHeader>
 
-            {/* Camera Preview */}
+            {/* Camera Preview + animierte Linie */}
             {isScanning && (
-              <div className='mb-3 overflow-hidden rounded-lg border'>
+              <div className='relative mb-3 overflow-hidden rounded-lg border'>
                 <video
                   ref={videoRef}
                   className='h-64 w-full bg-black object-cover'
+                  autoPlay
+                  muted
+                  playsInline
                 />
+                <div className='scan-area'>
+                  <div className='scan-line' />
+                </div>
+                <div className='pointer-events-none absolute bottom-2 left-1/2 w-[90%] -translate-x-1/2 rounded-md bg-black/60 px-2 py-1 text-center text-[11px] text-white'>
+                  {tRemove('scanActiveText')}
+                </div>
               </div>
             )}
 
@@ -529,7 +594,13 @@ export default function ProductsPage() {
 
                 <Select
                   value={selectedProduct}
-                  onValueChange={setSelectedProduct}
+                  onValueChange={(value) => {
+                    setSelectedProduct(value);
+                    const found = products.find(
+                      (p) => String(p.artikelnummer) === value
+                    );
+                    setEanRemove(found?.ean ?? '');
+                  }}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder={tRemove('placeholderProduct')} />
@@ -561,12 +632,16 @@ export default function ProductsPage() {
                     className='pr-24'
                   />
 
-                  {/* SEARCH ICON */}
+                  {/* SEARCH ICON mit STOP-Cursor */}
                   <button
                     type='button'
-                    disabled={!isValidEAN(eanRemove)}
-                    className='text-muted-foreground hover:text-foreground absolute inset-y-0 right-14 flex h-full w-10 items-center justify-center disabled:pointer-events-none disabled:opacity-30'
                     onClick={handleEanSearchRemove}
+                    className={[
+                      'absolute inset-y-0 right-14 flex h-full w-10 items-center justify-center transition',
+                      isValidEAN(eanRemove)
+                        ? 'text-muted-foreground hover:text-foreground cursor-pointer'
+                        : 'cursor-not-allowed opacity-30'
+                    ].join(' ')}
                   >
                     <svg className='h-6 w-6' fill='none' stroke='currentColor'>
                       <path
@@ -578,12 +653,17 @@ export default function ProductsPage() {
                     </svg>
                   </button>
 
-                  {/* SCAN BUTTON */}
+                  {/* SCAN BUTTON mit STOP-Cursor */}
                   <button
                     type='button'
-                    disabled={!cameraAvailable}
-                    className='text-muted-foreground hover:text-foreground absolute inset-y-0 right-2 flex h-full w-10 items-center justify-center disabled:pointer-events-none disabled:opacity-30'
-                    onClick={() => startScan('remove')}
+                    onClick={() => cameraAvailable && startScan('remove')}
+                    className={[
+                      'absolute inset-y-0 right-2 flex h-full w-10 items-center justify-center transition',
+                      cameraAvailable
+                        ? 'text-muted-foreground hover:text-foreground cursor-pointer'
+                        : 'cursor-not-allowed opacity-30'
+                    ].join(' ')}
+                    aria-label='Scan EAN'
                   >
                     <svg
                       className='h-7 w-7'
@@ -602,7 +682,7 @@ export default function ProductsPage() {
                   <img
                     src={selected.image_url}
                     alt={selected.artikelbezeichnung}
-                    className='h-32 w-32 rounded-md border object-cover'
+                    className='h-44 w-44 rounded-xl border object-cover shadow-lg'
                   />
                 </div>
               )}

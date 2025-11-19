@@ -40,16 +40,17 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const cookieStore = await cookies();
+
   const activeThemeValue = cookieStore.get('active_theme')?.value;
   const isScaled = activeThemeValue?.endsWith('-scaled');
 
-  // 🔹 Sprache direkt aus Cookie lesen (inkl. Türkisch)
+  // 🔹 Sprache direkt aus Cookie lesen (inkl. Deutsch & Türkisch)
   const locale = (cookieStore.get('NEXT_LOCALE')?.value ?? 'en') as
     | 'en'
     | 'de'
     | 'tr';
 
-  // 🔹 Übersetzungen laden – JSON liegt unter /i18n/messages/*.json
+  // 🔹 Übersetzungen laden
   const dictionaries = {
     en: async () => (await import('../../i18n/messages/en.json')).default,
     de: async () => (await import('../../i18n/messages/de.json')).default,
@@ -59,7 +60,14 @@ export default async function RootLayout({
   const messages = await dictionaries[locale]();
 
   return (
-    <html lang={locale} suppressHydrationWarning>
+    <html
+      lang={locale}
+      suppressHydrationWarning
+      className={cn(
+        activeThemeValue ? `theme-${activeThemeValue}` : '',
+        isScaled ? 'theme-scaled' : ''
+      )}
+    >
       <head>
         <script
           dangerouslySetInnerHTML={{
@@ -83,8 +91,6 @@ export default async function RootLayout({
       <body
         className={cn(
           'bg-background overflow-x-hidden overflow-y-auto overscroll-none font-sans antialiased',
-          activeThemeValue ? `theme-${activeThemeValue}` : '',
-          isScaled ? 'theme-scaled' : '',
           fontVariables
         )}
       >

@@ -34,6 +34,35 @@ const ACCEPTED_IMAGE_TYPES = [
   'image/webp'
 ];
 
+// 🔥 Styles für Scan-Linie & Scan-Rahmen
+const scanStyles = `
+  .scan-area {
+    position: absolute;
+    inset: 0.5rem;
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    border-radius: 0.75rem;
+    box-shadow: 0 0 0 9999px rgba(0,0,0,0.35);
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  .scan-line {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: rgba(16, 185, 129, 0.95);
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.95);
+    animation: scan-move 2s infinite;
+  }
+
+  @keyframes scan-move {
+    0%   { top: 5%;  }
+    50%  { top: 95%; }
+    100% { top: 5%;  }
+  }
+`;
+
 export default function ProductForm({
   initialData,
   pageTitle
@@ -51,7 +80,7 @@ export default function ProductForm({
   const [isScanning, setIsScanning] = useState(false);
   const [hasCamera, setHasCamera] = useState<boolean | null>(null);
 
-  // Kamera-Fähigkeit prüfen (Desktop ohne Cam → Button deaktivieren)
+  // Kamera-Fähigkeit prüfen (Desktop ohne Cam → Button deaktivieren + Stop-Cursor)
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
@@ -238,6 +267,9 @@ export default function ProductForm({
   return (
     <div className='w-full px-6 py-10'>
       <CardModern className='border-border/40 from-primary/10 via-card/70 to-background/30 hover:border-primary/40 hover:shadow-primary/20 w-full space-y-8 border bg-gradient-to-b p-8 shadow-sm backdrop-blur-sm transition-all duration-300 hover:shadow-lg'>
+        {/* 🔥 Scan-CSS einbinden */}
+        <style>{scanStyles}</style>
+
         <CardHeader>
           <CardTitle className='text-2xl font-semibold'>{pageTitle}</CardTitle>
           <CardDescription className='text-muted-foreground mt-1 text-sm'>
@@ -333,11 +365,18 @@ export default function ProductForm({
                   </svg>
                 </button>
               </div>
+
+              {/* Hinweis falls keine Kamera vorhanden */}
+              {hasCamera === false && (
+                <p className='text-muted-foreground mt-1 text-xs'>
+                  {t('noCamera')}
+                </p>
+              )}
             </div>
 
-            {/* 📷 LIVE CAMERA PREVIEW */}
+            {/* 📷 LIVE CAMERA PREVIEW + animierte Scan-Linie + Rahmen */}
             {isScanning && (
-              <div className='border-border/40 mt-4 rounded-md border p-2'>
+              <div className='border-border/40 relative mt-4 overflow-hidden rounded-md border p-2'>
                 <video
                   ref={videoRef}
                   className='h-48 w-full rounded-md object-cover'
@@ -345,7 +384,14 @@ export default function ProductForm({
                   muted
                   playsInline
                 />
-                <p className='text-muted-foreground mt-1 text-xs'>
+
+                {/* Bounding Box / Scan-Bereich */}
+                <div className='scan-area'>
+                  {/* animierte Linie */}
+                  <div className='scan-line' />
+                </div>
+
+                <p className='bg-background/70 text-muted-foreground absolute bottom-2 left-1/2 w-[90%] -translate-x-1/2 rounded-md px-2 py-1 text-center text-[11px]'>
                   {t('scanActiveText')}
                 </p>
               </div>

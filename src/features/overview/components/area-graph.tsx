@@ -87,6 +87,22 @@ function fmtEUR(v: number | null | undefined) {
   });
 }
 
+// Custom Tick Component für X- und Y-Achse
+const AxisTick = (props: any) => {
+  const { x, y, payload, textAnchor } = props;
+
+  return (
+    <text
+      x={x}
+      y={y + 12}
+      textAnchor={textAnchor || 'middle'}
+      className='fill-muted-foreground text-[11px] font-normal'
+    >
+      {payload.value}
+    </text>
+  );
+};
+
 /* -------------------------------- Component ------------------------------- */
 
 export default function AreaGraph() {
@@ -134,6 +150,7 @@ export default function AreaGraph() {
 
         filtered.forEach((r) => {
           const d = new Date(r.timestamp);
+          const local = new Date(d.getTime() + d.getTimezoneOffset() * -60000);
           const key = `${d.getFullYear()}-${d.getMonth()}`;
           (buckets[key] ??= []).push(Number(r.lagerwert) || 0);
         });
@@ -194,7 +211,7 @@ export default function AreaGraph() {
                 minute: '2-digit'
               }),
               value: Number(r.lagerwert) || 0,
-              dateLabel: d.toLocaleDateString('de-DE', {
+              dateLabel: d.toLocaleString('de-DE', {
                 day: '2-digit',
                 month: 'long',
                 year: 'numeric',
@@ -351,6 +368,14 @@ export default function AreaGraph() {
                 tickLine={false}
                 axisLine={false}
                 tickMargin={8}
+                tick={<AxisTick />}
+              />
+
+              <YAxis
+                domain={['dataMin - 10', 'dataMax + 10']}
+                tickLine={false}
+                axisLine={false}
+                tick={<AxisTick />}
               />
 
               <YAxis domain={['dataMin - 10', 'dataMax + 10']} />
@@ -438,7 +463,7 @@ export default function AreaGraph() {
 
       {/* ----------------------------- Drilldown ----------------------------- */}
       <Dialog open={openDrill} onOpenChange={setOpenDrill}>
-        <DialogContent className='max-w-4xl'>
+        <DialogContent className='bg-background/95 border-border/40 max-w-4xl rounded-2xl border p-6 shadow-2xl backdrop-blur-lg'>
           <DialogHeader>
             <DialogTitle>{t('areaDrillTitle')}</DialogTitle>
             <DialogDescription>{drillTitle}</DialogDescription>
