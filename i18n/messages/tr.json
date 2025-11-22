@@ -252,7 +252,10 @@
     "title": "Ürünler",
     "tabAdd": "Stok ekle",
     "tabRemove": "Stok çıkar",
-    "tabList": "Ürün ekle"
+    "tabList": "Ürün ekle",
+    "scanActiveText": "Tarayıcı aktif — lütfen barkodu ortalayın",
+    "scanNoCamera": "Kamera bulunamadı",
+    "scanStart": "EAN tara"
   },
 
   "StockAdd": {
@@ -278,7 +281,10 @@
     "scanNoCamera": "Kamera bulunamadı veya izin reddedildi.",
     "scanFailed": "Tarama başarısız.",
     "searchDisabled": "Lütfen geçerli bir EAN gir (8 veya 13 hane).",
-    "errorInsufficient": "Yeterli stok yok."
+    "errorInsufficient": "Yeterli stok yok.",
+    "scanStart": "EAN tara",
+    "scanNoCamera": "Kamera bulunamadı",
+    "scanActiveText": "Tarayıcı aktif – lütfen barkodu ortalayın"
   },
 
   "StockRemove": {
@@ -302,7 +308,10 @@
     "scanNoCamera": "Kamera bulunamadı veya izin reddedildi.",
     "scanFailed": "Tarama başarısız.",
     "searchDisabled": "Lütfen geçerli bir EAN gir (8 veya 13 hane).",
-    "errorInsufficient": "Yeterli stok yok."
+    "errorInsufficient": "Yeterli stok yok.",
+    "scanStart": "EAN tara",
+    "scanNoCamera": "Kamera bulunamadı",
+    "scanActiveText": "Tarayıcı aktif – lütfen barkodu ortalayın"
   },
 
   "ProductsForm": {

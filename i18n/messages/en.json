@@ -252,7 +252,10 @@
     "title": "Products",
     "tabAdd": "Add stock",
     "tabRemove": "Remove stock",
-    "tabList": "Add product"
+    "tabList": "Add product",
+    "scanActiveText": "Scanner active — please center the barcode",
+    "scanNoCamera": "No camera available",
+    "scanStart": "Scan EAN"
   },
 
   "StockAdd": {
@@ -278,7 +281,10 @@
     "scanNoCamera": "No camera available or access denied.",
     "scanFailed": "Scan failed.",
     "searchDisabled": "Please enter a valid EAN (8 or 13 digits).",
-    "errorInsufficient": "Not enough stock."
+    "errorInsufficient": "Not enough stock.",
+    "scanStart": "Scan EAN",
+    "scanNoCamera": "No camera available",
+    "scanActiveText": "Scanner active – please center the barcode"
   },
 
   "StockRemove": {
@@ -302,7 +308,10 @@
     "scanNoCamera": "No camera available or access denied.",
     "scanFailed": "Scan failed.",
     "searchDisabled": "Please enter a valid EAN (8 or 13 digits).",
-    "errorInsufficient": "Not enough stock available."
+    "errorInsufficient": "Not enough stock available.",
+    "scanStart": "Scan EAN",
+    "scanNoCamera": "No camera available",
+    "scanActiveText": "Scanner active – please center the barcode"
   },
 
   "ProductsForm": {

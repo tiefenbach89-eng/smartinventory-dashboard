@@ -383,7 +383,7 @@ export default function ProductsPage() {
 
         {/* ---------------------------- ADD STOCK DIALOG ---------------------------- */}
         <Dialog open={openAdd} onOpenChange={setOpenAdd}>
-          <DialogContent className='bg-card/95 border-border/40 w-[95vw] rounded-2xl border backdrop-blur-md sm:max-w-lg'>
+          <DialogContent className='bg-card/95 border-border/40 max-h-[90vh] w-[95vw] overflow-y-auto rounded-2xl border backdrop-blur-md sm:max-w-lg'>
             <DialogHeader>
               <DialogTitle>{tAdd('title')}</DialogTitle>
               <DialogDescription>{tAdd('description')}</DialogDescription>
@@ -453,7 +453,7 @@ export default function ProductsPage() {
                     value={eanAdd}
                     onChange={(e) => setEanAdd(e.target.value)}
                     placeholder={tAdd('eanPlaceholder')}
-                    className='pr-24'
+                    className='border-border/40 bg-background/60 pr-24 backdrop-blur-sm'
                   />
 
                   {/* SEARCH ICON mit STOP-Cursor wenn ungültig */}
@@ -481,13 +481,13 @@ export default function ProductsPage() {
                   <button
                     type='button'
                     onClick={() => cameraAvailable && startScan('add')}
-                    className={[
-                      'absolute inset-y-0 right-2 flex h-full w-10 items-center justify-center transition',
-                      cameraAvailable
-                        ? 'text-muted-foreground hover:text-foreground cursor-pointer'
-                        : 'cursor-not-allowed opacity-30'
-                    ].join(' ')}
-                    aria-label='Scan EAN'
+                    disabled={!cameraAvailable}
+                    className={`absolute inset-y-0 right-2 flex h-full w-10 items-center justify-center transition ${cameraAvailable ? 'hover:text-foreground cursor-pointer' : 'cursor-not-allowed opacity-30'} `}
+                    title={
+                      !cameraAvailable
+                        ? tAdd('scanNoCamera')
+                        : tAdd('scanStart')
+                    }
                   >
                     <svg
                       className='h-7 w-7'
@@ -582,17 +582,19 @@ export default function ProductsPage() {
 
             {/* Camera Preview + animierte Linie */}
             {isScanning && (
-              <div className='relative mb-3 overflow-hidden rounded-lg border'>
+              <div className='relative mb-4 overflow-hidden rounded-lg border bg-black'>
                 <video
                   ref={videoRef}
-                  className='h-64 w-full bg-black object-cover'
+                  className='h-64 w-full object-cover'
                   autoPlay
                   muted
                   playsInline
                 />
-                <div className='scan-area'>
+
+                <div className='scan-area pointer-events-none'>
                   <div className='scan-line' />
                 </div>
+
                 <div className='pointer-events-none absolute bottom-2 left-1/2 w-[90%] -translate-x-1/2 rounded-md bg-black/60 px-2 py-1 text-center text-[11px] text-white'>
                   {tRemove('scanActiveText')}
                 </div>

@@ -250,7 +250,10 @@
     "title": "Produkte",
     "tabAdd": "Artikel einbuchen",
     "tabRemove": "Artikel ausbuchen",
-    "tabList": "Artikel hinzufügen"
+    "tabList": "Artikel hinzufügen",
+    "scanActiveText": "Scanner aktiv — bitte Barcode zentrieren",
+    "scanNoCamera": "Keine Kamera verfügbar",
+    "scanStart": "EAN scannen" 
   },
 
   "StockAdd": {
@@ -276,7 +279,10 @@
     "scanNoCamera": "Keine Kamera verfügbar oder Zugriff verweigert.",
     "scanFailed": "Scan fehlgeschlagen.",
     "searchDisabled": "Ungültige EAN (8 oder 13 Stellen erforderlich).",
-    "errorInsufficient": "Nicht genug Bestand verfügbar."
+    "errorInsufficient": "Nicht genug Bestand verfügbar.",
+    "scanStart": "EAN scannen",
+    "scanNoCamera": "Keine Kamera verfügbar",
+    "scanActiveText": "Scanner aktiv — bitte Barcode zentrieren"    
   },
 
   "StockRemove": {
@@ -300,7 +306,10 @@
     "scanNoCamera": "Keine Kamera verfügbar oder Zugriff verweigert.",
     "scanFailed": "Scan fehlgeschlagen.",
     "searchDisabled": "Ungültige EAN (8 oder 13 Stellen erforderlich).",
-    "errorInsufficient": "Nicht genug Bestand vorhanden."
+    "errorInsufficient": "Nicht genug Bestand vorhanden.",
+    "scanStart": "EAN scannen",
+    "scanNoCamera": "Keine Kamera verfügbar",
+    "scanActiveText": "Scanner aktiv — bitte Barcode zentrieren"
   },
 
   "ProductsForm": {
