@@ -32,54 +32,99 @@ export default function ProductForm({ initialData, pageTitle }: any) {
 
   const canManage = permissions?.can_manage_products;
 
-  // Camera + Scanner
+  // Fullscreen-Scanner-States
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  const [isScanning, setIsScanning] = useState(false);
-  const [hasCamera, setHasCamera] = useState<boolean | null>(null);
+  const [scannerOpen, setScannerOpen] = useState(false);
+  const [hasCamera, setHasCamera] = useState<boolean>(false);
 
+  // Kamera prüfen (für Stop-Cursor + Button)
   useEffect(() => {
-    if (!navigator.mediaDevices) return setHasCamera(false);
-    navigator.mediaDevices.enumerateDevices().then((devices) => {
-      setHasCamera(devices.some((d) => d.kind === 'videoinput'));
-    });
+    async function checkCamera() {
+      if (
+        typeof navigator === 'undefined' ||
+        !navigator.mediaDevices?.enumerateDevices
+      ) {
+        setHasCamera(false);
+        return;
+      }
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const hasVideo = devices.some((d) => d.kind === 'videoinput');
+        setHasCamera(hasVideo);
+      } catch {
+        setHasCamera(false);
+      }
+    }
+    checkCamera();
   }, []);
 
-  async function startEANScan() {
-    if (!canManage) return;
-    try {
-      if (!hasCamera) return toast.error(t('noCamera'));
+  // Scanner starten, wenn Overlay offen geht
+  useEffect(() => {
+    if (!scannerOpen) return;
 
-      setIsScanning(true);
+    let cancelled = false;
 
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' }
-      });
+    async function startScan() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'environment' }
+        });
+        streamRef.current = stream;
 
-      streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          await videoRef.current.play();
+        }
+
+        const { BrowserMultiFormatReader } = await import('@zxing/browser');
+        const reader = new BrowserMultiFormatReader();
+
+        const result = await reader.decodeOnceFromVideoElement(
+          videoRef.current!
+        );
+        if (cancelled) return;
+
+        const ean = result.getText();
+        form.setValue('ean', ean);
+        toast.success(t('eanScanned'));
+        closeScanner();
+      } catch (err) {
+        if (cancelled) return;
+        console.error(err);
+        toast.error(t('eanScanFailed'));
+        closeScanner();
       }
-
-      const { BrowserMultiFormatReader } = await import('@zxing/browser');
-      const reader = new BrowserMultiFormatReader();
-
-      const result = await reader.decodeOnceFromVideoElement(videoRef.current!);
-
-      stream.getTracks().forEach((t) => t.stop());
-      streamRef.current = null;
-
-      setIsScanning(false);
-      form.setValue('ean', result.getText());
-      toast.success(t('eanScanned'));
-    } catch {
-      setIsScanning(false);
-      toast.error(t('eanScanFailed'));
     }
-  }
 
-  // ----------- VALIDATION ----------------
+    startScan();
+
+    return () => {
+      cancelled = true;
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
+      }
+    };
+  }, [scannerOpen]);
+
+  const closeScanner = () => {
+    setScannerOpen(false);
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+  };
+
+  const handleScanClick = () => {
+    if (!canManage) return;
+    if (!hasCamera || !navigator.mediaDevices?.getUserMedia) {
+      toast.error(t('noCamera'));
+      return;
+    }
+    setScannerOpen(true);
+  };
+
   const formSchema = z.object({
     artikelnummer: z.coerce.number().min(1, t('errorArticleNumber')),
     name: z.string().min(2, t('errorName')),
@@ -113,10 +158,8 @@ export default function ProductForm({ initialData, pageTitle }: any) {
     }
   });
 
-  // ----------- SUBMIT ----------------
   async function onSubmit(values: any) {
     if (!canManage) return toast.error(t('noPermission'));
-
     try {
       toast.loading(t('saving'));
 
@@ -128,11 +171,9 @@ export default function ProductForm({ initialData, pageTitle }: any) {
           .from('product-images')
           .upload(fileName, file);
         if (uploadError) throw new Error(uploadError.message);
-
         const { data } = supabase.storage
           .from('product-images')
           .getPublicUrl(fileName);
-
         imageUrl = data.publicUrl;
       }
 
@@ -220,44 +261,34 @@ export default function ProductForm({ initialData, pageTitle }: any) {
               />
             </div>
 
-            {/* ---- EAN Input + Scan ---- */}
+            {/* EAN + Scan */}
             <div>
               <label className='mb-1 block text-sm font-medium'>
                 {t('eanLabel')}
               </label>
-
               <div className='relative flex items-center'>
                 <Input
                   {...form.register('ean')}
                   placeholder={t('eanPlaceholder')}
-                  className='pr-20'
+                  className='pr-16'
                   disabled={!canManage}
                 />
-
-                {/* Scan Button */}
                 <button
                   type='button'
-                  onClick={startEANScan}
-                  disabled={!canManage || !hasCamera || isScanning}
-                  title={
-                    !canManage
-                      ? t('noPermission')
-                      : !hasCamera
-                        ? t('noCamera')
-                        : t('scanTooltip')
-                  }
+                  onClick={handleScanClick}
+                  disabled={!canManage || !hasCamera}
                   className={[
-                    'absolute inset-y-0 right-2 flex h-full w-10 items-center justify-center rounded-md transition',
-                    !canManage
+                    'absolute inset-y-0 right-2 flex items-center pr-2 transition',
+                    !canManage || !hasCamera
                       ? 'cursor-not-allowed opacity-30'
-                      : !hasCamera
-                        ? 'cursor-not-allowed opacity-30'
-                        : 'hover:bg-muted cursor-pointer'
+                      : 'text-muted-foreground hover:text-foreground cursor-pointer'
                   ].join(' ')}
+                  aria-label={t('eanScanButtonLabel')}
+                  title={!hasCamera ? t('noCamera') : t('eanScanButtonLabel')}
                 >
                   <svg
                     xmlns='http://www.w3.org/2000/svg'
-                    className='h-6 w-6 opacity-70'
+                    className='h-6 w-6'
                     viewBox='0 0 24 24'
                     fill='currentColor'
                   >
@@ -266,36 +297,6 @@ export default function ProductForm({ initialData, pageTitle }: any) {
                 </button>
               </div>
             </div>
-
-            {/* ---- Live Scanner ---- */}
-            {isScanning && (
-              <div className='relative mt-4 overflow-hidden rounded-md border p-2'>
-                <video
-                  ref={videoRef}
-                  className='h-48 w-full rounded-md object-cover'
-                  autoPlay
-                  muted
-                  playsInline
-                />
-
-                {/* animated scan line */}
-                <div className='animate-scan absolute top-0 left-0 h-[2px] w-full bg-emerald-400 shadow-lg' />
-
-                <style jsx>{`
-                  @keyframes scan {
-                    0% {
-                      transform: translateY(0);
-                    }
-                    100% {
-                      transform: translateY(180px);
-                    }
-                  }
-                  .animate-scan {
-                    animation: scan 1.8s linear infinite;
-                  }
-                `}</style>
-              </div>
-            )}
 
             <FormTextarea
               control={form.control}
@@ -316,6 +317,48 @@ export default function ProductForm({ initialData, pageTitle }: any) {
           </Form>
         </CardContent>
       </CardModern>
+
+      {/* 🔍 FULLSCREEN SCANNER OVERLAY */}
+      {scannerOpen && (
+        <div className='fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-black/90 text-white'>
+          <button
+            onClick={closeScanner}
+            className='absolute top-4 right-4 rounded-md bg-white/20 px-3 py-1 text-sm'
+            aria-label='Close scanner'
+          >
+            ✕
+          </button>
+
+          <div className='relative w-full max-w-xl px-4'>
+            <video
+              ref={videoRef}
+              className='h-[60vh] w-full rounded-2xl object-cover'
+              autoPlay
+              muted
+              playsInline
+            />
+
+            {/* Rahmen */}
+            <div className='pointer-events-none absolute inset-6 rounded-2xl border-2 border-white/40' />
+
+            {/* Scan-Linie */}
+            <div className='animate-scan absolute top-1/3 right-10 left-10 h-[3px] bg-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.9)]' />
+          </div>
+
+          <p className='mt-4 text-sm text-white/80'>{t('scanActiveText')}</p>
+
+          <style>{`
+            @keyframes scan {
+              0% { transform: translateY(0); }
+              50% { transform: translateY(160px); }
+              100% { transform: translateY(0); }
+            }
+            .animate-scan {
+              animation: scan 2s ease-in-out infinite;
+            }
+          `}</style>
+        </div>
+      )}
     </div>
   );
 }

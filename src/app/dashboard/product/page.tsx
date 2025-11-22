@@ -37,35 +37,6 @@ function isValidEAN(input: string | null | undefined) {
   return ean.length === 8 || ean.length === 13;
 }
 
-// 🔥 Styles für animierte Scan-Linie & Scan-Rahmen
-const scanStyles = `
-  .scan-area {
-    position: absolute;
-    inset: 0.75rem;
-    border: 2px solid rgba(255, 255, 255, 0.35);
-    border-radius: 0.75rem;
-    box-shadow: 0 0 0 9999px rgba(0,0,0,0.35);
-    pointer-events: none;
-    overflow: hidden;
-  }
-
-  .scan-line {
-    position: absolute;
-    left: 0;
-    width: 100%;
-    height: 2px;
-    background: rgba(16, 185, 129, 0.95);
-    box-shadow: 0 0 12px rgba(16, 185, 129, 0.95);
-    animation: scan-move 2s infinite;
-  }
-
-  @keyframes scan-move {
-    0%   { top: 8%;  }
-    50%  { top: 92%; }
-    100% { top: 8%;  }
-  }
-`;
-
 export default function ProductsPage() {
   const supabase = createClient();
   const { permissions } = useRolePermissions();
@@ -92,10 +63,12 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<any>(null);
 
-  // Scanner Video
-  const videoRef = useRef<HTMLVideoElement | null>(null);
-  const [isScanning, setIsScanning] = useState(false);
+  // Kamera / Scanner
   const [cameraAvailable, setCameraAvailable] = useState(false);
+  const [scannerMode, setScannerMode] = useState<'add' | 'remove' | null>(null);
+  const [scannerOpen, setScannerOpen] = useState(false);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
 
   useEffect(() => setMounted(true), []);
 
@@ -178,53 +151,83 @@ export default function ProductsPage() {
   }
 
   // ----------------------------------------------------------------------
-  // Kamera-Scan (Add / Remove)
+  // Fullscreen-Scanner (Add / Remove)
   // ----------------------------------------------------------------------
-  const startScan = async (mode: 'add' | 'remove') => {
-    try {
-      if (typeof window === 'undefined') return;
-
-      if (!cameraAvailable || !navigator.mediaDevices?.getUserMedia) {
-        toast.error(
-          mode === 'add' ? tAdd('scanNoCamera') : tRemove('scanNoCamera')
-        );
-        return;
-      }
-
-      setIsScanning(true);
-
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' }
-      });
-
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
-      }
-
-      const { BrowserMultiFormatReader } = await import('@zxing/browser');
-      const reader = new BrowserMultiFormatReader();
-
-      const result = await reader.decodeOnceFromVideoElement(videoRef.current!);
-
-      stream.getTracks().forEach((track) => track.stop());
-      setIsScanning(false);
-
-      const scannedEAN = result.getText();
-
-      if (mode === 'add') {
-        setEanAdd(scannedEAN);
-      } else {
-        setEanRemove(scannedEAN);
-      }
-
-      await findAndSelectProductByEAN(scannedEAN);
-    } catch (error) {
-      console.error(error);
-      toast.error(mode === 'add' ? tAdd('scanFailed') : tRemove('scanFailed'));
-      setIsScanning(false);
+  const closeScanner = () => {
+    setScannerOpen(false);
+    setScannerMode(null);
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
     }
   };
+
+  const openScanner = (mode: 'add' | 'remove') => {
+    if (!cameraAvailable || !navigator.mediaDevices?.getUserMedia) {
+      toast.error(
+        mode === 'add' ? tAdd('scanNoCamera') : tRemove('scanNoCamera')
+      );
+      return;
+    }
+    setScannerMode(mode);
+    setScannerOpen(true);
+  };
+
+  useEffect(() => {
+    if (!scannerOpen || !scannerMode) return;
+
+    let cancelled = false;
+
+    async function startScan() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'environment' }
+        });
+        streamRef.current = stream;
+
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          await videoRef.current.play();
+        }
+
+        const { BrowserMultiFormatReader } = await import('@zxing/browser');
+        const reader = new BrowserMultiFormatReader();
+
+        const result = await reader.decodeOnceFromVideoElement(
+          videoRef.current!
+        );
+        if (cancelled) return;
+
+        const scannedEAN = result.getText();
+
+        if (scannerMode === 'add') {
+          setEanAdd(scannedEAN);
+        } else {
+          setEanRemove(scannedEAN);
+        }
+
+        await findAndSelectProductByEAN(scannedEAN);
+        closeScanner();
+      } catch (err) {
+        if (cancelled) return;
+        console.error(err);
+        toast.error(
+          scannerMode === 'add' ? tAdd('scanFailed') : tRemove('scanFailed')
+        );
+        closeScanner();
+      }
+    }
+
+    startScan();
+
+    return () => {
+      cancelled = true;
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((t) => t.stop());
+        streamRef.current = null;
+      }
+    };
+  }, [scannerOpen, scannerMode]);
 
   // ----------------------------------------------------------------------
   // Stock Änderung (Add / Remove)
@@ -262,7 +265,9 @@ export default function ProductsPage() {
 
       const benutzer =
         user?.user_metadata?.first_name || user?.user_metadata?.last_name
-          ? `${user?.user_metadata?.first_name ?? ''} ${user?.user_metadata?.last_name ?? ''}`.trim()
+          ? `${user?.user_metadata?.first_name ?? ''} ${
+              user?.user_metadata?.last_name ?? ''
+            }`.trim()
           : (user?.email ?? 'System');
 
       const res = await fetch('/api/stock-log', {
@@ -329,9 +334,6 @@ export default function ProductsPage() {
   return (
     <PageContainer>
       <div className='w-full space-y-6 px-4 py-6 sm:px-6 md:px-10 md:py-10'>
-        {/* 🔥 Scan-CSS einbinden (für beide Dialoge) */}
-        <style>{scanStyles}</style>
-
         {/* Title */}
         <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
           <h2 className='text-center text-xl font-bold tracking-tight sm:text-left sm:text-2xl'>
@@ -383,31 +385,11 @@ export default function ProductsPage() {
 
         {/* ---------------------------- ADD STOCK DIALOG ---------------------------- */}
         <Dialog open={openAdd} onOpenChange={setOpenAdd}>
-          <DialogContent className='bg-card/95 border-border/40 max-h-[90vh] w-[95vw] overflow-y-auto rounded-2xl border backdrop-blur-md sm:max-w-lg'>
+          <DialogContent className='bg-card/95 border-border/40 w-[95vw] rounded-2xl border backdrop-blur-md sm:max-w-lg'>
             <DialogHeader>
               <DialogTitle>{tAdd('title')}</DialogTitle>
               <DialogDescription>{tAdd('description')}</DialogDescription>
             </DialogHeader>
-
-            {/* CAMERA LIVE PREVIEW + animierte Linie */}
-            {isScanning && (
-              <div className='border-border relative mb-3 overflow-hidden rounded-lg border'>
-                <video
-                  ref={videoRef}
-                  className='h-64 w-full bg-black object-cover'
-                  autoPlay
-                  muted
-                  playsInline
-                />
-                {/* Scan-Rahmen + Linie */}
-                <div className='scan-area'>
-                  <div className='scan-line' />
-                </div>
-                <div className='pointer-events-none absolute bottom-2 left-1/2 w-[90%] -translate-x-1/2 rounded-md bg-black/60 px-2 py-1 text-center text-[11px] text-white'>
-                  {tAdd('scanActiveText')}
-                </div>
-              </div>
-            )}
 
             <div className='space-y-4'>
               {/* PRODUCT SELECT */}
@@ -453,7 +435,7 @@ export default function ProductsPage() {
                     value={eanAdd}
                     onChange={(e) => setEanAdd(e.target.value)}
                     placeholder={tAdd('eanPlaceholder')}
-                    className='border-border/40 bg-background/60 pr-24 backdrop-blur-sm'
+                    className='pr-24'
                   />
 
                   {/* SEARCH ICON mit STOP-Cursor wenn ungültig */}
@@ -480,14 +462,14 @@ export default function ProductsPage() {
                   {/* BARCODE SCAN BUTTON mit STOP-Cursor wenn keine Kamera */}
                   <button
                     type='button'
-                    onClick={() => cameraAvailable && startScan('add')}
-                    disabled={!cameraAvailable}
-                    className={`absolute inset-y-0 right-2 flex h-full w-10 items-center justify-center transition ${cameraAvailable ? 'hover:text-foreground cursor-pointer' : 'cursor-not-allowed opacity-30'} `}
-                    title={
-                      !cameraAvailable
-                        ? tAdd('scanNoCamera')
-                        : tAdd('scanStart')
-                    }
+                    onClick={() => cameraAvailable && openScanner('add')}
+                    className={[
+                      'absolute inset-y-0 right-2 flex h-full w-10 items-center justify-center transition',
+                      cameraAvailable
+                        ? 'text-muted-foreground hover:text-foreground cursor-pointer'
+                        : 'cursor-not-allowed opacity-30'
+                    ].join(' ')}
+                    aria-label='Scan EAN'
                   >
                     <svg
                       className='h-7 w-7'
@@ -580,27 +562,6 @@ export default function ProductsPage() {
               <DialogDescription>{tRemove('description')}</DialogDescription>
             </DialogHeader>
 
-            {/* Camera Preview + animierte Linie */}
-            {isScanning && (
-              <div className='relative mb-4 overflow-hidden rounded-lg border bg-black'>
-                <video
-                  ref={videoRef}
-                  className='h-64 w-full object-cover'
-                  autoPlay
-                  muted
-                  playsInline
-                />
-
-                <div className='scan-area pointer-events-none'>
-                  <div className='scan-line' />
-                </div>
-
-                <div className='pointer-events-none absolute bottom-2 left-1/2 w-[90%] -translate-x-1/2 rounded-md bg-black/60 px-2 py-1 text-center text-[11px] text-white'>
-                  {tRemove('scanActiveText')}
-                </div>
-              </div>
-            )}
-
             <div className='space-y-4'>
               {/* PRODUCT SELECT */}
               <div>
@@ -672,7 +633,7 @@ export default function ProductsPage() {
                   {/* SCAN BUTTON mit STOP-Cursor */}
                   <button
                     type='button'
-                    onClick={() => cameraAvailable && startScan('remove')}
+                    onClick={() => cameraAvailable && openScanner('remove')}
                     className={[
                       'absolute inset-y-0 right-2 flex h-full w-10 items-center justify-center transition',
                       cameraAvailable
@@ -740,6 +701,52 @@ export default function ProductsPage() {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* 🔍 FULLSCREEN SCANNER OVERLAY */}
+        {scannerOpen && (
+          <div className='fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-black/90 text-white'>
+            <button
+              onClick={closeScanner}
+              className='absolute top-4 right-4 rounded-md bg-white/20 px-3 py-1 text-sm'
+              aria-label='Close scanner'
+            >
+              ✕
+            </button>
+
+            <div className='relative w-full max-w-xl px-4'>
+              <video
+                ref={videoRef}
+                className='h-[60vh] w-full rounded-2xl object-cover'
+                autoPlay
+                muted
+                playsInline
+              />
+
+              {/* Rahmen */}
+              <div className='pointer-events-none absolute inset-6 rounded-2xl border-2 border-white/40' />
+
+              {/* Scan-Linie */}
+              <div className='animate-scan absolute top-1/3 right-10 left-10 h-[3px] bg-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.9)]' />
+            </div>
+
+            <p className='mt-4 text-sm text-white/80'>
+              {scannerMode === 'add'
+                ? tAdd('scanActiveText')
+                : tRemove('scanActiveText')}
+            </p>
+
+            <style>{`
+              @keyframes scan {
+                0% { transform: translateY(0); }
+                50% { transform: translateY(160px); }
+                100% { transform: translateY(0); }
+              }
+              .animate-scan {
+                animation: scan 2s ease-in-out infinite;
+              }
+            `}</style>
+          </div>
+        )}
       </div>
     </PageContainer>
   );
