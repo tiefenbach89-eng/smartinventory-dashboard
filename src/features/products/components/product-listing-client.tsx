@@ -1,4 +1,5 @@
 'use client';
+
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
@@ -58,7 +59,14 @@ import { Loader2, Pencil, History, Trash2, Upload, Filter } from 'lucide-react';
 // 🌍 next-intl
 import { useTranslations } from 'next-intl';
 
-export default function ProductListing() {
+// 🔐 Neu: Props für Permissions (wird von ProductsPage übergeben)
+type ProductListingProps = {
+  canManageProducts?: boolean; // Admin/Manager = true, Employee = false
+};
+
+export default function ProductListing({
+  canManageProducts = false
+}: ProductListingProps) {
   const t = useTranslations('ProductListing');
   const supabase = createClient();
 
@@ -119,6 +127,10 @@ export default function ProductListing() {
   // ----------------------------------------------------------------------------------------------------
   async function handleSave() {
     if (!editProduct) return;
+    if (!canManageProducts) {
+      toast.error(t('noPermission'));
+      return;
+    }
 
     try {
       toast.loading(t('toastUpdating'));
@@ -169,6 +181,10 @@ export default function ProductListing() {
   // ----------------------------------------------------------------------------------------------------
   async function confirmDelete() {
     if (!deleteTarget) return;
+    if (!canManageProducts) {
+      toast.error(t('noPermission'));
+      return;
+    }
 
     try {
       toast.loading(t('toastDeleting'));
@@ -303,7 +319,7 @@ export default function ProductListing() {
                           src={p.image_url}
                           alt={p.artikelbezeichnung}
                           className='h-10 w-10 cursor-pointer rounded-md object-cover transition-transform hover:scale-105'
-                          onDoubleClick={() => setImagePreview(p.image_url)} // 🔥 Wichtig!
+                          onDoubleClick={() => setImagePreview(p.image_url)}
                         />
                       ) : (
                         <div className='bg-muted text-muted-foreground flex h-10 w-10 items-center justify-center rounded-md text-xs'>
@@ -330,19 +346,10 @@ export default function ProductListing() {
                       {p.bestand} / {p.sollbestand || 0}
                     </TableCell>
 
-                    {/* ACTION BUTTONS (wie Accounts!) */}
+                    {/* ACTION BUTTONS */}
                     <TableCell className='whitespace-nowrap'>
-                      <div className='flex gap-2'>
-                        {/* ✏️ EDIT Button */}
-                        <Button
-                          size='sm'
-                          onClick={() => setEditProduct(p)}
-                          className='border-border/30 text-foreground bg-muted/70 hover:bg-muted/90 relative h-8 rounded-2xl border px-3 text-sm font-medium transition-all duration-200 hover:text-yellow-500 hover:shadow-[0_0_10px_-2px_rgba(234,179,8,0.5)]'
-                        >
-                          <Pencil className='mr-1 h-4 w-4' /> {t('edit')}
-                        </Button>
-
-                        {/* 📘 LOGS Button – jetzt funktionierend */}
+                      <div className='flex flex-wrap gap-2'>
+                        {/* 📘 LOGS Button – für alle Rollen erlaubt */}
                         <Button
                           size='sm'
                           onClick={() => fetchLogs(p.artikelnummer)}
@@ -351,38 +358,52 @@ export default function ProductListing() {
                           <History className='mr-1 h-4 w-4' /> {t('logs')}
                         </Button>
 
-                        {/* 🗑 DELETE */}
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              size='sm'
-                              onClick={() => setDeleteTarget(p)}
-                              className='border-border/30 text-foreground bg-muted/70 hover:bg-muted/90 relative h-8 rounded-2xl border px-3 text-sm font-medium transition-all duration-200 hover:text-red-500 hover:shadow-[0_0_10px_-2px_rgba(239,68,68,0.5)]'
-                            >
-                              <Trash2 className='mr-1 h-4 w-4' /> {t('delete')}
-                            </Button>
-                          </AlertDialogTrigger>
+                        {/* ✏️ EDIT Button – nur wenn canManageProducts */}
+                        {canManageProducts && (
+                          <Button
+                            size='sm'
+                            onClick={() => setEditProduct(p)}
+                            className='border-border/30 text-foreground bg-muted/70 hover:bg-muted/90 relative h-8 rounded-2xl border px-3 text-sm font-medium transition-all duration-200 hover:text-yellow-500 hover:shadow-[0_0_10px_-2px_rgba(234,179,8,0.5)]'
+                          >
+                            <Pencil className='mr-1 h-4 w-4' /> {t('edit')}
+                          </Button>
+                        )}
 
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>
-                                {t('deleteTitle')}
-                              </AlertDialogTitle>
-                              <AlertDialogDescription>
-                                {t('deleteDescription')}
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>
-                                {t('cancel')}
-                              </AlertDialogCancel>
-                              <AlertDialogAction onClick={confirmDelete}>
+                        {/* 🗑 DELETE – nur wenn canManageProducts */}
+                        {canManageProducts && (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                size='sm'
+                                onClick={() => setDeleteTarget(p)}
+                                className='border-border/30 text-foreground bg-muted/70 hover:bg-muted/90 relative h-8 rounded-2xl border px-3 text-sm font-medium transition-all duration-200 hover:text-red-500 hover:shadow-[0_0_10px_-2px_rgba(239,68,68,0.5)]'
+                              >
+                                <Trash2 className='mr-1 h-4 w-4' />{' '}
                                 {t('delete')}
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+                              </Button>
+                            </AlertDialogTrigger>
+
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>
+                                  {t('deleteTitle')}
+                                </AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  {t('deleteDescription')}
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>
+                                  {t('cancel')}
+                                </AlertDialogCancel>
+                                <AlertDialogAction onClick={confirmDelete}>
+                                  {t('delete')}
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>
@@ -412,28 +433,33 @@ export default function ProductListing() {
                   }
                   alt='Product'
                   className='h-32 w-32 cursor-pointer rounded-md border object-cover hover:opacity-90'
-                  onDoubleClick={() => setImagePreview(editProduct.image_url)} // 🔥 wieder aktiv!
+                  onDoubleClick={() =>
+                    editProduct.image_url &&
+                    setImagePreview(editProduct.image_url)
+                  }
                 />
 
-                <label className='text-primary flex cursor-pointer items-center gap-2 text-sm font-medium hover:underline'>
-                  <Upload className='h-4 w-4' />
-                  {t('changeImage')}
-                  <input
-                    type='file'
-                    accept='image/*'
-                    className='hidden'
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        setNewImage(file);
-                        setEditProduct({
-                          ...editProduct,
-                          image_url: URL.createObjectURL(file)
-                        });
-                      }
-                    }}
-                  />
-                </label>
+                {canManageProducts && (
+                  <label className='text-primary flex cursor-pointer items-center gap-2 text-sm font-medium hover:underline'>
+                    <Upload className='h-4 w-4' />
+                    {t('changeImage')}
+                    <input
+                      type='file'
+                      accept='image/*'
+                      className='hidden'
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setNewImage(file);
+                          setEditProduct({
+                            ...editProduct,
+                            image_url: URL.createObjectURL(file)
+                          });
+                        }
+                      }}
+                    />
+                  </label>
+                )}
               </div>
 
               {/* EAN editierbar */}
@@ -445,6 +471,7 @@ export default function ProductListing() {
                     setEditProduct({ ...editProduct, ean: e.target.value })
                   }
                   placeholder='EAN'
+                  disabled={!canManageProducts}
                 />
               </div>
 
@@ -461,6 +488,7 @@ export default function ProductListing() {
                       beschreibung: e.target.value
                     })
                   }
+                  disabled={!canManageProducts}
                 />
               </div>
 
@@ -476,12 +504,12 @@ export default function ProductListing() {
                       sollbestand: +e.target.value
                     })
                   }
+                  disabled={!canManageProducts}
                 />
               </div>
 
-              {/* BUTTONS → Accounts Style */}
+              {/* BUTTONS */}
               <div className='flex justify-end gap-2'>
-                {/* Cancel */}
                 <Button
                   variant='outline'
                   className='h-8 rounded-2xl px-4 text-sm font-medium'
@@ -490,10 +518,10 @@ export default function ProductListing() {
                   {t('cancel')}
                 </Button>
 
-                {/* Save */}
                 <Button
                   className='border-border/30 text-foreground bg-muted/70 hover:bg-muted/90 relative h-8 rounded-2xl border px-4 text-sm font-medium transition-all duration-200 hover:text-emerald-500 hover:shadow-[0_0_10px_-2px_rgba(16,185,129,0.5)]'
                   onClick={handleSave}
+                  disabled={!canManageProducts}
                 >
                   {t('saveChanges')}
                 </Button>
@@ -503,7 +531,7 @@ export default function ProductListing() {
         </DialogContent>
       </Dialog>
 
-      {/* LOGS DIALOG – unbedingt wieder einfügen! */}
+      {/* LOGS DIALOG */}
       <Dialog open={!!viewLogs} onOpenChange={() => setViewLogs(null)}>
         <DialogContent className='bg-background/90 w-full max-w-6xl rounded-2xl border-none p-0 shadow-2xl backdrop-blur-lg'>
           <DialogHeader className='px-7 pt-7'>

@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/client';
+import type { Role } from '@/lib/permissions';
 
 /**
  * ensureUserRoleRow
@@ -25,9 +26,11 @@ export async function ensureUserRoleRow(userId: string) {
     const { error: insertError } = await supabase.from('user_roles').insert([
       {
         user_id: userId,
-        role: 'viewer',
+        // Default-Rolle für neue User
+        role: 'employee' as Role,
+        // Standard: noch nicht freigeschaltet, Admin muss freigeben
         approved: false,
-        banned: true // Standard: gesperrt, bis Admin freischaltet
+        banned: true
       }
     ]);
 

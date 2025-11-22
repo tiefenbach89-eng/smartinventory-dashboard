@@ -1,27 +1,26 @@
 {
   "Login": {
-  "title": "Melde dich in deinem Konto an",
-  "email": "E-Mail",
-  "password": "Passwort",
-  "show": "Anzeigen",
-  "hide": "Verbergen",
-  "button": "Anmelden",
-  "noAccount": "Noch kein Konto?",
-  "signUp": "Registrieren",
-  "forgot": "Passwort vergessen?",
-  "or": "Oder fortfahren mit",
-  "quote": "„SmartInventory hält unsere Lagerdaten korrekt und organisiert.“",
-  "brand": "— SmartInventory",
-  "language": "Sprache",
-
-  
-  "emailNotConfirmed": "Bitte bestätige deine E-Mail, bevor du dich anmeldest.",
-  "invalidCredentials": "Ungültige E-Mail oder falsches Passwort.",
-  "banned": "Dein Konto wurde gesperrt.",
-  "pendingApproval": "Dein Konto wartet noch auf die Freigabe durch einen Admin.",
-  "loginFailed": "Anmeldung fehlgeschlagen.",
-  "welcomeBack": "Willkommen zurück!"
+    "title": "Melde dich in deinem Konto an",
+    "email": "E-Mail",
+    "password": "Passwort",
+    "show": "Anzeigen",
+    "hide": "Verbergen",
+    "button": "Anmelden",
+    "noAccount": "Noch kein Konto?",
+    "signUp": "Registrieren",
+    "forgot": "Passwort vergessen?",
+    "or": "Oder fortfahren mit",
+    "quote": "„SmartInventory hält unsere Lagerdaten korrekt und organisiert.“",
+    "brand": "— SmartInventory",
+    "language": "Sprache",
+    "emailNotConfirmed": "Bitte bestätige deine E-Mail, bevor du dich anmeldest.",
+    "invalidCredentials": "Ungültige E-Mail oder falsches Passwort.",
+    "banned": "Dein Konto wurde gesperrt.",
+    "pendingApproval": "Dein Konto wartet noch auf die Freigabe durch einen Admin.",
+    "loginFailed": "Anmeldung fehlgeschlagen.",
+    "welcomeBack": "Willkommen zurück!"
   },
+
   "SignUp": {
     "title": "Konto erstellen",
     "description": "Gib deine Daten ein, um dich zu registrieren.",
@@ -44,6 +43,7 @@
     "roleEntryFailed": "Die Benutzerrolle konnte nicht erstellt werden.",
     "language": "Sprache"
   },
+
   "ResetPassword": {
     "title": "Passwort zurücksetzen",
     "description": "Gib deine E-Mail-Adresse ein, um einen Link zum Zurücksetzen zu erhalten.",
@@ -59,117 +59,123 @@
     "errorReset": "Passwort-Reset-E-Mail konnte nicht gesendet werden.",
     "language": "Sprache"
   },
-"Accounts": {
-  "checkingAccess": "Zugriff wird geprüft...",
-  "title": "Konten",
 
-  "tabUsers": "Benutzer",
-  "tabActivity": "Aktivität",
-  "tabRoles": "Rollenverwaltung",
+  "Accounts": {
+    "checkingAccess": "Zugriff wird geprüft...",
+    "title": "Konten",
+    "roleAdmin": "Administrator",
+    "roleManager": "Manager",
+    "roleEmployee": "Mitarbeiter",
+    "roleOperator": "Operator",
+    "roleViewer": "Beobachter",    
 
-  "userManagementTitle": "Benutzerverwaltung",
-  "userManagementDescription": "Verwalte Rollen, Sperren und Zugriffsrechte.",
+    "tabUsers": "Benutzer",
+    "tabActivity": "Aktivität",
+    "tabRoles": "Rollenverwaltung",
 
-  "colUser": "Benutzer",
-  "colRole": "Rolle",
-  "colStatusApproval": "Status / Freigabe",
-  "colCreated": "Erstellt am",
-  "colLastLogin": "Letzte Anmeldung",
-  "colActions": "Aktionen",
+    "userManagementTitle": "Benutzerverwaltung",
+    "userManagementDescription": "Verwalte Rollen, Sperren und Zugriffsrechte.",
 
-  "statusBanned": "Gesperrt",
-  "statusActive": "Aktiv",
-  "statusApproved": "Freigegeben",
-  "statusPending": "Ausstehend",
+    "colUser": "Benutzer",
+    "colRole": "Rolle",
+    "colStatusApproval": "Status / Freigabe",
+    "colCreated": "Erstellt am",
+    "colLastLogin": "Letzte Anmeldung",
+    "colActions": "Aktionen",
 
-  "btnBan": "Sperren",
-  "btnUnban": "Entsperren",
-  "btnApprove": "Freigeben",
-  "btnApproved": "Freigegeben",
-  "btnDelete": "Löschen",
+    "statusBanned": "Gesperrt",
+    "statusActive": "Aktiv",
+    "statusApproved": "Freigegeben",
+    "statusPending": "Ausstehend",
 
-  "toastErrorLoadUsers": "Fehler beim Laden der Benutzer.",
-  "toastErrorLoadActivity": "Fehler beim Laden der Aktivität.",
-  "noPermissionBan": "Du hast keine Berechtigung, Benutzer zu sperren.",
-  "noPermissionApprove": "Du hast keine Berechtigung, Benutzer freizugeben.",
-  "noPermissionDelete": "Du hast keine Berechtigung, Benutzer zu löschen.",
-  "onlyAdminsChangeRoles": "Nur Administratoren können Rollen ändern.",
-  "unauthorized": "Nicht autorisiert.",
-  "noSession": "Keine Sitzung gefunden.",
-  "toggleFailed": "Umschalten fehlgeschlagen.",
-  "approvalFailed": "Freigabe fehlgeschlagen.",
-  "deleteFailed": "Löschen fehlgeschlagen.",
-  "roleUpdateFailed": "Aktualisierung der Rolle fehlgeschlagen.",
+    "btnBan": "Sperren",
+    "btnUnban": "Entsperren",
+    "btnApprove": "Freigeben",
+    "btnApproved": "Freigegeben",
+    "btnDelete": "Löschen",
 
-  "userBanned": "Benutzer wurde gesperrt.",
-  "userUnbanned": "Benutzer wurde entsperrt.",
-  "userApproved": "Benutzer wurde erfolgreich freigegeben.",
-  "userDeleted": "Benutzer wurde gelöscht.",
-  "roleChanged": "Rolle wurde zu \"{role}\" geändert.",
+    "toastErrorLoadUsers": "Fehler beim Laden der Benutzer.",
+    "toastErrorLoadActivity": "Fehler beim Laden der Aktivität.",
+    "noPermissionBan": "Du hast keine Berechtigung, Benutzer zu sperren.",
+    "noPermissionApprove": "Du hast keine Berechtigung, Benutzer freizugeben.",
+    "noPermissionDelete": "Du hast keine Berechtigung, Benutzer zu löschen.",
+    "onlyAdminsChangeRoles": "Nur Administratoren können Rollen ändern.",
+    "unauthorized": "Nicht autorisiert.",
+    "noSession": "Keine Sitzung gefunden.",
+    "toggleFailed": "Umschalten fehlgeschlagen.",
+    "approvalFailed": "Freigabe fehlgeschlagen.",
+    "deleteFailed": "Löschen fehlgeschlagen.",
+    "roleUpdateFailed": "Aktualisierung der Rolle fehlgeschlagen.",
 
-  "loadingApplyingChange": "Änderung wird angewendet...",
-  "loadingApproving": "Freigabe wird durchgeführt...",
-  "loadingDeletingUser": "Benutzer wird gelöscht...",
-  "loadingUpdatingRole": "Rolle wird aktualisiert...",
+    "userBanned": "Benutzer wurde gesperrt.",
+    "userUnbanned": "Benutzer wurde entsperrt.",
+    "userApproved": "Benutzer wurde erfolgreich freigegeben.",
+    "userDeleted": "Benutzer wurde gelöscht.",
+    "roleChanged": "Rolle wurde zu \"{role}\" geändert.",
 
-  "activityTitle": "Benutzeraktivität (30 Tage)",
-  "activityDescription": "Aktuelle Lagerbewegungen durch Benutzer.",
-  "emptyActivity": "Keine aktuelle Benutzeraktivität gefunden.",
-  "activityColDate": "Datum",
-  "activityColUser": "Benutzer",
-  "activityColAction": "Aktion",
-  "activityColArticle": "Artikel",
-  "activityColQty": "Menge",
-  "actionAdded": "Hinzugefügt",
-  "actionRemoved": "Entfernt",
+    "loadingApplyingChange": "Änderung wird angewendet...",
+    "loadingApproving": "Freigabe wird durchgeführt...",
+    "loadingDeletingUser": "Benutzer wird gelöscht...",
+    "loadingUpdatingRole": "Rolle wird aktualisiert...",
 
-  "roleManagementTitle": "Rollenverwaltung",
-  "roleManagementDescription": "Lege fest, was jede Rolle im System darf.",
+    "activityTitle": "Benutzeraktivität (30 Tage)",
+    "activityDescription": "Aktuelle Lagerbewegungen durch Benutzer.",
+    "emptyActivity": "Keine aktuelle Benutzeraktivität gefunden.",
+    "activityColDate": "Datum",
+    "activityColUser": "Benutzer",
+    "activityColAction": "Aktion",
+    "activityColArticle": "Artikel",
+    "activityColQty": "Menge",
+    "actionAdded": "Hinzugefügt",
+    "actionRemoved": "Entfernt",
 
-  "dialogDeleteTitle": "Benutzer löschen?",
-  "dialogDeleteDescription": "Diese Aktion kann nicht rückgängig gemacht werden. Bist du sicher, dass du diesen Benutzer und alle zugehörigen Daten dauerhaft entfernen möchtest?",
-  "dialogCancel": "Abbrechen",
-  "dialogDelete": "Löschen",
+    "roleManagementTitle": "Rollenverwaltung",
+    "roleManagementDescription": "Lege fest, was jede Rolle im System darf.",
 
-  "roleTable": {
-    "role": "Rolle",
-    "summary": "Übersicht",
+    "dialogDeleteTitle": "Benutzer löschen?",
+    "dialogDeleteDescription": "Diese Aktion kann nicht rückgängig gemacht werden.",
+    "dialogCancel": "Abbrechen",
+    "dialogDelete": "Löschen",
 
-    "colAdminAccess": "Admin-Zugriff",
-    "colManageUsers": "Benutzer verwalten",
-    "colDeleteUsers": "Benutzer löschen",
-    "colManageProducts": "Produkte verwalten",
-    "colAdjustStock": "Bestand anpassen",
-    "colDeleteProducts": "Produkte löschen",
+    "roleTable": {
+      "role": "Rolle",
+      "summary": "Übersicht",
 
-    "badgeAdmin": "Admin-Zugriff",
-    "badgeManageUsers": "Benutzer verwalten",
-    "badgeDeleteUsers": "Benutzer löschen",
-    "badgeManageProducts": "Produkte verwalten",
-    "badgeAdjustStock": "Bestand anpassen",
-    "badgeDeleteProducts": "Produkte löschen",
+      "colAdminAccess": "Admin-Zugriff",
+      "colManageUsers": "Benutzer verwalten",
+      "colDeleteUsers": "Benutzer löschen",
+      "colManageProducts": "Produkte verwalten",
+      "colAdjustStock": "Bestand anpassen",
+      "colDeleteProducts": "Produkte löschen",
 
-    "save": "Speichern",
-    "saving": "Wird gespeichert…",
-    "loading": "Rollen werden geladen...",
-    "loadError": "Fehler beim Laden der Rollen: {message}",
-    "saveError": "Fehler beim Speichern der Berechtigungen: {message}",
-    "saveSuccess": "Berechtigungen für \"{role}\" wurden gespeichert.",
-    "overlayLimited": "🔒 Eingeschränkter Zugriff — nur für Administratoren",
+      "badgeAdmin": "Admin",
+      "badgeManageUsers": "Benutzer verwalten",
+      "badgeDeleteUsers": "Benutzer löschen",
+      "badgeManageProducts": "Produkte verwalten",
+      "badgeAdjustStock": "Bestand anpassen",
+      "badgeDeleteProducts": "Produkte löschen",
 
-    "admin_access": "Admin-Zugriff",
-    "admin_access_desc": "Ermöglicht Zugriff auf Verwaltungsbereiche wie Konten, Einstellungen und Rollenverwaltung.",
-    "manage_users": "Benutzer verwalten",
-    "manage_users_desc": "Erlaubt das Anzeigen, Freigeben oder Sperren von Benutzern, aber keine Rollenänderungen.",
-    "delete_users": "Benutzer löschen",
-    "delete_users_desc": "Entfernt Benutzer dauerhaft aus dem System (nur Admin).",
-    "manage_products": "Produkte verwalten",
-    "manage_products_desc": "Erlaubt das Anlegen, Bearbeiten oder Deaktivieren von Produkten.",
-    "adjust_stock": "Bestand anpassen",
-    "adjust_stock_desc": "Ermöglicht das Erhöhen oder Verringern des Produktbestands.",
-    "delete_products": "Produkte löschen",
-    "delete_products_desc": "Entfernt Produkte dauerhaft inklusive ihrer Historie."
-  }
+      "save": "Speichern",
+      "saving": "Wird gespeichert…",
+      "loading": "Rollen werden geladen...",
+      "loadError": "Fehler beim Laden der Rollen: {message}",
+      "saveError": "Fehler beim Speichern der Berechtigungen: {message}",
+      "saveSuccess": "Berechtigungen für \"{role}\" wurden gespeichert.",
+      "overlayLimited": "🔒 Eingeschränkter Zugriff — nur für Administratoren",
+
+      "admin_access": "Admin-Zugriff",
+      "admin_access_desc": "Zugriff auf Verwaltungsbereiche wie Konten, Einstellungen und Rollen.",
+      "manage_users": "Benutzer verwalten",
+      "manage_users_desc": "Darf Benutzer ansehen, freigeben oder sperren, jedoch keine Rollen ändern.",
+      "delete_users": "Benutzer löschen",
+      "delete_users_desc": "Löscht Benutzer dauerhaft.",
+      "manage_products": "Produkte verwalten",
+      "manage_products_desc": "Produkte erstellen, bearbeiten oder deaktivieren.",
+      "adjust_stock": "Bestand anpassen",
+      "adjust_stock_desc": "Erhöhen oder verringern des Warenbestands.",
+      "delete_products": "Produkte löschen",
+      "delete_products_desc": "Produkte inklusive Historie löschen."
+    }
   },
   "Profile": {
     "title": "Profil",
@@ -184,9 +190,10 @@
     "toastAvatarUploaded": "Profilbild wurde hochgeladen.",
     "toastError": "Fehler: {message}"
   },
+
   "Settings": {
     "title": "Kontoeinstellungen",
-    "description": "Verwalte deine Zugangsdaten und deine Privatsphäre.",
+    "description": "Verwalte deine Zugangsdaten und Privatsphäre.",
     "sectionPasswordTitle": "Passwort ändern",
     "newPasswordLabel": "Neues Passwort",
     "confirmPasswordLabel": "Passwort bestätigen",
@@ -201,7 +208,7 @@
     "emailUpdating": "Wird aktualisiert...",
     "emailUpdateButton": "E-Mail aktualisieren",
     "emailChangeTitle": "Bestätigungs-E-Mail gesendet",
-    "emailChangeDescription": "📩 Bitte prüfe dein neues Postfach und bestätige die E-Mail-Änderung über die Supabase-Bestätigungsseite.",
+    "emailChangeDescription": "📩 Bitte prüfe dein neues Postfach und bestätige die Änderung über den Supabase-Link.",
     "emailUpdateFailedTitle": "E-Mail konnte nicht aktualisiert werden",
     "unknownError": "Ein unbekannter Fehler ist aufgetreten.",
     "emailUpdateFailedDescription": "{message}",
@@ -209,17 +216,18 @@
     "sectionDeleteTitle": "Konto löschen",
     "sectionDeleteDescription": "Lösche dein Konto und alle Daten dauerhaft. Diese Aktion kann nicht rückgängig gemacht werden.",
     "deleteButton": "Konto löschen",
-    "dialogDeleteTitle": "Bist du absolut sicher?",
-    "dialogDeleteDescription": "Diese Aktion kann nicht rückgängig gemacht werden. Dein Konto und alle Daten werden dauerhaft gelöscht.",
+    "dialogDeleteTitle": "Bist du sicher?",
+    "dialogDeleteDescription": "Diese Aktion kann nicht rückgängig gemacht werden.",
     "dialogCancel": "Abbrechen",
     "dialogConfirmDelete": "Ja, Konto löschen",
     "deleting": "Wird gelöscht...",
     "accountDeleted": "Konto wurde gelöscht.",
     "deleteFailed": "Fehler: {message}"
   },
+
   "UpdatePassword": {
     "title": "Neues Passwort setzen",
-    "description": "Gib unten dein neues Passwort ein und bestätige es",
+    "description": "Gib dein neues Passwort ein und bestätige es.",
     "password": "Neues Passwort",
     "confirmPassword": "Neues Passwort bestätigen",
     "passwordsDontMatch": "Die Passwörter stimmen nicht überein.",
@@ -231,17 +239,20 @@
     "updateFailed": "Passwortänderung fehlgeschlagen.",
     "brand": "— SmartInventory Support"
   },
+
   "Callback": {
     "verifying": "Dein Konto wird überprüft...",
     "verifySuccess": "Deine E-Mail wurde erfolgreich bestätigt!",
-    "verifyFailed": "Beim Bestätigen deiner E-Mail ist etwas schiefgelaufen."
+    "verifyFailed": "Beim Bestätigen deiner E-Mail ist ein Fehler aufgetreten."
   },
+
   "Products": {
     "title": "Produkte",
     "tabAdd": "Artikel einbuchen",
     "tabRemove": "Artikel ausbuchen",
     "tabList": "Artikel hinzufügen"
   },
+
   "StockAdd": {
     "title": "Bestand hinzufügen",
     "description": "Füge einem bestehenden Artikel neue Menge hinzu.",
@@ -251,7 +262,7 @@
     "eanPlaceholder": "EAN eingeben oder scannen",
     "eanScanned": "EAN erfolgreich gescannt",
     "eanScanFailed": "EAN konnte nicht gescannt werden",
-    "eanInvalid": "Ungültige EAN (muss 8 oder 13 Stellen haben)",
+    "eanInvalid": "Ungültige EAN (8 oder 13 Stellen)",
     "quantity": "Menge",
     "price": "Preis",
     "deliveryNote": "Lieferscheinnummer",
@@ -264,9 +275,10 @@
     "errorNotFound": "Artikel wurde nicht gefunden.",
     "scanNoCamera": "Keine Kamera verfügbar oder Zugriff verweigert.",
     "scanFailed": "Scan fehlgeschlagen.",
-    "searchDisabled": "Bitte eine gültige EAN (8 oder 13 Stellen) eingeben.",
+    "searchDisabled": "Ungültige EAN (8 oder 13 Stellen erforderlich).",
     "errorInsufficient": "Nicht genug Bestand verfügbar."
   },
+
   "StockRemove": {
     "title": "Bestand entfernen",
     "description": "Entferne Menge aus einem bestehenden Artikel.",
@@ -276,7 +288,7 @@
     "eanPlaceholder": "EAN eingeben oder scannen",
     "eanScanned": "EAN erfolgreich gescannt",
     "eanScanFailed": "EAN konnte nicht gescannt werden",
-    "eanInvalid": "Ungültige EAN (muss 8 oder 13 Stellen haben)",
+    "eanInvalid": "Ungültige EAN (8 oder 13 Stellen)",
     "quantity": "Menge",
     "note": "Notiz",
     "save": "Speichern",
@@ -287,13 +299,15 @@
     "errorNotFound": "Artikel wurde nicht gefunden.",
     "scanNoCamera": "Keine Kamera verfügbar oder Zugriff verweigert.",
     "scanFailed": "Scan fehlgeschlagen.",
-    "searchDisabled": "Bitte eine gültige EAN (8 oder 13 Stellen) eingeben.",
+    "searchDisabled": "Ungültige EAN (8 oder 13 Stellen erforderlich).",
     "errorInsufficient": "Nicht genug Bestand vorhanden."
   },
+
   "ProductsForm": {
     "createTitle": "Neues Produkt anlegen",
     "editTitle": "Produkt bearbeiten"
   },
+
   "ProductForm": {
     "loading": "Produktformular wird geladen...",
     "description": "Fülle die Produktdetails unten aus.",
@@ -317,7 +331,7 @@
     "eanScanned": "EAN erfolgreich gescannt.",
     "eanScanFailed": "EAN konnte nicht gescannt werden.",
     "noCamera": "Keine Kamera verfügbar oder Zugriff verweigert.",
-    "scanActiveText": "Kamera aktiv – bitte den Barcode ruhig ins Sichtfeld halten…",
+    "scanActiveText": "Kamera aktiv – bitte den Barcode ruhig halten…",
     "errorEanDigits": "Der EAN-Code darf nur aus Zahlen bestehen.",
     "errorEanLength": "Der EAN-Code muss 8 oder 13 Ziffern lang sein.",
     "eanScanButtonLabel": "EAN scannen",
@@ -329,8 +343,11 @@
     "errorMinStock": "Mindestbestand ist erforderlich.",
     "errorImageRequired": "Bitte lade genau ein Bild hoch.",
     "errorFileSize": "Maximale Dateigröße: 5MB.",
+    "buttonSave": "Speichern",
+    "noPermission": "Keine Berechtigung",
     "errorFileType": "Nur Bilddateien sind erlaubt."
   },
+
   "ProductListing": {
     "colEAN": "EAN",
     "title": "Produktverwaltung",
@@ -382,10 +399,12 @@
     "toastLogFailed": "Fehler beim Laden der Logs: {message}",
     "errorLoadProducts": "Fehler beim Laden der Produkte."
   },
+
   "Sidebar": {
     "title": "SmartInventory",
     "short": "SI",
     "group_overview": "Übersicht",
+    "dashboardLabel": "Dashboard",
     "nav": {
       "overview": "Übersicht",
       "products": "Produkte",
@@ -394,112 +413,55 @@
       "accounts": "Konten"
     }
   },
+
   "Overview": {
     "greeting": "Hallo, {name}",
     "guest": "Gast",
+
     "card1": {
       "title": "Gesamtprodukte & Bestand",
       "value": "{products} Produkte / {stock} Einheiten",
       "desc": "Aktive Artikelnummern und Gesamtbestand",
-      "sub": "Echtzeitdaten aus dem Inventar, basierend auf allen aktuellen Bestandsbewegungen",
+      "sub": "Echtzeitdaten aus dem Inventar basierend auf aktuellen Bewegungen",
       "badge": "OK"
     },
+
     "card2": {
       "title": "Entnahmen (30 Tage)",
       "value": "{amount} Stück entnommen",
-      "desc": "Entnommene Artikel der letzten 30 Tage",
-      "sub": "Echtzeit-Inventaransicht — sofort aktualisiert durch aktuelle Bestandsänderungen",
+      "desc": "Entnommene Artikel in den letzten 30 Tagen",
+      "sub": "Echtzeitansicht — sofort aktualisiert",
       "badge": "30T"
     },
+
     "card3": {
       "title": "Zugänge (30 Tage)",
       "value": "{amount} Stück hinzugefügt",
       "desc": "Hinzugefügte Artikel der letzten 30 Tage",
-      "sub": "Live-Aktivitätsübersicht basierend auf aktuellen Bestandsbuchungen",
+      "sub": "Automatische Aktualisierung basierend auf neuen Einträgen",
       "badge": "30T"
     },
+
     "card4": {
-      "title": "Aktivster Nutzer (30 Tage)",
+      "title": "Aktivster Benutzer (30 Tage)",
       "value": "{user}",
-      "desc": "Benutzer mit den meisten dokumentierten Bewegungen",
-      "sub": "Automatisch aktualisiert anhand der Bestandsbuchungen — letzte 30 Tage",
+      "desc": "Benutzer mit den meisten Bewegungen",
+      "sub": "Aktualisiert anhand der letzten 30 Tage",
       "badge": "{count} Aktionen"
-    }
-  },
-  "RecentSales": {
-    "title": "Top- & Slow-Mover (30 Tage)",
-    "description": "Mengenbasierte Bewegungsanalyse der letzten 30 Tage",
-    "top_movers": "Top-Mover",
-    "slow_movers": "Langsame oder inaktive Artikel",
-    "last_30_days": "Letzte 30 Tage",
-    "no_top_movers": "Keine Top-Mover für die letzten 30 Tage gefunden.",
-    "no_slow_movers": "Keine langsamen oder inaktiven Artikel für die letzten 30 Tage gefunden.",
-    "product": "Artikel",
-    "quantity": "Menge",
-    "fallback_product": "Artikel {id}",
-    "fetch_failed": "Bewegungsdaten konnten nicht geladen werden.",
-    "log_failed": "Bewegungsprotokoll für diesen Artikel konnte nicht geladen werden.",
-    "modal": {
-      "title": "Bewegungsprotokoll",
-      "description": "Alle Bestandsänderungen für diesen Artikel in den letzten 30 Tagen."
     },
-    "no_logs": "Für diesen Artikel wurden in den letzten 30 Tagen keine Bewegungen erfasst.",
-    "date": "Datum",
-    "action": "Aktion",
-    "user": "Benutzer",
-    "delivery_note": "Lieferscheinnr.",
-    "comment": "Kommentar",
-    "added": "Zugefügt",
-    "removed": "Entfernt",
-    "system": "System"
-  },
-  "AccessDenied": {
-    "code": "403",
-    "title": "Zugriff verweigert",
-    "description": "Du hast leider keine Berechtigung, diese Seite zu sehen oder diese Aktion auszuführen.",
-    "back": "Zur Übersicht"
-  },
-  "NotFound": {
-    "code": "404",
-    "title": "Etwas fehlt hier",
-    "description": "Die Seite, die du suchst, existiert nicht oder wurde verschoben.",
-    "back": "Zurück",
-    "home": "Zur Übersicht"
-  },
-  "overview": {
-    "welcome": "Hi, willkommen zurück",
-    "download": "Download",
-    "tabOverview": "Übersicht",
-    "tabAnalytics": "Analysen",
-
-    "kpiRevenueTitle": "Gesamtumsatz",
-    "kpiRevenueDesc": "Trend steigt in diesem Monat",
-    "kpiRevenueSub": "Besucher der letzten 6 Monate",
-
-    "kpiCustomersTitle": "Neue Kunden",
-    "kpiCustomersDesc": "20% Rückgang in diesem Zeitraum",
-    "kpiCustomersSub": "Akquise benötigt Aufmerksamkeit",
-
-    "kpiAccountsTitle": "Aktive Accounts",
-    "kpiAccountsDesc": "Starke Nutzerbindung",
-    "kpiAccountsSub": "Engagement übertrifft Zielwerte",
-
-    "kpiGrowthTitle": "Wachstumsrate",
-    "kpiGrowthDesc": "Stetige Leistungssteigerung",
-    "kpiGrowthSub": "Entspricht Wachstumsprognosen",
 
     "pieTitle": "Lieferantenverteilung",
-    "pieSubtitleDesktop": "Gesamtwert des Inventars pro Lieferant",
+    "pieSubtitleDesktop": "Gesamtwert je Lieferant",
     "pieSubtitleMobile": "Anteil je Lieferant",
     "pieValueLabel": "Wert (€)",
     "pieTotalLabel": "Gesamtwert",
-    "pieLeader": "{supplier} führt mit {percent} %",
-    "pieFooter": "Basierend auf aktuellen Inventardaten",
+    "pieLeader": "{supplier} führt mit {percent}%",
+    "pieFooter": "Basierend auf aktuellen Lagerdaten",
     "pieUnknown": "Unbekannter Lieferant",
-    "pieLoadError": "Lieferantenverteilung konnte nicht geladen werden.",
+    "pieLoadError": "Verteilung konnte nicht geladen werden.",
 
     "barTitle": "Bestandsübersicht – Interaktiv",
-    "barSubtitleDesktop": "Tägliche Zugänge, Abgänge und Niedrigbestand-Warnungen",
+    "barSubtitleDesktop": "Tägliche Zugänge, Abgänge und Niedrigbestand",
     "barSubtitleMobile": "Letzte Tage",
     "barAdded": "Zugefügt",
     "barRemoved": "Entfernt",
@@ -516,49 +478,170 @@
     "dateLong": "{date}",
 
     "areaTitle": "Lagerwertentwicklung",
-    "areaSubtitleMonthly": "Historischer monatlicher Lagerwert (Durchschnitt der letzten 12 Monate)",
-    "areaSubtitleLive": "Live-Snapshots des aktuellen Lagerwerts",
+    "areaSubtitleMonthly": "Monatliche Durchschnittswerte",
+    "areaSubtitleLive": "Live-Snapshots",
     "areaBtnMonthly": "Monatlich",
     "areaBtnLive": "Live",
-    "areaNoData": "Keine Daten verfügbar.",
-    "areaTooltipAvg": "Durchschnittswert",
+    "areaNoData": "Keine Daten vorhanden.",
+    "areaTooltipAvg": "Durchschnitt",
     "areaTooltipChange": "Veränderung:",
-    "areaTooltipClick": "Klicken, um Monatsdetails zu sehen",
-    "areaTooltipValue": "Lagerwert",
-    "areaFooterMonthly": "Durchschnittlicher monatlicher Lagerwert (letzte 12 Monate)",
-    "areaFooterLive": "Live-Snapshots aus automatischen Updates",
-    "areaFooterTip": "Tipp: Klicke auf einen Monat, um alle hinzugefügten Artikel zu sehen.",
+    "areaTooltipClick": "Klicken für Details",
+    "areaTooltipValue": "Wert",
+    "areaFooterMonthly": "Durchschnittlicher Lagerwert (12 Monate)",
+    "areaFooterLive": "Live-Werte basierend auf Updates",
+    "areaFooterTip": "Klicke auf einen Monat für Details.",
     "areaDrillTitle": "Monatliche Zugänge",
-    "areaDrillEmpty": "Keine Produktzugänge in diesem Monat.",
+    "areaDrillEmpty": "Keine Zugänge in diesem Monat.",
     "areaDrillColArticle": "Artikelnummer",
     "areaDrillColName": "Name",
     "areaDrillColQty": "Menge",
-    "areaDrillColPrice": "Einzelpreis",
+    "areaDrillColPrice": "Preis",
     "areaDrillColTotal": "Gesamtwert",
-    "areaLoadError": "Lagerwertverlauf konnte nicht geladen werden.",
-    "areaDrillError": "Monatliche Artikeldaten konnten nicht geladen werden."
+    "areaLoadError": "Verlauf konnte nicht geladen werden.",
+    "areaDrillError": "Monatsdaten konnten nicht geladen werden."
   },
+
+  "RecentSales": {
+    "title": "Top- & Slow-Mover (30 Tage)",
+    "description": "Analyse der Artikelbewegungen der letzten 30 Tage.",
+    "top_movers": "Top-Mover",
+    "slow_movers": "Langsame Artikel",
+    "last_30_days": "Letzte 30 Tage",
+    "no_top_movers": "Keine Top-Mover gefunden.",
+    "no_slow_movers": "Keine langsamen Artikel gefunden.",
+    "product": "Artikel",
+    "quantity": "Menge",
+    "fallback_product": "Artikel {id}",
+    "fetch_failed": "Fehler beim Laden der Bewegungsdaten.",
+    "log_failed": "Fehler beim Laden der Bewegungsprotokolle.",
+    "modal": {
+      "title": "Bewegungsprotokoll",
+      "description": "Alle Bestandsänderungen dieses Artikels in den letzten 30 Tagen."
+    },
+    "no_logs": "Keine Bewegungen gefunden.",
+    "date": "Datum",
+    "action": "Aktion",
+    "user": "Benutzer",
+    "delivery_note": "Lieferschein",
+    "comment": "Kommentar",
+    "added": "Hinzugefügt",
+    "removed": "Entfernt",
+    "system": "System"
+  },
+
+
+
+  "AccessDenied": {
+    "code": "403",
+    "title": "Zugriff verweigert",
+    "description": "Du hast keine Berechtigung, diese Seite zu sehen oder diese Aktion auszuführen.",
+    "back": "Zur Übersicht"
+  },
+
+  "NotFound": {
+    "code": "404",
+    "title": "Etwas fehlt hier",
+    "description": "Die Seite existiert nicht oder wurde verschoben.",
+    "back": "Zurück",
+    "home": "Zur Übersicht"
+  },
+
+  "overview": {
+    "welcome": "Hi, willkommen zurück",
+    "download": "Download",
+    "tabOverview": "Übersicht",
+    "tabAnalytics": "Analysen",
+
+    "kpiRevenueTitle": "Gesamtumsatz",
+    "kpiRevenueDesc": "Der Trend steigt diesen Monat",
+    "kpiRevenueSub": "Besucher der letzten 6 Monate",
+
+    "kpiCustomersTitle": "Neue Kunden",
+    "kpiCustomersDesc": "20% Rückgang in diesem Zeitraum",
+    "kpiCustomersSub": "Akquise benötigt Aufmerksamkeit",
+
+    "kpiAccountsTitle": "Aktive Accounts",
+    "kpiAccountsDesc": "Starke Nutzerbindung",
+    "kpiAccountsSub": "Übertrifft Zielwerte",
+
+    "kpiGrowthTitle": "Wachstumsrate",
+    "kpiGrowthDesc": "Stetige Leistungssteigerung",
+    "kpiGrowthSub": "Entspricht Prognosen",
+
+    "pieTitle": "Lieferantenverteilung",
+    "pieSubtitleDesktop": "Gesamtwert je Lieferant",
+    "pieSubtitleMobile": "Anteil je Lieferant",
+    "pieValueLabel": "Wert (€)",
+    "pieTotalLabel": "Gesamtwert",
+    "pieLeader": "{supplier} führt mit {percent}%",
+    "pieFooter": "Aktuelle Inventardaten",
+    "pieUnknown": "Unbekannt",
+    "pieLoadError": "Fehler beim Laden.",
+
+    "barTitle": "Bestandsübersicht",
+    "barSubtitleDesktop": "Tägliche Bewegungen und Warnungen",
+    "barSubtitleMobile": "Letzte Tage",
+    "barAdded": "Zugefügt",
+    "barRemoved": "Entfernt",
+    "barLowStock": "Niedrigbestand",
+    "barLoadError": "Fehler beim Laden.",
+    "barLowStockModalTitle": "Niedrigbestand ({count})",
+    "barLowStockNone": "🎉 Alles im grünen Bereich.",
+    "barColumnArticle": "Artikel",
+    "barColumnSupplier": "Lieferant",
+    "barColumnStock": "Bestand",
+    "barColumnMin": "Minimum",
+
+    "dateShort": "{date}",
+    "dateLong": "{date}",
+
+    "areaTitle": "Wertentwicklung",
+    "areaSubtitleMonthly": "Monatlicher Durch­schnitt",
+    "areaSubtitleLive": "Live-Werte",
+    "areaBtnMonthly": "Monatlich",
+    "areaBtnLive": "Live",
+    "areaNoData": "Keine Daten.",
+    "areaTooltipAvg": "Ø Wert",
+    "areaTooltipChange": "Veränderung:",
+    "areaTooltipClick": "Klicken für Details",
+    "areaTooltipValue": "Wert",
+    "areaFooterMonthly": "Monatlicher Durchschnitt",
+    "areaFooterLive": "Live-Daten",
+    "areaFooterTip": "Für Details klicken.",
+    "areaDrillTitle": "Zugänge",
+    "areaDrillEmpty": "Keine Zugänge.",
+    "areaDrillColArticle": "Artikelnummer",
+    "areaDrillColName": "Name",
+    "areaDrillColQty": "Menge",
+    "areaDrillColPrice": "Preis",
+    "areaDrillColTotal": "Gesamtwert",
+    "areaLoadError": "Fehler beim Laden.",
+    "areaDrillError": "Fehler beim Laden."
+  },
+
   "header": {
-  "overview": "Übersicht",
-  "products": "Produkte",
-  "productNew": "Neues Produkt",
-  "productEdit": "Produkt bearbeiten",
-  "accounts": "Konten",
-  "profile": "Profil",
-  "settings": "Einstellungen",
-  "default": "Dashboard"
+    "overview": "Übersicht",
+    "products": "Produkte",
+    "productNew": "Neues Produkt",
+    "productEdit": "Produkt bearbeiten",
+    "accounts": "Konten",
+    "profile": "Profil",
+    "settings": "Einstellungen",
+    "default": "Dashboard"
   },
+
   "breadcrumbs": {
-  "dashboard": "Dashboard",
-  "overview": "Übersicht",
-  "products": "Produkte",
-  "all_products": "Alle Produkte",
-  "new_product": "Neues Produkt",
-  "edit_product": "Produkt bearbeiten",
-  "accounts": "Konten",
-  "settings": "Einstellungen",
-  "profile": "Profil"
+    "dashboard": "Dashboard",
+    "overview": "Übersicht",
+    "products": "Produkte",
+    "all_products": "Alle Produkte",
+    "new_product": "Neues Produkt",
+    "edit_product": "Produkt bearbeiten",
+    "accounts": "Konten",
+    "settings": "Einstellungen",
+    "profile": "Profil"
   },
+
   "userNav": {
     "upgrade": "Upgrade auf Pro",
     "account": "Konto",
@@ -570,6 +653,7 @@
     "signOutSuccess": "Erfolgreich abgemeldet.",
     "signOutError": "Abmeldung fehlgeschlagen."
   },
+
   "themeSelector": {
     "label": "Theme",
     "selectPrefixDesktop": "Theme auswählen:",
@@ -606,20 +690,23 @@
     "update": "Bearbeiten",
     "delete": "Löschen"
   },
+
   "productCategories": {
-  "electronics": "Elektronik",
-  "furniture": "Möbel",
-  "clothing": "Kleidung",
-  "toys": "Spielzeug",
-  "groceries": "Lebensmittel",
-  "books": "Bücher",
-  "jewelry": "Schmuck",
-  "beauty": "Kosmetik"
+    "electronics": "Elektronik",
+    "furniture": "Möbel",
+    "clothing": "Kleidung",
+    "toys": "Spielzeug",
+    "groceries": "Lebensmittel",
+    "books": "Bücher",
+    "jewelry": "Schmuck",
+    "beauty": "Kosmetik"
   },
+
   "dataTable": {
     "reset": "Zurücksetzen",
     "resetFiltersAria": "Filter zurücksetzen"
   },
+
   "FileUploader": {
     "errorSingleFile": "Du kannst nur eine Datei auf einmal hochladen.",
     "errorTooManyFiles": "Du kannst nicht mehr als {maxFiles} Dateien hochladen.",
@@ -632,10 +719,12 @@
     "uploadFailed": "Fehler beim Hochladen von {target}.",
     "dropHere": "Dateien hier ablegen",
     "dragDropLabel": "Ziehe Dateien hierher oder klicke, um Dateien auszuwählen",
-    "hintMulti": "Du kannst {maxFiles} Dateien hochladen (bis zu {size} pro Datei).",
+    "hintMulti": "Du kannst bis zu {maxFiles} Dateien hochladen (max. {size} pro Datei).",
     "hintSingle": "Du kannst eine Datei bis {size} hochladen.",
     "removeFile": "Datei entfernen"
-  },"LanguageSwitch": {
+  },
+
+  "LanguageSwitch": {
     "label": "Sprache",
     "title": "Sprache auswählen",
     "description": "Wähle die Sprache für die Anmeldeseite aus.",
@@ -646,5 +735,18 @@
       "en": "Englisch",
       "tr": "Türkisch"
     }
+  },
+  "Roles": {
+  "admin": "Admin",
+  "admin_desc": "Voller Systemzugriff inklusive Benutzerverwaltung, Rollen, Einstellungen und Produktverwaltung.",
+
+  "manager": "Manager",
+  "manager_desc": "Kann Produkte verwalten und Bestand anpassen, aber keine Benutzer löschen oder Rollen ändern.",
+
+  "operator": "Operator",
+  "operator_desc": "Kann Produkte verwalten, aber Bestand nicht anpassen und keine Benutzer ändern.",
+
+  "employee": "Mitarbeiter",
+  "employee_desc": "Kann Bestand ein- und ausbuchen, aber keine Benutzer oder Produkte verwalten."
 }
 }

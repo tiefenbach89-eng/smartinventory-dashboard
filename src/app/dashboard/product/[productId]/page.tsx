@@ -1,22 +1,16 @@
 import { notFound } from 'next/navigation';
-import {
-  fakeProducts,
-  type Product as MockProduct
-} from '@/constants/mock-api';
-import ClientWrapper from './client-wrapper'; // Client Component
+import { createClient } from '@/lib/supabase/server';
+import ClientWrapper from './client-wrapper';
 
-export default async function Page({
-  params
-}: {
+export default async function Page(props: {
   params: Promise<{ productId: string }>;
 }) {
-  // ⬅️ params awaiten
-  const { productId } = await params;
+  // ⬅️ WICHTIG: In Next.js 14/15 ist params ein Promise
+  const { productId } = await props.params;
 
-  // Nur der Key-Name, OHNE Namespace
-  let pageTitleKey: string = 'createTitle';
+  // 🎯 Standard: Neues Produkt
+  let pageTitleKey: 'createTitle' | 'editTitle' = 'createTitle';
 
-  // Standarddaten (Neues Produkt)
   let safeProduct = {
     artikelnummer: 0,
     name: '',
@@ -24,32 +18,48 @@ export default async function Page({
     price: 0,
     minStock: 0,
     description: '',
+    ean: '',
     image: [] as File[]
   };
 
-  // Wenn bestehendes Produkt
-  if (productId !== 'new') {
-    const parsedId = Number(productId);
-    if (Number.isNaN(parsedId)) notFound();
+  // 🔐 Server-Supabase
+  const supabase = await createClient();
 
-    const data = await fakeProducts.getProductById(parsedId);
-    if (!data || !data.success || !data.product) notFound();
-
-    const product = data.product as MockProduct;
-
-    // Key für Bearbeitungs-Titel
-    pageTitleKey = 'editTitle';
-
-    safeProduct = {
-      artikelnummer: parsedId,
-      name: product.name ?? '',
-      supplier: product.category ?? '',
-      price: Number(product.price) || 0,
-      minStock: 0,
-      description: product.description ?? '',
-      image: []
-    };
+  // 🆕 Modus: Neues Produkt
+  if (productId === 'new') {
+    return <ClientWrapper product={safeProduct} pageTitleKey={pageTitleKey} />;
   }
+
+  // 🔍 productId = Zahl prüfen
+  const numericId = Number(productId);
+  if (Number.isNaN(numericId)) {
+    notFound();
+  }
+
+  // 📦 Produkt aus DB laden
+  const { data: produkt, error } = await supabase
+    .from('artikel')
+    .select('*')
+    .eq('artikelnummer', numericId)
+    .maybeSingle();
+
+  if (!produkt || error) {
+    notFound();
+  }
+
+  // ✏️ Bearbeiten
+  pageTitleKey = 'editTitle';
+
+  safeProduct = {
+    artikelnummer: produkt.artikelnummer,
+    name: produkt.artikelbezeichnung ?? '',
+    supplier: produkt.lieferant ?? '',
+    price: produkt.preis ?? 0,
+    minStock: produkt.sollbestand ?? 0,
+    description: produkt.beschreibung ?? '',
+    ean: produkt.ean ?? '',
+    image: [] // Upload wird Client-seitig gemacht
+  };
 
   return <ClientWrapper product={safeProduct} pageTitleKey={pageTitleKey} />;
 }

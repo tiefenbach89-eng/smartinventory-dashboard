@@ -24,6 +24,16 @@ import { Icons } from '@/components/icons';
 import { navItems } from '@/constants/nav-items.intl';
 import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
+import { useRolePermissions } from '@/hooks/useRolePermissions';
+
+function isAdminRoute(url?: string | null) {
+  if (!url) return false;
+  // hier kannst du bei Bedarf weitere Admin-Routen ergänzen
+  return (
+    url.startsWith('/dashboard/settings') ||
+    url.startsWith('/dashboard/accounts')
+  );
+}
 
 export default function AppSidebar() {
   const pathname = usePathname();
@@ -31,15 +41,47 @@ export default function AppSidebar() {
   const { open } = useSidebar();
   const t = useTranslations('Sidebar');
 
+  const { permissions } = useRolePermissions();
+  const canAccessAdmin = permissions?.can_access_admin_panel ?? false;
+
   // Map: welcher Menüpunkt ist aufgeklappt
   const [openMap, setOpenMap] = React.useState<Record<string, boolean>>({});
+
+  // NavItems, gefiltert nach Berechtigungen
+  const items = React.useMemo(() => {
+    const base = navItems(t);
+
+    if (canAccessAdmin) return base;
+
+    // Employee: Admin-/Settings-Routen ausblenden
+    return base
+      .map((item) => {
+        const filteredSubs = item.items?.filter(
+          (sub) => !isAdminRoute(sub.url)
+        );
+
+        // wenn der Hauptlink selbst eine Admin-Route ist → Item komplett raus
+        if (isAdminRoute(item.url)) {
+          // falls keine Unterpunkte übrig bleiben, Item weg
+          if (!filteredSubs || filteredSubs.length === 0) return null;
+        }
+
+        // wenn alle Unterpunkte Admin sind → ganzes Item raus
+        if (item.items && (!filteredSubs || filteredSubs.length === 0)) {
+          return isAdminRoute(item.url) ? null : { ...item, items: [] };
+        }
+
+        return { ...item, items: filteredSubs };
+      })
+      .filter(Boolean) as ReturnType<typeof navItems>;
+  }, [t, canAccessAdmin]);
 
   // Aktive Gruppe beim Page-Load automatisch öffnen
   React.useEffect(() => {
     setOpenMap((prev) => {
       const next = { ...prev };
 
-      navItems(t).forEach((item) => {
+      items.forEach((item) => {
         if (item.items?.some((sub) => pathname === sub.url)) {
           next[item.key] = true;
         }
@@ -47,7 +89,7 @@ export default function AppSidebar() {
 
       return next;
     });
-  }, [pathname, t]);
+  }, [pathname, items]);
 
   function toggle(key: string) {
     setOpenMap((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -66,7 +108,9 @@ export default function AppSidebar() {
               <span className='text-sm font-semibold tracking-tight'>
                 {t('title')}
               </span>
-              <span className='text-muted-foreground text-xs'>Dashboard</span>
+              <span className='text-muted-foreground text-xs'>
+                {t('dashboardLabel')}
+              </span>
             </div>
           ) : (
             <div className='border-border/60 text-muted-foreground flex h-8 w-8 items-center justify-center rounded-lg border text-[10px] font-semibold tracking-tight transition-all duration-300'>
@@ -84,7 +128,7 @@ export default function AppSidebar() {
           </SidebarGroupLabel>
 
           <SidebarMenu className='mt-1 space-y-1 px-1'>
-            {navItems(t).map((item) => {
+            {items.map((item) => {
               const IconComponent = Icons[item.icon] ?? Icons.logo;
               const hasChildren = !!item.items && item.items.length > 0;
 

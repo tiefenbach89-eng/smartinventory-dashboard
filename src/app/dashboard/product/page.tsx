@@ -25,6 +25,7 @@ import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 import ProductListing from '@/features/products/components/product-listing-client';
 import { CardModern } from '@/components/ui/card-modern';
+import { useRolePermissions } from '@/hooks/useRolePermissions';
 
 // 🌍 next-intl
 import { useTranslations } from 'next-intl';
@@ -67,19 +68,23 @@ const scanStyles = `
 
 export default function ProductsPage() {
   const supabase = createClient();
+  const { permissions } = useRolePermissions();
 
   // 🌍 translations
   const p = useTranslations('Products');
   const tAdd = useTranslations('StockAdd');
   const tRemove = useTranslations('StockRemove');
 
+  const canManageProducts = permissions?.can_manage_products;
+  const canStockInOut = permissions?.can_adjust_stock;
+
   const [mounted, setMounted] = useState(false);
   const [openAdd, setOpenAdd] = useState(false);
   const [openRemove, setOpenRemove] = useState(false);
   const [products, setProducts] = useState<any[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<string>('');
-  const [quantity, setQuantity] = useState<number | ''>('' as any);
-  const [price, setPrice] = useState<number | ''>('' as any);
+  const [quantity, setQuantity] = useState<number | ''>('');
+  const [price, setPrice] = useState<number | ''>('');
   const [note, setNote] = useState('');
   const [deliveryNote, setDeliveryNote] = useState('');
   const [eanAdd, setEanAdd] = useState('');
@@ -173,20 +178,13 @@ export default function ProductsPage() {
   }
 
   // ----------------------------------------------------------------------
-  // Kamera-Scan (Add / Remove) → inkl. Live-Vorschau + animierter Scan-Linie
+  // Kamera-Scan (Add / Remove)
   // ----------------------------------------------------------------------
   const startScan = async (mode: 'add' | 'remove') => {
     try {
       if (typeof window === 'undefined') return;
 
-      if (!cameraAvailable) {
-        toast.error(
-          mode === 'add' ? tAdd('scanNoCamera') : tRemove('scanNoCamera')
-        );
-        return;
-      }
-
-      if (!navigator.mediaDevices?.getUserMedia) {
+      if (!cameraAvailable || !navigator.mediaDevices?.getUserMedia) {
         toast.error(
           mode === 'add' ? tAdd('scanNoCamera') : tRemove('scanNoCamera')
         );
@@ -233,7 +231,13 @@ export default function ProductsPage() {
   // ----------------------------------------------------------------------
   async function handleStockChange(type: 'add' | 'remove') {
     try {
+      if (!canStockInOut) {
+        toast.error(p('noPermission'));
+        return;
+      }
+
       setLoading(true);
+
       if (!selectedProduct)
         throw new Error(
           type === 'add' ? tAdd('errorSelect') : tRemove('errorSelect')
@@ -269,7 +273,7 @@ export default function ProductsPage() {
           artikelname: product.artikelbezeichnung,
           alt_wert: product.bestand,
           neu_wert: newStock,
-          menge_diff: type === 'add' ? +quantity : -quantity,
+          menge_diff: type === 'add' ? +quantity : -+quantity,
           preis_snapshot: price || product.preis,
           aktion: type === 'add' ? 'addition' : 'removal',
           kommentar: note,
@@ -309,6 +313,10 @@ export default function ProductsPage() {
   }
 
   function handleListProduct() {
+    if (!canManageProducts) {
+      toast.error(p('noPermission'));
+      return;
+    }
     window.location.href = '/dashboard/product/new';
   }
 
@@ -354,21 +362,23 @@ export default function ProductsPage() {
               {p('tabRemove')}
             </TabsTrigger>
 
-            {/* List Product */}
-            <TabsTrigger
-              value='list'
-              onClick={handleListProduct}
-              className='group hover:bg-background/60 hover:text-foreground data-[state=active]:bg-background/90 data-[state=active]:text-foreground relative flex h-9 items-center gap-2 rounded-2xl border-none px-4 text-sm font-medium shadow-none ring-0 transition-all duration-200 data-[state=active]:shadow-[0_0_15px_-3px_rgba(96,165,250,0.35)]'
-            >
-              <Boxes className='h-4 w-4 group-hover:text-sky-400' />
-              {p('tabList')}
-            </TabsTrigger>
+            {/* List Product – nur Admin/Manager */}
+            {canManageProducts && (
+              <TabsTrigger
+                value='list'
+                onClick={handleListProduct}
+                className='group hover:bg-background/60 hover:text-foreground data-[state=active]:bg-background/90 data-[state=active]:text-foreground relative flex h-9 items-center gap-2 rounded-2xl border-none px-4 text-sm font-medium shadow-none ring-0 transition-all duration-200 data-[state=active]:shadow-[0_0_15px_-3px_rgba(96,165,250,0.35)]'
+              >
+                <Boxes className='h-4 w-4 group-hover:text-sky-400' />
+                {p('tabList')}
+              </TabsTrigger>
+            )}
           </TabsList>
         </Tabs>
 
-        {/* Product Listing */}
+        {/* Product Listing – darf jeder sehen, CRUD-Steuerung in ProductListing */}
         <CardModern className='space-y-8 p-4 sm:p-6 md:p-8'>
-          <ProductListing />
+          <ProductListing canManageProducts={!!canManageProducts} />
         </CardModern>
 
         {/* ---------------------------- ADD STOCK DIALOG ---------------------------- */}
@@ -550,7 +560,11 @@ export default function ProductsPage() {
 
               {/* SAVE BUTTON */}
               <div className='flex justify-end pt-2'>
-                <Button size='sm' onClick={() => handleStockChange('add')}>
+                <Button
+                  size='sm'
+                  onClick={() => handleStockChange('add')}
+                  disabled={!canStockInOut}
+                >
                   {loading ? tAdd('saving') : tAdd('save')}
                 </Button>
               </div>
@@ -713,7 +727,11 @@ export default function ProductsPage() {
               </div>
 
               <div className='flex justify-end pt-2'>
-                <Button size='sm' onClick={() => handleStockChange('remove')}>
+                <Button
+                  size='sm'
+                  onClick={() => handleStockChange('remove')}
+                  disabled={!canStockInOut}
+                >
                   {loading ? tRemove('saving') : tRemove('save')}
                 </Button>
               </div>

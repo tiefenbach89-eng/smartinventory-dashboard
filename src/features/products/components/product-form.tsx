@@ -21,107 +21,34 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { toast } from 'sonner';
-
-// 🌍 next-intl
+import { useRolePermissions } from '@/hooks/useRolePermissions';
 import { useTranslations } from 'next-intl';
 
-// Allowed images
-const MAX_FILE_SIZE = 5 * 1024 * 1024;
-const ACCEPTED_IMAGE_TYPES = [
-  'image/jpeg',
-  'image/jpg',
-  'image/png',
-  'image/webp'
-];
-
-// 🔥 Styles für Scan-Linie & Scan-Rahmen
-const scanStyles = `
-  .scan-area {
-    position: absolute;
-    inset: 0.5rem;
-    border: 2px solid rgba(255, 255, 255, 0.35);
-    border-radius: 0.75rem;
-    box-shadow: 0 0 0 9999px rgba(0,0,0,0.35);
-    pointer-events: none;
-    overflow: hidden;
-  }
-
-  .scan-line {
-    position: absolute;
-    left: 0;
-    width: 100%;
-    height: 2px;
-    background: rgba(16, 185, 129, 0.95);
-    box-shadow: 0 0 12px rgba(16, 185, 129, 0.95);
-    animation: scan-move 2s infinite;
-  }
-
-  @keyframes scan-move {
-    0%   { top: 5%;  }
-    50%  { top: 95%; }
-    100% { top: 5%;  }
-  }
-`;
-
-export default function ProductForm({
-  initialData,
-  pageTitle
-}: {
-  initialData: any;
-  pageTitle: string;
-}) {
+export default function ProductForm({ initialData, pageTitle }: any) {
   const supabase = createClient();
   const router = useRouter();
   const t = useTranslations('ProductForm');
+  const { permissions } = useRolePermissions();
 
-  // --- Scanner State ---
+  const canManage = permissions?.can_manage_products;
+
+  // Camera + Scanner
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [hasCamera, setHasCamera] = useState<boolean | null>(null);
 
-  // Kamera-Fähigkeit prüfen (Desktop ohne Cam → Button deaktivieren + Stop-Cursor)
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      setHasCamera(false);
-      return;
-    }
-
-    navigator.mediaDevices
-      .enumerateDevices()
-      .then((devices) => {
-        const hasVideo = devices.some((d) => d.kind === 'videoinput');
-        setHasCamera(hasVideo);
-      })
-      .catch(() => {
-        setHasCamera(false);
-      });
-
-    return () => {
-      // Cleanup – Stream stoppen, falls noch aktiv
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach((track) => track.stop());
-        streamRef.current = null;
-      }
-    };
+    if (!navigator.mediaDevices) return setHasCamera(false);
+    navigator.mediaDevices.enumerateDevices().then((devices) => {
+      setHasCamera(devices.some((d) => d.kind === 'videoinput'));
+    });
   }, []);
 
-  // --- EAN-Scan starten ---
   async function startEANScan() {
+    if (!canManage) return;
     try {
-      if (typeof window === 'undefined') return;
-
-      if (!hasCamera) {
-        toast.error(t('noCamera')); // 🔑 ProductForm.noCamera
-        return;
-      }
-
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        toast.error(t('eanScanFailed')); // 🔑 ProductForm.eanScanFailed
-        return;
-      }
+      if (!hasCamera) return toast.error(t('noCamera'));
 
       setIsScanning(true);
 
@@ -130,7 +57,6 @@ export default function ProductForm({
       });
 
       streamRef.current = stream;
-
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         await videoRef.current.play();
@@ -141,66 +67,42 @@ export default function ProductForm({
 
       const result = await reader.decodeOnceFromVideoElement(videoRef.current!);
 
-      // Kamera schließen
       stream.getTracks().forEach((t) => t.stop());
       streamRef.current = null;
-      setIsScanning(false);
-
-      const scanned = result.getText();
-      form.setValue('ean', scanned);
-      toast.success(t('eanScanned')); // 🔑 ProductForm.eanScanned
-    } catch (err) {
-      console.error(err);
-
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach((track) => track.stop());
-        streamRef.current = null;
-      }
 
       setIsScanning(false);
-      toast.error(t('eanScanFailed')); // 🔑 ProductForm.eanScanFailed
+      form.setValue('ean', result.getText());
+      toast.success(t('eanScanned'));
+    } catch {
+      setIsScanning(false);
+      toast.error(t('eanScanFailed'));
     }
   }
 
-  // --- Validation Schema ---
+  // ----------- VALIDATION ----------------
   const formSchema = z.object({
-    artikelnummer: z.coerce
-      .number()
-      .min(1, { message: t('errorArticleNumber') }),
-    name: z.string().min(2, { message: t('errorName') }),
-    supplier: z.string().min(1, { message: t('errorSupplier') }),
-    price: z.coerce.number().min(0.01, { message: t('errorPrice') }),
-    minStock: z.coerce.number().min(1, { message: t('errorMinStock') }),
+    artikelnummer: z.coerce.number().min(1, t('errorArticleNumber')),
+    name: z.string().min(2, t('errorName')),
+    supplier: z.string().min(1, t('errorSupplier')),
+    price: z.coerce.number().min(0.01, t('errorPrice')),
+    minStock: z.coerce.number().min(1, t('errorMinStock')),
     description: z.string().optional(),
     ean: z
       .string()
       .optional()
-      .transform((val) => (val && val.trim() === '' ? undefined : val?.trim()))
-      .refine(
-        (val) => !val || /^[0-9]+$/.test(val),
-        { message: t('errorEanDigits') } // 🔑 ProductForm.errorEanDigits
-      )
+      .transform((v) => (v?.trim() === '' ? undefined : v?.trim()))
+      .refine((val) => !val || /^[0-9]+$/.test(val), t('errorEanDigits'))
       .refine(
         (val) => !val || val.length === 8 || val.length === 13,
-        { message: t('errorEanLength') } // 🔑 ProductForm.errorEanLength
+        t('errorEanLength')
       ),
-    image: z
-      .custom<File[]>()
-      .refine((files) => files?.length === 1, t('errorImageRequired'))
-      .refine((files) => files?.[0]?.size <= MAX_FILE_SIZE, t('errorFileSize'))
-      .refine(
-        (files) => ACCEPTED_IMAGE_TYPES.includes(files?.[0]?.type),
-        t('errorFileType')
-      )
+    image: z.custom<File[]>().optional()
   });
-
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
 
   const form = useForm<any>({
     resolver: zodResolver(formSchema) as unknown as Resolver<any>,
     defaultValues: {
-      artikelnummer: initialData?.artikelnummer ?? 0,
+      artikelnummer: initialData?.artikelnummer ?? '',
       name: initialData?.name ?? '',
       supplier: initialData?.supplier ?? '',
       price: initialData?.price ?? 0,
@@ -211,36 +113,30 @@ export default function ProductForm({
     }
   });
 
-  if (!mounted) {
-    return (
-      <div className='text-muted-foreground flex h-[50vh] items-center justify-center'>
-        <p>{t('loading')}</p>
-      </div>
-    );
-  }
-
+  // ----------- SUBMIT ----------------
   async function onSubmit(values: any) {
+    if (!canManage) return toast.error(t('noPermission'));
+
     try {
       toast.loading(t('saving'));
 
-      const file = values.image[0];
-      const fileName = `${values.name.replace(/\s+/g, '_')}_${Date.now()}_${
-        file.name
-      }`;
+      let imageUrl = null;
+      if (values.image && values.image[0]) {
+        const file = values.image[0];
+        const fileName = `${Date.now()}_${file.name}`;
+        const { error: uploadError } = await supabase.storage
+          .from('product-images')
+          .upload(fileName, file);
+        if (uploadError) throw new Error(uploadError.message);
 
-      const { error: uploadError } = await supabase.storage
-        .from('product-images')
-        .upload(fileName, file);
+        const { data } = supabase.storage
+          .from('product-images')
+          .getPublicUrl(fileName);
 
-      if (uploadError) throw new Error(uploadError.message);
+        imageUrl = data.publicUrl;
+      }
 
-      const { data } = supabase.storage
-        .from('product-images')
-        .getPublicUrl(fileName);
-
-      const imageUrl = data.publicUrl;
-
-      const { error: insertError } = await supabase.from('artikel').insert({
+      const payload = {
         artikelnummer: String(values.artikelnummer),
         artikelbezeichnung: values.name,
         beschreibung: values.description || null,
@@ -249,9 +145,10 @@ export default function ProductForm({
         sollbestand: values.minStock,
         ean: values.ean || null,
         image_url: imageUrl
-      });
+      };
 
-      if (insertError) throw new Error(insertError.message);
+      const { error } = await supabase.from('artikel').upsert(payload);
+      if (error) throw new Error(error.message);
 
       toast.success(t('success'));
       router.push('/dashboard/product');
@@ -262,19 +159,12 @@ export default function ProductForm({
     }
   }
 
-  const scanDisabled = !hasCamera || isScanning;
-
   return (
     <div className='w-full px-6 py-10'>
-      <CardModern className='border-border/40 from-primary/10 via-card/70 to-background/30 hover:border-primary/40 hover:shadow-primary/20 w-full space-y-8 border bg-gradient-to-b p-8 shadow-sm backdrop-blur-sm transition-all duration-300 hover:shadow-lg'>
-        {/* 🔥 Scan-CSS einbinden */}
-        <style>{scanStyles}</style>
-
+      <CardModern className='w-full space-y-8 p-8'>
         <CardHeader>
-          <CardTitle className='text-2xl font-semibold'>{pageTitle}</CardTitle>
-          <CardDescription className='text-muted-foreground mt-1 text-sm'>
-            {t('description')}
-          </CardDescription>
+          <CardTitle className='text-2xl'>{pageTitle}</CardTitle>
+          <CardDescription>{t('description')}</CardDescription>
         </CardHeader>
 
         <CardContent>
@@ -284,31 +174,32 @@ export default function ProductForm({
               name='image'
               label={t('imageLabel')}
               description={t('imageDescription')}
-              config={{ maxSize: MAX_FILE_SIZE, maxFiles: 1 }}
-              required
+              config={{ maxFiles: 1 }}
+              disabled={!canManage}
             />
 
-            {/* GRUND-FELDER */}
             <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
               <FormInput
                 control={form.control}
                 name='artikelnummer'
                 label={t('artikelnummer')}
                 type='number'
-                min={1}
                 required
+                disabled={!canManage}
               />
               <FormInput
                 control={form.control}
                 name='name'
                 label={t('name')}
                 required
+                disabled={!canManage}
               />
               <FormInput
                 control={form.control}
                 name='supplier'
                 label={t('supplier')}
                 required
+                disabled={!canManage}
               />
               <FormInput
                 control={form.control}
@@ -317,18 +208,19 @@ export default function ProductForm({
                 type='number'
                 step='0.01'
                 required
+                disabled={!canManage}
               />
               <FormInput
                 control={form.control}
                 name='minStock'
                 label={t('minStock')}
                 type='number'
-                min={1}
                 required
+                disabled={!canManage}
               />
             </div>
 
-            {/* 🔥 EAN-Feld mit Scan-Button */}
+            {/* ---- EAN Input + Scan ---- */}
             <div>
               <label className='mb-1 block text-sm font-medium'>
                 {t('eanLabel')}
@@ -338,26 +230,34 @@ export default function ProductForm({
                 <Input
                   {...form.register('ean')}
                   placeholder={t('eanPlaceholder')}
-                  className='pr-16'
+                  className='pr-20'
+                  disabled={!canManage}
                 />
 
+                {/* Scan Button */}
                 <button
                   type='button'
                   onClick={startEANScan}
-                  disabled={scanDisabled}
+                  disabled={!canManage || !hasCamera || isScanning}
+                  title={
+                    !canManage
+                      ? t('noPermission')
+                      : !hasCamera
+                        ? t('noCamera')
+                        : t('scanTooltip')
+                  }
                   className={[
-                    'absolute inset-y-0 right-2 flex h-full w-12 items-center justify-center',
-                    'opacity-80 transition',
-                    scanDisabled
-                      ? 'cursor-not-allowed opacity-40'
-                      : 'text-muted-foreground hover:text-foreground cursor-pointer hover:opacity-100'
+                    'absolute inset-y-0 right-2 flex h-full w-10 items-center justify-center rounded-md transition',
+                    !canManage
+                      ? 'cursor-not-allowed opacity-30'
+                      : !hasCamera
+                        ? 'cursor-not-allowed opacity-30'
+                        : 'hover:bg-muted cursor-pointer'
                   ].join(' ')}
-                  aria-label={t('eanScanButtonLabel')}
                 >
-                  {/* großes Barcode-Icon (Touch-freundlich) */}
                   <svg
                     xmlns='http://www.w3.org/2000/svg'
-                    className='h-7 w-7'
+                    className='h-6 w-6 opacity-70'
                     viewBox='0 0 24 24'
                     fill='currentColor'
                   >
@@ -365,18 +265,11 @@ export default function ProductForm({
                   </svg>
                 </button>
               </div>
-
-              {/* Hinweis falls keine Kamera vorhanden */}
-              {hasCamera === false && (
-                <p className='text-muted-foreground mt-1 text-xs'>
-                  {t('noCamera')}
-                </p>
-              )}
             </div>
 
-            {/* 📷 LIVE CAMERA PREVIEW + animierte Scan-Linie + Rahmen */}
+            {/* ---- Live Scanner ---- */}
             {isScanning && (
-              <div className='border-border/40 relative mt-4 overflow-hidden rounded-md border p-2'>
+              <div className='relative mt-4 overflow-hidden rounded-md border p-2'>
                 <video
                   ref={videoRef}
                   className='h-48 w-full rounded-md object-cover'
@@ -385,31 +278,40 @@ export default function ProductForm({
                   playsInline
                 />
 
-                {/* Bounding Box / Scan-Bereich */}
-                <div className='scan-area'>
-                  {/* animierte Linie */}
-                  <div className='scan-line' />
-                </div>
+                {/* animated scan line */}
+                <div className='animate-scan absolute top-0 left-0 h-[2px] w-full bg-emerald-400 shadow-lg' />
 
-                <p className='bg-background/70 text-muted-foreground absolute bottom-2 left-1/2 w-[90%] -translate-x-1/2 rounded-md px-2 py-1 text-center text-[11px]'>
-                  {t('scanActiveText')}
-                </p>
+                <style jsx>{`
+                  @keyframes scan {
+                    0% {
+                      transform: translateY(0);
+                    }
+                    100% {
+                      transform: translateY(180px);
+                    }
+                  }
+                  .animate-scan {
+                    animation: scan 1.8s linear infinite;
+                  }
+                `}</style>
               </div>
             )}
 
-            {/* Beschreibung */}
             <FormTextarea
               control={form.control}
               name='description'
               label={t('descriptionLabel')}
               placeholder={t('descriptionPlaceholder')}
-              config={{ maxLength: 500, showCharCount: true, rows: 4 }}
+              config={{ rows: 4 }}
+              disabled={!canManage}
             />
 
-            <Button type='submit' className='w-full md:w-auto'>
-              {pageTitle.includes('Edit')
-                ? t('buttonSaveChanges')
-                : t('buttonList')}
+            <Button
+              type='submit'
+              className='w-full md:w-auto'
+              disabled={!canManage}
+            >
+              {t(canManage ? 'buttonSave' : 'noPermission')}
             </Button>
           </Form>
         </CardContent>

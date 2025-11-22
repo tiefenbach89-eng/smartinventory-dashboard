@@ -2,78 +2,129 @@
 
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import type { Role } from '@/lib/permissions';
 
-export function useUserRole() {
+type AppRole = Role | 'unknown';
+
+type UserRoleState = {
+  role: AppRole;
+  approved: boolean;
+  banned: boolean;
+  emailVerified: boolean;
+  loading: boolean;
+  error: string | null;
+};
+
+export function useUserRole(): UserRoleState {
   const supabase = createClient();
-  const [role, setRole] = useState('viewer');
-  const [approved, setApproved] = useState(false);
-  const [banned, setBanned] = useState(false);
-  const [emailVerified, setEmailVerified] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+
+  const [state, setState] = useState<UserRoleState>({
+    role: 'employee',
+    approved: false,
+    banned: false,
+    emailVerified: false,
+    loading: true,
+    error: null
+  });
 
   useEffect(() => {
+    let isMounted = true;
+
     const loadUserRole = async () => {
       try {
-        setLoading(true);
-        setError(null);
+        setState((prev) => ({ ...prev, loading: true, error: null }));
 
-        // 🔹 Session abfragen (sicherer als getUser)
-        const { data: sessionData, error: sessionError } =
-          await supabase.auth.getSession();
-        if (sessionError) throw sessionError;
+        // 1) User holen
+        const {
+          data: { user },
+          error: userError
+        } = await supabase.auth.getUser();
 
-        const user = sessionData?.session?.user;
-        if (!user) {
-          setRole('guest');
-          setLoading(false);
+        if (userError) {
+          console.error('❌ Failed to get user:', userError);
+          if (!isMounted) return;
+          setState((prev) => ({
+            ...prev,
+            loading: false,
+            error: userError.message ?? 'Failed to get user'
+          }));
           return;
         }
 
-        // 🔹 Email-Verifizierung prüfen
-        setEmailVerified(!!user.email_confirmed_at);
+        if (!user) {
+          if (!isMounted) return;
+          setState((prev) => ({
+            ...prev,
+            role: 'unknown',
+            approved: false,
+            banned: false,
+            emailVerified: false,
+            loading: false
+          }));
+          return;
+        }
 
-        // 🔹 Rolleninfos laden
-        const {
-          data,
-          error: roleError,
-          status
-        } = await supabase
+        // 2) user_roles EINLESEN (ohne email_verified!)
+        const { data, error } = await supabase
           .from('user_roles')
           .select('role, approved, banned')
           .eq('user_id', user.id)
           .maybeSingle();
 
-        // Wenn leere Antwort, kein Fehler
-        if (status === 406 || !data) {
-          console.warn(
-            '⚠️ Kein user_roles-Eintrag gefunden – nutze Standardwerte'
-          );
-          setRole('viewer');
-          setApproved(false);
-          setBanned(true);
+        // ❗ Fehlerbehandlung verbessern
+        if (error && error.code !== 'PGRST116') {
+          console.error('❌ Failed to fetch user_roles:', error);
+          if (!isMounted) return;
+          setState((prev) => ({
+            ...prev,
+            loading: false,
+            error: error.message ?? 'Failed to fetch user role'
+          }));
           return;
         }
 
-        if (roleError) throw roleError;
+        // 3) Fallback-Rolle
+        let role: AppRole = 'employee';
 
-        setRole(data.role ?? 'viewer');
-        setApproved(!!data.approved);
-        setBanned(!!data.banned);
+        if (
+          data?.role === 'admin' ||
+          data?.role === 'manager' ||
+          data?.role === 'operator' ||
+          data?.role === 'employee'
+        ) {
+          role = data.role;
+        }
+
+        const approved = data?.approved ?? false;
+        const banned = data?.banned ?? false;
+
+        const emailVerified = !!user.email_confirmed_at;
+
+        if (!isMounted) return;
+        setState({
+          role,
+          approved,
+          banned,
+          emailVerified,
+          loading: false,
+          error: null
+        });
       } catch (err: any) {
-        console.error('❌ useUserRole error:', err);
-        setError(err.message);
-        // Fallback
-        setRole('viewer');
-        setApproved(false);
-        setBanned(true);
-      } finally {
-        setLoading(false);
+        console.error('❌ Unexpected error while loading user role:', err);
+        if (!isMounted) return;
+        setState((prev) => ({
+          ...prev,
+          loading: false,
+          error: err?.message ?? 'Unexpected error while loading user role'
+        }));
       }
     };
 
     loadUserRole();
-  }, []);
+    return () => {
+      isMounted = false;
+    };
+  }, [supabase]);
 
-  return { role, approved, banned, emailVerified, loading, error };
+  return state;
 }
