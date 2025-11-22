@@ -754,5 +754,9 @@
 
   "employee": "Çalışan",
   "employee_desc": "Sadece stok giriş/çıkış yapabilir, ürün veya kullanıcı yönetimi yapamaz."
+},
+"Orientation": {
+  "rotateTitle": "Lütfen Cihazı Çevirin",
+  "rotateMessage": "Bu uygulama yalnızca yatay modda çalışır. Lütfen cihazınızı çevirin."
 }
 }

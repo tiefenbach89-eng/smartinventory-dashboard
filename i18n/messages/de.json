@@ -748,5 +748,9 @@
 
   "employee": "Mitarbeiter",
   "employee_desc": "Kann Bestand ein- und ausbuchen, aber keine Benutzer oder Produkte verwalten."
+},
+"Orientation": {
+  "rotateTitle": "Bitte Gerät drehen",
+  "rotateMessage": "Diese Anwendung funktioniert nur im Querformat. Bitte drehen Sie Ihr Gerät."
 }
 }

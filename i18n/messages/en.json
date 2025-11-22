@@ -753,5 +753,9 @@
 
   "employee": "Employee",
   "employee_desc": "Can add and remove stock but cannot manage products or users."
+},
+"Orientation": {
+  "rotateTitle": "Rotate Your Device",
+  "rotateMessage": "This application works only in landscape mode. Please rotate your device."
 }
 }
