@@ -15,6 +15,9 @@ import './theme.css';
 // 🌐 i18n
 import { NextIntlClientProvider } from 'next-intl';
 
+const SUPPORTED_LOCALES = ['en', 'de', 'tr'] as const;
+const FALLBACK_LOCALE: (typeof SUPPORTED_LOCALES)[number] = 'en';
+
 // verhindert jegliches Caching -> Cookie wird bei jedem Request gelesen
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -44,11 +47,13 @@ export default async function RootLayout({
   const activeThemeValue = cookieStore.get('active_theme')?.value;
   const isScaled = activeThemeValue?.endsWith('-scaled');
 
-  // 🔹 Sprache direkt aus Cookie lesen (inkl. Deutsch & Türkisch)
-  const locale = (cookieStore.get('NEXT_LOCALE')?.value ?? 'en') as
-    | 'en'
-    | 'de'
-    | 'tr';
+  // 🔹 Sprache direkt aus Cookie lesen (inkl. Deutsch & Türkisch) – invalid fällt auf Fallback zurück
+  const cookieLocale = cookieStore.get('NEXT_LOCALE')?.value;
+  const locale = SUPPORTED_LOCALES.includes(
+    cookieLocale as (typeof SUPPORTED_LOCALES)[number]
+  )
+    ? (cookieLocale as (typeof SUPPORTED_LOCALES)[number])
+    : FALLBACK_LOCALE;
 
   // 🔹 Übersetzungen laden
   const dictionaries = {

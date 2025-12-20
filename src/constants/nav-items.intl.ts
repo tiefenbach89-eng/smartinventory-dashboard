@@ -42,6 +42,12 @@ export const navItems = (t: (key: string) => string): NavItem[] => [
     ]
   },
   {
+    key: 'oils',
+    label: t('nav.oils'),
+    url: '/dashboard/oils',
+    icon: 'oil'
+  },
+  {
     key: 'accounts',
     label: t('nav.accounts'),
     url: '/dashboard/accounts',

@@ -31,7 +31,7 @@ export async function GET() {
         created_at: u.created_at,
         last_sign_in_at: u.last_sign_in_at,
         email_confirmed_at: u.email_confirmed_at,
-        role: r?.role ?? 'viewer',
+        role: r?.role ?? 'employee',
         approved: r?.approved ?? false,
         banned: r?.banned ?? false,
         user_metadata: {
@@ -97,7 +97,7 @@ export async function PATCH(req: Request) {
 
     const merged = {
       user_id,
-      role: role ?? existing?.role ?? 'viewer',
+      role: role ?? existing?.role ?? 'employee',
       banned: banned ?? existing?.banned ?? false,
       approved: approved ?? existing?.approved ?? false,
       updated_at: new Date().toISOString()

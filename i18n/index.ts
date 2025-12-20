@@ -7,7 +7,7 @@ import {
 
 export default getRequestConfig(
   async ({ locale }: GetRequestConfigParams): Promise<RequestConfig> => {
-    const supportedLocales = ['en', 'de'] as const;
+    const supportedLocales = ['en', 'de', 'tr'] as const;
     const fallback = 'en';
 
     // falls locale undefined ist, fallback verwenden

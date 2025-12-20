@@ -30,6 +30,14 @@ export const navItems: NavItem[] = [
     items: [] // No child items
   },
   {
+    title: 'Bulk oils',
+    url: '/dashboard/oils',
+    icon: 'oil',
+    shortcut: ['o', 'o'],
+    isActive: false,
+    items: []
+  },
+  {
     title: 'Accounts',
     url: '/dashboard/accounts',
     icon: 'billing',

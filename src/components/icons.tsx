@@ -10,6 +10,7 @@ import {
   IconFileText,
   IconHelpCircle,
   IconPhoto,
+  IconDroplet,
   IconDeviceLaptop,
   IconLayoutDashboard,
   IconLoader2,
@@ -66,7 +67,8 @@ export const Icons = {
   laptop: IconDeviceLaptop,
   github: IconBrandGithub,
   twitter: IconBrandTwitter,
-  check: IconCheck
+  check: IconCheck,
+  oil: IconDroplet
 } as const;
 
 // 🔑 Keys für Nav-Config exportieren

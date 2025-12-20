@@ -30,7 +30,8 @@ export async function ensureUserRoleRow(userId: string) {
         role: 'employee' as Role,
         // Standard: noch nicht freigeschaltet, Admin muss freigeben
         approved: false,
-        banned: true
+        // Neue Accounts sind nicht automatisch gesperrt
+        banned: false
       }
     ]);
 
