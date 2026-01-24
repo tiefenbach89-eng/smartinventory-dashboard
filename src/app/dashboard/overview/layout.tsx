@@ -218,15 +218,6 @@ export default function OverViewLayout({
                 <CardTitle className='text-3xl font-black tracking-tight'>
                   {kpi.value}
                 </CardTitle>
-                <CardAction>
-                  <Badge
-                    variant='outline'
-                    className='border-primary/20 bg-primary/5 text-primary flex items-center gap-1.5 rounded-xl border-2 px-3 py-1 font-bold shadow-sm'
-                  >
-                    {kpi.icon}
-                    {kpi.badge}
-                  </Badge>
-                </CardAction>
               </CardHeader>
               <CardFooter className='mt-4 flex-col items-start gap-2 border-t border-border/10 p-0 pt-4 text-sm'>
                 <div className='font-bold'>{kpi.desc}</div>
