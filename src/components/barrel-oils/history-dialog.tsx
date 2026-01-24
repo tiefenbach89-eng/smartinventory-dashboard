@@ -243,7 +243,7 @@ export function HistoryDialog({ open, onOpenChange, barrelId, barrelName }: Hist
               )}
 
               {entry.reason && (
-                <p className='text-foreground/70 mt-2 text-sm italic'>"{entry.reason}"</p>
+                <p className='text-foreground/70 mt-2 text-sm italic'>&ldquo;{entry.reason}&rdquo;</p>
               )}
 
               <p className='text-muted-foreground mt-1 text-xs'>
