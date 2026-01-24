@@ -3,11 +3,7 @@ import type { NextConfig } from 'next';
 import withNextIntl from 'next-intl/plugin';
 
 const config: NextConfig = {
-  experimental: {
-    // nur, damit du Webpack erzwingst – das ist okay
-    // @ts-expect-error
-    turbo: false
-  }
+  // Kein experimental.turbo mehr nötig
 };
 
 // ⬇️ Hier der wichtige Fix:
