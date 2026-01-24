@@ -169,8 +169,8 @@ export async function POST(req: Request) {
     if (createError) throw createError;
     if (!newUser.user) throw new Error('Failed to create user');
 
-    // Create user_roles entry
-    const { error: roleError } = await supabase.from('user_roles').insert({
+    // Create user_roles entry (use upsert to avoid duplicate key constraint errors)
+    const { error: roleError } = await supabase.from('user_roles').upsert({
       user_id: newUser.user.id,
       role: role || 'employee',
       approved: true, // Auto-approve manually created users
@@ -179,6 +179,8 @@ export async function POST(req: Request) {
       last_name,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
+    }, {
+      onConflict: 'user_id' // Use user_id as conflict resolution key
     });
 
     if (roleError) throw roleError;
