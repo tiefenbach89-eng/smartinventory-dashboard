@@ -511,7 +511,7 @@ export default function ProductListing({
                     {/* Action Buttons */}
                     <div className='mt-3 space-y-2'>
                       {/* Booking Buttons Row */}
-                      <div className='flex gap-1.5'>
+                      <div className='flex flex-col gap-1.5 lg:flex-row'>
                         {/* Einbuchen Button - Admin/Manager only */}
                         {canManageProducts && (
                           <Button

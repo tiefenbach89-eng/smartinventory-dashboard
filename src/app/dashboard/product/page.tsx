@@ -355,28 +355,6 @@ export default function ProductsPage() {
 
         {/* iOS-Style Action Buttons */}
         <div className='flex flex-wrap items-center gap-3'>
-          {/* Add Stock Button */}
-          <Button
-            variant='outline'
-            size='default'
-            onClick={() => setOpenAdd(true)}
-            className='group gap-2 rounded-xl border-2 bg-background px-4 py-2 font-bold transition-all duration-300 hover:scale-105 hover:border-primary/50 hover:bg-primary/10 hover:shadow-lg'
-          >
-            <SquarePlus className='h-4 w-4' />
-            Artikel einbuchen
-          </Button>
-
-          {/* Remove Stock Button */}
-          <Button
-            variant='outline'
-            size='default'
-            onClick={() => setOpenRemove(true)}
-            className='group gap-2 rounded-xl border-2 bg-background px-4 py-2 font-bold transition-all duration-300 hover:scale-105 hover:border-primary/50 hover:bg-primary/10 hover:shadow-lg'
-          >
-            <SquareMinus className='h-4 w-4' />
-            Artikel ausbuchen
-          </Button>
-
           {/* List Product Button – nur Admin/Manager */}
           {canManageProducts && (
             <Button

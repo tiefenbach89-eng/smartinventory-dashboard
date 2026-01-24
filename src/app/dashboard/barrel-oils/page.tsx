@@ -134,7 +134,7 @@ export default function BarrelOilsPage() {
   // Helper function: Get dynamic liquid label for buttons
   function getLiquidLabel(liquidType: LiquidType | null | undefined): string {
     if (!liquidType || liquidType === 'oil') return 'Öl';
-    if (liquidType === 'windshield_washer') return 'Wischwasser';
+    if (liquidType === 'windshield_washer') return 'Wasser';
     if (liquidType === 'distilled_water') return 'Wasser';
     return 'Öl';
   }
@@ -685,7 +685,7 @@ export default function BarrelOilsPage() {
 
                   {/* iOS-Style Action Buttons mit Rollen-Berechtigungen */}
                   <div className='mt-auto space-y-2'>
-                    <div className='flex gap-2'>
+                    <div className='flex flex-col gap-2 lg:flex-row'>
                       {/* Zubuchen Button - Admin und Manager */}
                       {(userRole === 'admin' || userRole === 'manager') && (
                         <Button
@@ -710,7 +710,7 @@ export default function BarrelOilsPage() {
                       </Button>
                     </div>
 
-                    <div className='flex gap-2'>
+                    <div className='flex flex-col gap-2 lg:flex-row'>
                       {/* Historie Button - Alle Rollen */}
                       <Button
                         size='sm'
