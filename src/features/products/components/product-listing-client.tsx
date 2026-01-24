@@ -66,7 +66,9 @@ import {
   Package,
   AlertTriangle,
   CheckCircle2,
-  ExternalLink
+  ExternalLink,
+  TrendingUp,
+  TrendingDown
 } from 'lucide-react';
 
 // 🌍 next-intl
@@ -98,6 +100,14 @@ export default function ProductListing({
   const [newImage, setNewImage] = useState<File | null>(null);
 
   const [deleteTarget, setDeleteTarget] = useState<any | null>(null);
+
+  // Booking state
+  const [bookingProduct, setBookingProduct] = useState<any | null>(null);
+  const [bookingAction, setBookingAction] = useState<'add' | 'remove'>('add');
+  const [bookingAmount, setBookingAmount] = useState<number>(0);
+  const [bookingComment, setBookingComment] = useState('');
+  const [bookingDeliveryNote, setBookingDeliveryNote] = useState('');
+  const [openBookingDialog, setOpenBookingDialog] = useState(false);
 
   // ----------------------------------------------------------------------------------------------------
   // LOAD PRODUCTS
@@ -222,6 +232,70 @@ export default function ProductListing({
   }
 
   // ----------------------------------------------------------------------------------------------------
+  // HANDLE BOOKING
+  // ----------------------------------------------------------------------------------------------------
+  function handleBooking(product: any, action: 'add' | 'remove') {
+    setBookingProduct(product);
+    setBookingAction(action);
+    setBookingAmount(0);
+    setBookingComment('');
+    setBookingDeliveryNote('');
+    setOpenBookingDialog(true);
+  }
+
+  async function saveBooking() {
+    if (!bookingProduct || bookingAmount <= 0) {
+      toast.error('Bitte gültige Menge eingeben');
+      return;
+    }
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      const userName = user?.email?.split('@')[0] || 'System';
+
+      const newStock = bookingAction === 'add'
+        ? bookingProduct.bestand + bookingAmount
+        : bookingProduct.bestand - bookingAmount;
+
+      if (newStock < 0) {
+        toast.error('Nicht genügend Bestand vorhanden');
+        return;
+      }
+
+      // Update stock
+      const { error: updateError } = await supabase
+        .from('artikel')
+        .update({ bestand: newStock })
+        .eq('artikelnummer', bookingProduct.artikelnummer);
+
+      if (updateError) throw updateError;
+
+      // Log transaction
+      const { error: logError } = await supabase
+        .from('artikel_log')
+        .insert({
+          artikelnummer: bookingProduct.artikelnummer,
+          aktion: bookingAction === 'add' ? 'Zugang' : 'Abgang',
+          menge_diff: bookingAction === 'add' ? bookingAmount : -bookingAmount,
+          benutzer: userName,
+          kommentar: bookingComment || null,
+          lieferscheinnr: bookingDeliveryNote || null
+        });
+
+      if (logError) throw logError;
+
+      toast.success(bookingAction === 'add' ? 'Eingebucht' : 'Ausgebucht');
+      setOpenBookingDialog(false);
+
+      // Reload products
+      const { data } = await supabase.from('artikel').select('*');
+      setProducts(data || []);
+    } catch (err: any) {
+      toast.error('Fehler bei der Buchung: ' + err.message);
+    }
+  }
+
+  // ----------------------------------------------------------------------------------------------------
   // LOAD LOGS
   // ----------------------------------------------------------------------------------------------------
   async function fetchLogs(articleNumber: string) {
@@ -307,7 +381,7 @@ export default function ProductListing({
             <Loader2 className='text-muted-foreground h-6 w-6 animate-spin' />
           </div>
         ) : (
-          <div className='grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5'>
+          <div className='grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5'>
             {filtered.map((p) => {
               const stockPercentage =
                 p.sollbestand > 0 ? (p.bestand / p.sollbestand) * 100 : 100;
@@ -435,7 +509,33 @@ export default function ProductListing({
                     </div>
 
                     {/* Action Buttons */}
-                    <div className='mt-3 flex flex-wrap gap-1.5'>
+                    <div className='mt-3 space-y-2'>
+                      {/* Booking Buttons Row */}
+                      <div className='flex gap-1.5'>
+                        {/* Einbuchen Button - Admin/Manager only */}
+                        {canManageProducts && (
+                          <Button
+                            size='sm'
+                            onClick={() => handleBooking(p, 'add')}
+                            className='flex-1 rounded-xl bg-gradient-to-r from-green-500/10 to-green-600/10 px-3 py-1.5 text-[11px] font-semibold text-green-600 shadow-sm transition-all duration-300 hover:scale-105 hover:from-green-500/20 hover:to-green-600/20 hover:shadow-md dark:text-green-400'
+                          >
+                            <TrendingUp className='mr-1 h-3.5 w-3.5' />
+                            Einbuchen
+                          </Button>
+                        )}
+                        {/* Ausbuchen Button - Always visible */}
+                        <Button
+                          size='sm'
+                          onClick={() => handleBooking(p, 'remove')}
+                          className='flex-1 rounded-xl bg-gradient-to-r from-orange-500/10 to-orange-600/10 px-3 py-1.5 text-[11px] font-semibold text-orange-600 shadow-sm transition-all duration-300 hover:scale-105 hover:from-orange-500/20 hover:to-orange-600/20 hover:shadow-md dark:text-orange-400'
+                        >
+                          <TrendingDown className='mr-1 h-3.5 w-3.5' />
+                          Ausbuchen
+                        </Button>
+                      </div>
+
+                      {/* Management Buttons Row */}
+                      <div className='flex flex-wrap gap-1.5'>
                       {/* History Button - Always visible */}
                       <Button
                         size='sm'
@@ -493,6 +593,7 @@ export default function ProductListing({
                           </AlertDialogContent>
                         </AlertDialog>
                       )}
+                      </div>
                     </div>
                   </div>
                 </Card>
@@ -706,6 +807,98 @@ export default function ProductListing({
               alt='preview'
               className='h-auto w-full rounded-xl object-contain'
             />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* BOOKING DIALOG */}
+      <Dialog open={openBookingDialog} onOpenChange={() => setOpenBookingDialog(false)}>
+        <DialogContent className='max-w-md'>
+          <DialogHeader>
+            <DialogTitle>
+              {bookingAction === 'add' ? 'Artikel einbuchen' : 'Artikel ausbuchen'}
+            </DialogTitle>
+            <DialogDescription>
+              {bookingProduct?.artikelbezeichnung} (#{bookingProduct?.artikelnummer})
+            </DialogDescription>
+          </DialogHeader>
+
+          {bookingProduct && (
+            <div className='space-y-4'>
+              {/* Current Stock */}
+              <div className='bg-muted/50 rounded-lg p-3'>
+                <div className='text-muted-foreground text-sm'>Aktueller Bestand</div>
+                <div className='text-2xl font-bold'>{bookingProduct.bestand} Stück</div>
+              </div>
+
+              {/* Amount */}
+              <div>
+                <label className='text-sm font-medium'>Menge</label>
+                <Input
+                  type='number'
+                  min='1'
+                  value={bookingAmount || ''}
+                  onChange={(e) => setBookingAmount(Number(e.target.value))}
+                  placeholder='Anzahl eingeben'
+                />
+              </div>
+
+              {/* Delivery Note (only for add) */}
+              {bookingAction === 'add' && (
+                <div>
+                  <label className='text-sm font-medium'>Lieferschein-Nr.</label>
+                  <Input
+                    value={bookingDeliveryNote}
+                    onChange={(e) => setBookingDeliveryNote(e.target.value)}
+                    placeholder='Optional'
+                  />
+                </div>
+              )}
+
+              {/* Comment */}
+              <div>
+                <label className='text-sm font-medium'>Kommentar</label>
+                <Input
+                  value={bookingComment}
+                  onChange={(e) => setBookingComment(e.target.value)}
+                  placeholder='Optional'
+                />
+              </div>
+
+              {/* New Stock Preview */}
+              {bookingAmount > 0 && (
+                <div className='bg-muted/50 rounded-lg p-3'>
+                  <div className='text-muted-foreground text-sm'>Neuer Bestand</div>
+                  <div className={`text-2xl font-bold ${
+                    bookingAction === 'add' ? 'text-green-600' : 'text-orange-600'
+                  }`}>
+                    {bookingAction === 'add'
+                      ? bookingProduct.bestand + bookingAmount
+                      : bookingProduct.bestand - bookingAmount} Stück
+                  </div>
+                </div>
+              )}
+
+              {/* Buttons */}
+              <div className='flex justify-end gap-2'>
+                <Button
+                  variant='outline'
+                  onClick={() => setOpenBookingDialog(false)}
+                >
+                  Abbrechen
+                </Button>
+                <Button
+                  onClick={saveBooking}
+                  className={
+                    bookingAction === 'add'
+                      ? 'bg-green-600 hover:bg-green-700'
+                      : 'bg-orange-600 hover:bg-orange-700'
+                  }
+                >
+                  {bookingAction === 'add' ? 'Einbuchen' : 'Ausbuchen'}
+                </Button>
+              </div>
+            </div>
           )}
         </DialogContent>
       </Dialog>

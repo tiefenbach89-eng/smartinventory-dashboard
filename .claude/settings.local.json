@@ -25,7 +25,11 @@
       "Bash(git branch:*)",
       "Bash(gh api:*)",
       "Bash(npm install:*)",
-      "Bash(npm view:*)"
+      "Bash(npm view:*)",
+      "Bash(npx vercel:*)",
+      "Bash(gh repo view:*)",
+      "Bash(curl:*)",
+      "Bash(grep:*)"
     ]
   }
 }
