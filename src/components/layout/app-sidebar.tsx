@@ -172,10 +172,24 @@ export default function AppSidebar() {
                     <SidebarMenuButton
                       tooltip={item.label}
                       isActive={isActive}
-                      className={buttonClass}
+                      className={cn(
+                        'group relative flex h-12 w-12 items-center justify-center rounded-xl',
+                        'backdrop-blur-sm transition-all duration-300 ease-out',
+                        'hover:scale-[1.05] active:scale-[0.95]',
+                        !isActive && [
+                          'bg-transparent',
+                          'text-muted-foreground hover:text-foreground',
+                        ],
+                        isActive && [
+                          'bg-gradient-to-br from-primary via-primary/90 to-primary/80',
+                          'text-primary-foreground',
+                          'shadow-lg shadow-primary/30',
+                          'ring-2 ring-primary/50',
+                        ]
+                      )}
                       onClick={() => router.push(item.url)}
                     >
-                      <IconComponent className='h-5 w-5 transition-transform duration-300 group-hover:scale-110' />
+                      <IconComponent className='h-6 w-6 transition-transform duration-300 group-hover:scale-110' />
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 );
@@ -191,29 +205,43 @@ export default function AppSidebar() {
                       asChild
                       tooltip={item.label}
                       isActive={isActive}
-                      className={buttonClass}
+                      className={cn(
+                        buttonClass,
+                        // Icon-only Mode: simplified button
+                        !open && 'bg-transparent p-0 shadow-none ring-0',
+                        !open && isActive && [
+                          'bg-gradient-to-br from-primary via-primary/90 to-primary/80',
+                          'shadow-lg shadow-primary/30 ring-2 ring-primary/50'
+                        ]
+                      )}
                     >
                       <button
                         type='button'
-                        className='flex w-full items-center'
+                        className={cn('flex items-center', open ? 'w-full' : 'h-12 w-12 justify-center rounded-xl')}
                         onClick={() => toggle(item.key)}
                       >
-                        <div className={cn(
-                          'flex h-9 w-9 items-center justify-center rounded-xl transition-all duration-300',
-                          isActive
-                            ? 'bg-white/20 shadow-inner'
-                            : 'bg-background/40 group-hover:bg-background/60'
-                        )}>
-                          <IconComponent className='h-5 w-5 transition-transform duration-300 group-hover:scale-110' />
-                        </div>
-                        <span className='truncate font-semibold'>{item.label}</span>
-                        <Icons.chevronRight
-                          className={cn(
-                            'ml-auto h-4 w-4 transition-all duration-300',
-                            isOpen && 'rotate-90',
-                            isActive ? 'opacity-80' : 'opacity-50 group-hover:opacity-100'
-                          )}
-                        />
+                        {open ? (
+                          <>
+                            <div className={cn(
+                              'flex h-9 w-9 items-center justify-center rounded-xl transition-all duration-300',
+                              isActive
+                                ? 'bg-white/20 shadow-inner'
+                                : 'bg-background/40 group-hover:bg-background/60'
+                            )}>
+                              <IconComponent className='h-5 w-5 transition-transform duration-300 group-hover:scale-110' />
+                            </div>
+                            <span className='truncate font-semibold'>{item.label}</span>
+                            <Icons.chevronRight
+                              className={cn(
+                                'ml-auto h-4 w-4 transition-all duration-300',
+                                isOpen && 'rotate-90',
+                                isActive ? 'opacity-80' : 'opacity-50 group-hover:opacity-100'
+                              )}
+                            />
+                          </>
+                        ) : (
+                          <IconComponent className='h-6 w-6 transition-transform duration-300 group-hover:scale-110' />
+                        )}
                       </button>
                     </SidebarMenuButton>
 
@@ -266,18 +294,32 @@ export default function AppSidebar() {
                     asChild
                     tooltip={item.label}
                     isActive={isActive}
-                    className={buttonClass}
+                    className={cn(
+                      buttonClass,
+                      // Icon-only Mode: remove inner icon box background
+                      !open && 'bg-transparent p-0 shadow-none ring-0',
+                      !open && isActive && [
+                        'bg-gradient-to-br from-primary via-primary/90 to-primary/80',
+                        'shadow-lg shadow-primary/30 ring-2 ring-primary/50'
+                      ]
+                    )}
                   >
-                    <Link href={item.url}>
-                      <div className={cn(
-                        'flex h-9 w-9 items-center justify-center rounded-xl transition-all duration-300',
-                        isActive
-                          ? 'bg-white/20 shadow-inner'
-                          : 'bg-background/40 group-hover:bg-background/60'
-                      )}>
-                        <IconComponent className='h-5 w-5 transition-transform duration-300 group-hover:scale-110' />
-                      </div>
-                      <span className='truncate font-semibold'>{item.label}</span>
+                    <Link href={item.url} className={cn('flex items-center gap-3', !open && 'h-12 w-12 justify-center rounded-xl')}>
+                      {open ? (
+                        <>
+                          <div className={cn(
+                            'flex h-9 w-9 items-center justify-center rounded-xl transition-all duration-300',
+                            isActive
+                              ? 'bg-white/20 shadow-inner'
+                              : 'bg-background/40 group-hover:bg-background/60'
+                          )}>
+                            <IconComponent className='h-5 w-5 transition-transform duration-300 group-hover:scale-110' />
+                          </div>
+                          <span className='truncate font-semibold'>{item.label}</span>
+                        </>
+                      ) : (
+                        <IconComponent className='h-6 w-6 transition-transform duration-300 group-hover:scale-110' />
+                      )}
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
