@@ -14,16 +14,10 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // Sidebar: collapsed on tablets, expanded only on desktop xl+
-  const [sidebarOpen, setSidebarOpen] = React.useState(() => {
-    if (typeof window === 'undefined') return false;
-    return window.innerWidth >= 1280; // xl+ = expanded, otherwise collapsed
-  });
-
   return (
-    <SidebarProvider defaultOpen={sidebarOpen} onOpenChange={setSidebarOpen}>
-      {/* Tablet & Desktop: Sidebar (hidden only on phones < md) */}
-      <div className='hidden md:block'>
+    <SidebarProvider defaultOpen={false}>
+      {/* Desktop only: Sidebar (hidden on tablets and phones) */}
+      <div className='hidden lg:block'>
         <AppSidebar />
       </div>
 
@@ -37,8 +31,8 @@ export default function DashboardLayout({
         {/* Main Content */}
         {children}
 
-        {/* Mobile only: Bottom Tab Bar (hidden on tablets md+ that have sidebar) */}
-        <div className='md:hidden'>
+        {/* Tablets & Mobile: Bottom Tab Bar (hidden on desktop) */}
+        <div className='lg:hidden'>
           <BottomTabBar />
         </div>
       </SidebarInset>
