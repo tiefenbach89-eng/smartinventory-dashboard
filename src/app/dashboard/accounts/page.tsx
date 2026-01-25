@@ -626,7 +626,7 @@ export default function AccountsPage() {
                             <Avatar className='h-12 w-12 shrink-0 rounded-xl shadow-inner'>
                               <AvatarImage
                                 src={(u.user_metadata as any)?.avatar_url || ''}
-                                alt={`${u.user_metadata?.first_name || ''} ${u.user_metadata?.last_name || ''}`.trim() || u.email}
+                                alt={`${u.user_metadata?.first_name || ''} ${u.user_metadata?.last_name || ''}`.trim() || u.email || 'User'}
                                 className='rounded-xl'
                               />
                               <AvatarFallback className='rounded-xl bg-primary/10 text-primary font-bold'>
