@@ -130,13 +130,22 @@ export function HistoryDialog({ open, onOpenChange, barrelId, barrelName }: Hist
         })
         .eq('id', editingEntry.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Edit history error:', error);
+        throw error;
+      }
 
-      toast.success(tCommon('saved'));
+      toast.success('Eintrag erfolgreich gespeichert');
       setEditingEntry(null);
       loadHistory();
     } catch (error: any) {
-      toast.error(tCommon('error') + ': ' + error.message);
+      console.error('❌ Save edit error:', error);
+      const errorMsg = error.message?.includes('permission')
+        ? 'Keine Berechtigung zum Bearbeiten'
+        : error.message?.includes('policy')
+        ? 'Zugriff verweigert - fehlende Berechtigungen'
+        : 'Fehler beim Speichern: ' + (error.message || 'Unbekannter Fehler');
+      toast.error(errorMsg);
     }
   }
 
@@ -149,13 +158,22 @@ export function HistoryDialog({ open, onOpenChange, barrelId, barrelName }: Hist
         .delete()
         .eq('id', deleteTarget.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Delete history error:', error);
+        throw error;
+      }
 
-      toast.success(tCommon('deleted'));
+      toast.success('Eintrag erfolgreich gelöscht');
       setDeleteTarget(null);
       loadHistory();
     } catch (error: any) {
-      toast.error(tCommon('error') + ': ' + error.message);
+      console.error('❌ Delete error:', error);
+      const errorMsg = error.message?.includes('permission')
+        ? 'Keine Berechtigung zum Löschen'
+        : error.message?.includes('policy')
+        ? 'Zugriff verweigert - fehlende Berechtigungen'
+        : 'Fehler beim Löschen: ' + (error.message || 'Unbekannter Fehler');
+      toast.error(errorMsg);
     }
   }
 

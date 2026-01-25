@@ -17,6 +17,7 @@ import {
   Unlock,
   Loader2
 } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import PageContainer from '@/components/layout/page-container';
@@ -622,9 +623,17 @@ export default function AccountsPage() {
 
                           {/* User Avatar & Name */}
                           <div className='mb-4 flex items-start gap-3'>
-                            <div className='flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary shadow-inner backdrop-blur-sm'>
-                              <UserRound className='h-6 w-6' />
-                            </div>
+                            <Avatar className='h-12 w-12 shrink-0 rounded-xl shadow-inner'>
+                              <AvatarImage
+                                src={u.user_metadata?.avatar_url || ''}
+                                alt={`${u.user_metadata?.first_name || ''} ${u.user_metadata?.last_name || ''}`.trim() || u.email}
+                                className='rounded-xl'
+                              />
+                              <AvatarFallback className='rounded-xl bg-primary/10 text-primary font-bold'>
+                                {(u.user_metadata?.first_name?.[0] || u.email?.[0] || 'U').toUpperCase()}
+                                {(u.user_metadata?.last_name?.[0] || '').toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
                             <div className='flex-1 overflow-hidden'>
                               <div className='truncate font-bold'>
                                 {u.user_metadata?.first_name}{' '}

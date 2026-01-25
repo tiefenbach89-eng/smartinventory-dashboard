@@ -65,7 +65,7 @@ export function BarGraph() {
       try {
         const { data: logs, error: logError } = await supabase
           .from('artikel_log')
-          .select('timestamp, aktion, menge_diff')
+          .select('timestamp, aktion, menge_diff, artikelname, artikelnummer')
           .order('timestamp', { ascending: true });
 
         if (logError) throw logError;
@@ -83,23 +83,43 @@ export function BarGraph() {
         );
         const lowCount = lowStock.length;
 
-        const grouped: Record<string, { added: number; removed: number }> = {};
+        const grouped: Record<string, {
+          added: number;
+          removed: number;
+          addedItems: { name: string; qty: number }[];
+          removedItems: { name: string; qty: number }[];
+        }> = {};
 
         logs.forEach((entry) => {
           const d = new Date(entry.timestamp);
           const key = d.toISOString().split('T')[0];
-          if (!grouped[key]) grouped[key] = { added: 0, removed: 0 };
+          if (!grouped[key]) {
+            grouped[key] = {
+              added: 0,
+              removed: 0,
+              addedItems: [],
+              removedItems: []
+            };
+          }
 
-          if (['zubuchung', 'addition', 'added'].includes(entry.aktion))
-            grouped[key].added += Math.abs(entry.menge_diff || 0);
-          else if (['ausbuchung', 'removal', 'removed'].includes(entry.aktion))
-            grouped[key].removed += Math.abs(entry.menge_diff || 0);
+          const itemName = entry.artikelname || entry.artikelnummer || 'Unbekannt';
+          const qty = Math.abs(entry.menge_diff || 0);
+
+          if (['zubuchung', 'addition', 'added'].includes(entry.aktion)) {
+            grouped[key].added += qty;
+            grouped[key].addedItems.push({ name: itemName, qty });
+          } else if (['ausbuchung', 'removal', 'removed'].includes(entry.aktion)) {
+            grouped[key].removed += qty;
+            grouped[key].removedItems.push({ name: itemName, qty });
+          }
         });
 
         const formatted = Object.entries(grouped).map(([date, values]) => ({
           date,
           added: values.added,
-          removed: values.removed
+          removed: values.removed,
+          addedItems: values.addedItems,
+          removedItems: values.removedItems
         }));
 
         setChartData(formatted);
@@ -139,14 +159,13 @@ export function BarGraph() {
 
           {/* Tabs oben */}
           <div className='flex'>
-            {(['added', 'removed', 'lowstock'] as const).map((key) => (
+            {(['added', 'removed'] as const).map((key) => (
               <button
                 key={key}
                 data-active={activeChart === key}
                 className='data-[active=true]:bg-primary/10 data-[active=true]:shadow-inner hover:bg-primary/5 relative flex flex-1 flex-col justify-center gap-1.5 border-t border-border/10 px-6 py-4 text-left transition-all duration-300 even:border-l sm:border-t-0 sm:border-l sm:px-8 sm:py-6'
                 onClick={() => {
                   setActiveChart(key);
-                  if (key === 'lowstock') setOpen(true);
                 }}
               >
                 <span className='text-muted-foreground text-xs font-semibold uppercase tracking-wider'>
@@ -194,31 +213,61 @@ export function BarGraph() {
 
               <ChartTooltip
                 cursor={{ fill: 'var(--primary)', opacity: 0.1 }}
-                content={
-                  <ChartTooltipContent
-                    className='w-[150px]'
-                    nameKey={activeChart}
-                    labelFormatter={(value) => {
-                      const date = new Date(value);
-                      return t('dateLong', {
-                        date: date.toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
-                          year: 'numeric'
-                        })
-                      });
-                    }}
-                  />
-                }
+                content={({ active, payload }) => {
+                  if (!active || !payload?.length) return null;
+
+                  const date = new Date(payload[0].payload.date);
+                  const dateStr = date.toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric'
+                  });
+
+                  const value = payload[0].value;
+                  const items = activeChart === 'added'
+                    ? payload[0].payload.addedItems || []
+                    : payload[0].payload.removedItems || [];
+
+                  return (
+                    <div className='bg-background/95 border-border/40 rounded-2xl border px-4 py-3 shadow-lg backdrop-blur-md min-w-[200px]'>
+                      <div className='text-primary mb-2 font-semibold text-sm'>
+                        {t('dateLong', { date: dateStr })}
+                      </div>
+                      <div className='text-foreground mb-2 text-sm font-bold'>
+                        {activeChart === 'added' ? t('barAdded') : t('barRemoved')}: {value}
+                      </div>
+                      {items.length > 0 && (
+                        <div className='border-border/20 border-t pt-2 mt-2'>
+                          <div className='text-muted-foreground text-xs font-semibold mb-1'>
+                            Artikel:
+                          </div>
+                          <div className='space-y-1 max-h-[200px] overflow-y-auto'>
+                            {items.slice(0, 10).map((item: any, idx: number) => (
+                              <div key={idx} className='text-xs flex justify-between gap-2'>
+                                <span className='truncate'>{item.name}</span>
+                                <span className='font-semibold text-primary'>
+                                  {item.qty}
+                                </span>
+                              </div>
+                            ))}
+                            {items.length > 10 && (
+                              <div className='text-muted-foreground text-xs italic mt-1'>
+                                +{items.length - 10} weitere...
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                }}
               />
 
-              {activeChart !== 'lowstock' && (
-                <Bar
-                  dataKey={activeChart}
-                  fill='url(#fillBar)'
-                  radius={[4, 4, 0, 0]}
-                />
-              )}
+              <Bar
+                dataKey={activeChart}
+                fill='url(#fillBar)'
+                radius={[4, 4, 0, 0]}
+              />
             </BarChart>
           </ChartContainer>
         </CardContent>
