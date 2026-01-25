@@ -16,6 +16,33 @@ export function CanisterVisual({
   const fillPercentage = Math.min(100, (currentLevel / maxCapacity) * 100);
 
   const getFillColors = () => {
+    // Warnung bei niedrigem Füllstand (< 30% wie bei Öl)
+    if (fillPercentage < 10) {
+      return {
+        light: '#fca5a5',
+        primary: '#ef4444',
+        dark: '#dc2626',
+        glow: 'rgba(239, 68, 68, 0.4)'
+      };
+    }
+    if (fillPercentage < 20) {
+      return {
+        light: '#fdba74',
+        primary: '#f97316',
+        dark: '#ea580c',
+        glow: 'rgba(249, 115, 22, 0.4)'
+      };
+    }
+    if (fillPercentage < 30) {
+      return {
+        light: '#fcd34d',
+        primary: '#f59e0b',
+        dark: '#d97706',
+        glow: 'rgba(245, 158, 11, 0.4)'
+      };
+    }
+
+    // Normale Farben ab 30%
     if (liquidType === 'windshield_washer') {
       return {
         light: '#60a5fa',

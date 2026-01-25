@@ -123,6 +123,11 @@ export default function AccountsPage() {
   const [newUserLastName, setNewUserLastName] = useState('');
   const [newUserRole, setNewUserRole] = useState<RoleKey>('employee');
 
+  // Password reset state
+  const [resetPasswordDialog, setResetPasswordDialog] = useState(false);
+  const [resetPasswordUser, setResetPasswordUser] = useState<UIUser | null>(null);
+  const [newPassword, setNewPassword] = useState('');
+
   const { permissions, loading: loadingPerms } = useRolePermissions();
 
   const canAccessAdmin = permissions.can_access_admin_panel;
@@ -446,6 +451,52 @@ export default function AccountsPage() {
     );
   }
 
+  async function resetPassword() {
+    if (!isAdmin || !resetPasswordUser) return;
+
+    if (!newPassword || newPassword.length < 6) {
+      return toast.error('Passwort muss mindestens 6 Zeichen lang sein');
+    }
+
+    toast.promise(
+      (async () => {
+        const supabase = createClient();
+        const {
+          data: { session }
+        } = await supabase.auth.getSession();
+        if (!session) throw new Error('Keine Sitzung gefunden');
+
+        const res = await fetch('/api/admin/reset-password', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session.access_token}`
+          },
+          body: JSON.stringify({
+            user_id: resetPasswordUser.id,
+            new_password: newPassword
+          })
+        });
+
+        const json = await res.json();
+        if (!res.ok || json.error) {
+          throw new Error(json.error || 'Passwort konnte nicht geändert werden');
+        }
+
+        setNewPassword('');
+        setResetPasswordDialog(false);
+        setResetPasswordUser(null);
+
+        return 'Passwort erfolgreich geändert';
+      })(),
+      {
+        loading: 'Passwort wird geändert...',
+        success: (m) => m,
+        error: (e) => String(e)
+      }
+    );
+  }
+
   // ---------------------------------------------------------------------------
   // 🔹 ACCESS CHECK
   // ---------------------------------------------------------------------------
@@ -524,10 +575,10 @@ export default function AccountsPage() {
           {/* Create User Button - Only for Admin */}
           {isAdmin && activeTab === 'users' && (
             <Button
-              variant='default'
+              variant='outline'
               size='default'
               onClick={() => setCreateUserDialog(true)}
-              className='gap-2 rounded-xl bg-primary px-4 py-2 font-bold transition-all duration-300 hover:scale-105 hover:shadow-lg'
+              className='group gap-2 rounded-xl border-2 bg-background px-4 py-2 font-bold transition-all duration-300 hover:scale-105 hover:border-primary/50 hover:bg-primary/10 hover:shadow-lg'
             >
               <UserRound className='h-4 w-4' />
               Benutzer erstellen
@@ -738,6 +789,20 @@ export default function AccountsPage() {
                                     {t('btnApprove')}
                                   </>
                                 )}
+                              </Button>
+                            )}
+
+                            {isAdmin && (
+                              <Button
+                                size='sm'
+                                onClick={() => {
+                                  setResetPasswordUser(u);
+                                  setResetPasswordDialog(true);
+                                }}
+                                className='border-border/30 text-foreground bg-muted/70 hover:bg-muted/90 flex-1 relative h-9 min-h-[44px] rounded-xl border px-3 text-xs font-semibold transition-all duration-200 hover:text-blue-500 hover:shadow-[0_0_10px_-2px_rgba(59,130,246,0.5)]'
+                              >
+                                <Lock className='mr-1 h-4 w-4' />
+                                Passwort ändern
                               </Button>
                             )}
 
@@ -960,6 +1025,47 @@ export default function AccountsPage() {
                 </Button>
                 <Button onClick={createUser}>
                   Benutzer erstellen
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Reset Password Dialog */}
+        <Dialog open={resetPasswordDialog} onOpenChange={setResetPasswordDialog}>
+          <DialogContent className='sm:max-w-md'>
+            <DialogHeader>
+              <DialogTitle>Passwort ändern</DialogTitle>
+              <DialogDescription>
+                Neues Passwort für {resetPasswordUser?.user_metadata?.first_name} {resetPasswordUser?.user_metadata?.last_name} ({resetPasswordUser?.email})
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className='space-y-4'>
+              <div>
+                <label className='mb-1 block text-sm font-medium'>Neues Passwort</label>
+                <Input
+                  type='password'
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder='Mindestens 6 Zeichen'
+                  autoComplete='new-password'
+                />
+              </div>
+
+              <div className='flex justify-end gap-2 pt-4'>
+                <Button
+                  variant='outline'
+                  onClick={() => {
+                    setResetPasswordDialog(false);
+                    setNewPassword('');
+                    setResetPasswordUser(null);
+                  }}
+                >
+                  Abbrechen
+                </Button>
+                <Button onClick={resetPassword}>
+                  Passwort ändern
                 </Button>
               </div>
             </div>
