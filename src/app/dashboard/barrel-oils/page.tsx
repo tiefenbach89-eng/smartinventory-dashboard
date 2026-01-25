@@ -335,7 +335,8 @@ export default function BarrelOilsPage() {
         return;
       }
 
-      if (!adjustPrice || adjustPrice <= 0) {
+      // Preis nur bei Zugang erforderlich
+      if (adjustAction === 'add' && (!adjustPrice || adjustPrice <= 0)) {
         toast.error(t('errorAdjustPrice'));
         setLoading(false);
         return;
@@ -370,7 +371,7 @@ export default function BarrelOilsPage() {
         ? `${user.user_metadata.first_name} ${user.user_metadata.last_name}`.trim()
         : user?.email || 'System';
 
-      const totalCost = adjustAmount * adjustPrice;
+      const totalCost = adjustAction === 'add' ? adjustAmount * adjustPrice : 0;
 
       const { error: historyError } = await supabase
         .from('barrel_oil_history')
@@ -380,8 +381,8 @@ export default function BarrelOilsPage() {
           amount: adjustAmount,
           old_level: adjustingBarrel.current_level,
           new_level: newLevel,
-          unit_price: adjustPrice,
-          total_cost: totalCost,
+          unit_price: adjustAction === 'add' ? adjustPrice : null,
+          total_cost: adjustAction === 'add' ? totalCost : null,
           reason: adjustReason || null,
           user_name: userName,
           user_id: user?.id
@@ -1064,23 +1065,28 @@ export default function BarrelOilsPage() {
                 />
               </div>
 
-              <div>
-                <label className='mb-1 block text-sm font-medium'>{t('pricePerLiterCurrent')}</label>
-                <Input
-                  type='number'
-                  step='0.0001'
-                  value={adjustPrice}
-                  onChange={(e) => setAdjustPrice(parseFloat(e.target.value) || 0)}
-                  placeholder='0.00'
-                />
-              </div>
+              {/* Preis nur bei Zugang anzeigen */}
+              {adjustAction === 'add' && (
+                <>
+                  <div>
+                    <label className='mb-1 block text-sm font-medium'>{t('pricePerLiterCurrent')}</label>
+                    <Input
+                      type='number'
+                      step='0.0001'
+                      value={adjustPrice}
+                      onChange={(e) => setAdjustPrice(parseFloat(e.target.value) || 0)}
+                      placeholder='0.00'
+                    />
+                  </div>
 
-              {adjustAmount > 0 && adjustPrice > 0 && (
-                <div className='bg-muted rounded-lg p-3'>
-                  <p className='text-sm font-medium'>
-                    {t('totalCost')}: {(adjustAmount * adjustPrice).toFixed(2)} €
-                  </p>
-                </div>
+                  {adjustAmount > 0 && adjustPrice > 0 && (
+                    <div className='bg-muted rounded-lg p-3'>
+                      <p className='text-sm font-medium'>
+                        {t('totalCost')}: {(adjustAmount * adjustPrice).toFixed(2)} €
+                      </p>
+                    </div>
+                  )}
+                </>
               )}
 
               <div>

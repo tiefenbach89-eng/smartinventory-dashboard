@@ -21,15 +21,26 @@ type LowLiquid = {
   fill_percentage: number;
 };
 
+type LowProduct = {
+  artikelnummer: string;
+  artikelbezeichnung: string;
+  bestand: number;
+  sollbestand: number;
+  lieferant: string | null;
+  fill_percentage: number;
+};
+
 export function LiquidWarnings() {
   const t = useTranslations('overview');
   const router = useRouter();
   const [lowLiquids, setLowLiquids] = React.useState<LowLiquid[]>([]);
+  const [lowProducts, setLowProducts] = React.useState<LowProduct[]>([]);
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
     console.log('🚀 [LiquidWarnings] Komponente geladen, starte Datenabfrage...');
     loadLowLiquids();
+    loadLowProducts();
   }, []);
 
   async function loadLowLiquids() {
@@ -66,6 +77,33 @@ export function LiquidWarnings() {
     }
   }
 
+  async function loadLowProducts() {
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from('artikel')
+        .select('artikelnummer, artikelbezeichnung, bestand, sollbestand, lieferant')
+        .gt('sollbestand', 0)
+        .order('bestand', { ascending: true });
+
+      if (error) throw error;
+
+      if (data) {
+        // Filtere Produkte mit Bestand <= Sollbestand
+        const lowStock = data
+          .filter((item) => item.bestand <= item.sollbestand)
+          .map((item) => ({
+            ...item,
+            fill_percentage: (item.bestand / item.sollbestand) * 100
+          }));
+
+        setLowProducts(lowStock);
+      }
+    } catch (error) {
+      console.error('❌ Fehler beim Laden der Produkte:', error);
+    }
+  }
+
   function getLiquidLabel(liquidType: string): string {
     if (liquidType === 'windshield_washer') return 'Wischwasser';
     if (liquidType === 'distilled_water') return 'Destilliertes Wasser';
@@ -88,11 +126,103 @@ export function LiquidWarnings() {
     return null; // Kein Ladeindikator, um Flackern zu vermeiden
   }
 
-  if (lowLiquids.length === 0) {
+  if (lowLiquids.length === 0 && lowProducts.length === 0) {
     return null; // Keine Anzeige wenn alles OK ist
   }
 
   return (
+    <>
+    {/* Niedrige Produktbestände */}
+    {lowProducts.length > 0 && (
+      <Card className='group relative overflow-hidden rounded-3xl border-0 bg-gradient-to-br from-background via-background to-secondary/20 shadow-xl backdrop-blur-xl transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl'>
+        <div className='absolute inset-0 -z-10 opacity-[0.02]'>
+          <div className='absolute inset-0 bg-grid-white [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.5))]' />
+        </div>
+        <div className='absolute inset-0 -z-10 opacity-0 transition-opacity duration-500 group-hover:opacity-100'>
+          <div className='absolute inset-0 bg-gradient-to-br from-red-500/10 via-orange-500/5 to-amber-500/10' />
+        </div>
+
+        <CardHeader className='space-y-3 p-6'>
+          <div className='flex items-center justify-between'>
+            <CardTitle className='flex items-center gap-2 text-xl font-black'>
+              <div className='flex h-10 w-10 items-center justify-center rounded-xl bg-red-500/10 text-red-500 shadow-inner backdrop-blur-sm'>
+                <IconAlertTriangle className='h-5 w-5' />
+              </div>
+              Niedrige Produktbestände
+            </CardTitle>
+          </div>
+          <CardDescription className='text-sm font-semibold'>
+            {lowProducts.length} {lowProducts.length === 1 ? 'Produkt' : 'Produkte'} unter Mindestbestand - Nachbestellung empfohlen
+          </CardDescription>
+        </CardHeader>
+        <CardContent className='space-y-3 px-6 pb-6'>
+          {lowProducts.slice(0, 5).map((product) => (
+            <div
+              key={product.artikelnummer}
+              className='relative overflow-hidden rounded-2xl border border-border/20 bg-gradient-to-br from-background/50 to-secondary/10 p-4 backdrop-blur-sm transition-all duration-300 hover:scale-[1.01] hover:border-border/40 hover:shadow-lg'
+            >
+              <div className='flex items-start gap-3'>
+                <div className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-xl shadow-sm',
+                  product.fill_percentage < 33 && 'bg-red-500/10 text-red-500',
+                  product.fill_percentage >= 33 && product.fill_percentage < 66 && 'bg-orange-500/10 text-orange-500',
+                  product.fill_percentage >= 66 && 'bg-amber-500/10 text-amber-500'
+                )}>
+                  <IconAlertTriangle className='h-5 w-5' />
+                </div>
+                <div className='flex-1 space-y-2'>
+                  <div className='font-bold'>
+                    {product.artikelbezeichnung}
+                    <span className='text-muted-foreground ml-2 text-sm font-medium'>
+                      #{product.artikelnummer}
+                    </span>
+                  </div>
+                  <div className='flex flex-wrap items-center gap-2 text-xs'>
+                    {product.lieferant && (
+                      <span className='rounded-lg bg-primary/10 px-2 py-1 font-medium'>
+                        {product.lieferant}
+                      </span>
+                    )}
+                    <span className={cn('font-bold',
+                      product.fill_percentage < 33 && 'text-red-500',
+                      product.fill_percentage >= 33 && product.fill_percentage < 66 && 'text-orange-500',
+                      product.fill_percentage >= 66 && 'text-amber-500'
+                    )}>
+                      {product.fill_percentage.toFixed(0)}%
+                    </span>
+                    <span className='text-muted-foreground'>
+                      {product.bestand} / {product.sollbestand} Stück
+                    </span>
+                  </div>
+                  <div className='h-2 w-full overflow-hidden rounded-full bg-background/60'>
+                    <div
+                      className={cn(
+                        'h-full transition-all duration-500',
+                        product.fill_percentage < 33 && 'bg-gradient-to-r from-red-500 to-red-600',
+                        product.fill_percentage >= 33 && product.fill_percentage < 66 && 'bg-gradient-to-r from-orange-500 to-orange-600',
+                        product.fill_percentage >= 66 && 'bg-gradient-to-r from-amber-500 to-amber-600'
+                      )}
+                      style={{ width: `${Math.min(product.fill_percentage, 100)}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+          {lowProducts.length > 5 && (
+            <Button
+              variant='ghost'
+              className='w-full rounded-xl font-semibold'
+              onClick={() => router.push('/dashboard/product')}
+            >
+              Alle Produkte anzeigen →
+            </Button>
+          )}
+        </CardContent>
+      </Card>
+    )}
+
+    {/* Niedrige Flüssigkeitsstände */}
+    {lowLiquids.length > 0 && (
     <Card className='group relative overflow-hidden rounded-3xl border-0 bg-gradient-to-br from-background via-background to-secondary/20 shadow-xl backdrop-blur-xl transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl'>
       {/* Subtle Pattern */}
       <div className='absolute inset-0 -z-10 opacity-[0.02]'>
@@ -169,14 +299,6 @@ export function LiquidWarnings() {
                   </div>
                 </div>
               </div>
-
-              <Button
-                size='sm'
-                onClick={() => router.push('/dashboard/barrel-oils')}
-                className='shrink-0 rounded-xl bg-primary/10 px-4 py-2 font-semibold text-primary transition-all duration-300 hover:scale-105 hover:bg-primary/20 hover:shadow-md'
-              >
-                Auffüllen
-              </Button>
             </div>
           </div>
         ))}
@@ -192,5 +314,7 @@ export function LiquidWarnings() {
         )}
       </CardContent>
     </Card>
+    )}
+    </>
   );
 }
