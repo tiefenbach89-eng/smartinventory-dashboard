@@ -46,6 +46,7 @@ export default function ProductsPage() {
   const tRemove = useTranslations('StockRemove');
 
   const canManageProducts = permissions?.can_manage_products;
+  const canDeleteProducts = permissions?.can_delete_products;
   const canStockInOut = permissions?.can_adjust_stock;
 
   const [mounted, setMounted] = useState(false);
@@ -373,7 +374,7 @@ export default function ProductsPage() {
         <CardModern className='relative overflow-hidden rounded-3xl border-0 bg-gradient-to-br from-background via-background to-secondary/20 p-6 shadow-xl backdrop-blur-xl sm:p-8'>
           <div className='absolute inset-0 bg-grid-white/[0.02]' />
           <div className='relative space-y-8'>
-            <ProductListing canManageProducts={!!canManageProducts} />
+            <ProductListing canManageProducts={!!canManageProducts} canDeleteProducts={!!canDeleteProducts} />
           </div>
         </CardModern>
 

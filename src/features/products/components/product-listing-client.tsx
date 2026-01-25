@@ -77,10 +77,12 @@ import { useTranslations } from 'next-intl';
 // 🔐 Neu: Props für Permissions (wird von ProductsPage übergeben)
 type ProductListingProps = {
   canManageProducts?: boolean; // Admin/Manager = true, Employee = false
+  canDeleteProducts?: boolean; // Admin = true, Manager/Employee = false
 };
 
 export default function ProductListing({
-  canManageProducts = false
+  canManageProducts = false,
+  canDeleteProducts = false
 }: ProductListingProps) {
   const t = useTranslations('ProductListing');
   const supabase = createClient();
@@ -558,8 +560,8 @@ export default function ProductListing({
                         </Button>
                       )}
 
-                      {/* Delete Button - Admin/Manager only */}
-                      {canManageProducts && (
+                      {/* Delete Button - Admin only */}
+                      {canDeleteProducts && (
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <Button
