@@ -39,19 +39,45 @@ export function PieGraph() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const { data, error } = await supabase
+
+        // 1. Lade Produktkosten (Artikel)
+        const { data: artikelData, error: artikelError } = await supabase
           .from('artikel')
           .select('lieferant, preis, bestand');
 
-        if (error) throw error;
+        if (artikelError) throw artikelError;
 
         const grouped: Record<string, number> = {};
-        data?.forEach((row) => {
+
+        // Aggregiere Produktkosten
+        artikelData?.forEach((row) => {
           const name = (row.lieferant ?? t('pieUnknown')).trim();
           const value = (Number(row.preis) || 0) * (Number(row.bestand) || 0);
           grouped[name] = (grouped[name] || 0) + value;
         });
 
+        // 2. Lade Barrel Oils Kosten aus Historie
+        const { data: barrelData, error: barrelError } = await supabase
+          .from('barrel_oil_history')
+          .select(`
+            total_cost,
+            barrel_id,
+            barrel_oils!inner(brand)
+          `)
+          .eq('action', 'add'); // Nur Zugänge (Kosten)
+
+        if (barrelError) {
+          console.warn('⚠️ Barrel oils history error:', barrelError);
+        } else if (barrelData) {
+          // Aggregiere Barrel Oils Kosten nach Brand
+          barrelData.forEach((row: any) => {
+            const brand = row.barrel_oils?.brand?.trim() || t('pieUnknown');
+            const cost = Number(row.total_cost) || 0;
+            grouped[brand] = (grouped[brand] || 0) + cost;
+          });
+        }
+
+        // 3. Formatiere und sortiere die Top 5
         const formatted = Object.entries(grouped)
           .sort((a, b) => b[1] - a[1])
           .slice(0, 5)
