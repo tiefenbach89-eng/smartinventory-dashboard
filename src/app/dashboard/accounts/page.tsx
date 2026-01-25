@@ -625,7 +625,7 @@ export default function AccountsPage() {
                           <div className='mb-4 flex items-start gap-3'>
                             <Avatar className='h-12 w-12 shrink-0 rounded-xl shadow-inner'>
                               <AvatarImage
-                                src={u.user_metadata?.avatar_url || ''}
+                                src={(u.user_metadata as any)?.avatar_url || ''}
                                 alt={`${u.user_metadata?.first_name || ''} ${u.user_metadata?.last_name || ''}`.trim() || u.email}
                                 className='rounded-xl'
                               />
