@@ -588,26 +588,26 @@ export default function BarrelOilsPage() {
                       <div className='flex items-center gap-2'>
                         {barrel.last_price && (
                           <div className='flex-1 rounded-lg bg-gradient-to-r from-green-500/15 to-green-500/5 px-2.5 py-1.5'>
-                            <div className='text-xs text-muted-foreground font-medium'>Aktuell</div>
+                            <div className='text-xs text-muted-foreground font-medium'>{t('current')}</div>
                             <div className='text-green-600 text-sm font-black'>
                               {calculateEffectivePricePerLiter(barrel.last_price, barrel.dilution_ratio).toFixed(2)} €/L
                             </div>
                             {barrel.dilution_ratio && barrel.dilution_ratio !== 'none' && (
                               <div className='text-[10px] text-muted-foreground font-semibold mt-0.5'>
-                                verdünnt {barrel.dilution_ratio}
+                                {t('diluted')} {barrel.dilution_ratio}
                               </div>
                             )}
                           </div>
                         )}
                         {barrel.price_per_liter && barrel.price_per_liter !== barrel.last_price && (
                           <div className='flex-1 rounded-lg bg-gradient-to-r from-primary/15 to-primary/5 px-2.5 py-1.5'>
-                            <div className='text-xs text-muted-foreground font-medium'>Einkauf</div>
+                            <div className='text-xs text-muted-foreground font-medium'>{t('purchase')}</div>
                             <div className='text-primary text-sm font-black'>
                               {calculateEffectivePricePerLiter(barrel.price_per_liter, barrel.dilution_ratio).toFixed(2)} €/L
                             </div>
                             {barrel.dilution_ratio && barrel.dilution_ratio !== 'none' && (
                               <div className='text-[10px] text-muted-foreground font-semibold mt-0.5'>
-                                verdünnt {barrel.dilution_ratio}
+                                {t('diluted')} {barrel.dilution_ratio}
                               </div>
                             )}
                           </div>
@@ -621,19 +621,19 @@ export default function BarrelOilsPage() {
                     <div className='mb-4 space-y-1.5 rounded-xl bg-gradient-to-br from-secondary/50 to-secondary/25 p-3 text-xs'>
                       {barrel.acea_specs && (
                         <div>
-                          <span className='text-primary font-black uppercase'>ACEA: </span>
+                          <span className='text-primary font-black uppercase'>{t('aceaLabel')} </span>
                           <span className='text-muted-foreground font-semibold'>{barrel.acea_specs}</span>
                         </div>
                       )}
                       {barrel.approvals && (
                         <div>
-                          <span className='text-primary font-black uppercase'>Freigaben: </span>
+                          <span className='text-primary font-black uppercase'>{t('approvalsLabel')} </span>
                           <span className='text-muted-foreground font-semibold'>{barrel.approvals}</span>
                         </div>
                       )}
                       {barrel.recommendations && (
                         <div>
-                          <span className='text-primary font-black uppercase'>Empfehlung: </span>
+                          <span className='text-primary font-black uppercase'>{t('recommendationsLabel')} </span>
                           <span className='text-muted-foreground font-semibold'>{barrel.recommendations}</span>
                         </div>
                       )}
@@ -811,25 +811,25 @@ export default function BarrelOilsPage() {
                   </div>
                 ) : liquidType === 'windshield_washer' ? (
                   <div>
-                    <label className='mb-1 block text-sm font-medium'>Verdünnung</label>
+                    <label className='mb-1 block text-sm font-medium'>{t('dilution')}</label>
                     <Select value={dilutionRatio} onValueChange={setDilutionRatio}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value='none'>Keine (Fertigmischung)</SelectItem>
-                        <SelectItem value='1:1'>1:1 (Konzentrat + Wasser)</SelectItem>
-                        <SelectItem value='1:2'>1:2 (Konzentrat + 2× Wasser)</SelectItem>
-                        <SelectItem value='1:3'>1:3 (Konzentrat + 3× Wasser)</SelectItem>
-                        <SelectItem value='1:4'>1:4 (Konzentrat + 4× Wasser)</SelectItem>
-                        <SelectItem value='1:5'>1:5 (Konzentrat + 5× Wasser)</SelectItem>
+                        <SelectItem value='none'>{t('noDilution')}</SelectItem>
+                        <SelectItem value='1:1'>{t('dilution1to1')}</SelectItem>
+                        <SelectItem value='1:2'>{t('dilution1to2')}</SelectItem>
+                        <SelectItem value='1:3'>{t('dilution1to3')}</SelectItem>
+                        <SelectItem value='1:4'>{t('dilution1to4')}</SelectItem>
+                        <SelectItem value='1:5'>{t('dilution1to5')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                 ) : (
                   <div className='flex items-center py-2'>
                     <span className='text-sm text-muted-foreground italic'>
-                      Destilliertes Wasser (rein)
+                      {t('distilledWaterPure')}
                     </span>
                   </div>
                 )}
