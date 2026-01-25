@@ -65,6 +65,7 @@ export type DrilldownRow = {
   total_qty: number;
   unit_price: number | null;
   total_value: number;
+  type?: 'product' | 'barrel'; // NEW: Unterscheidung zwischen Produkt und Barrel Oil
 };
 
 /* --------------------------------- Utils ---------------------------------- */
@@ -134,6 +135,7 @@ export default function AreaGraph() {
 
         const twelveMonthsAgo = addMonths(new Date(), -12);
 
+        // 1. Lade Produktwerte aus lagerwert_log
         const { data: lagerwert, error } = await supabase
           .from('lagerwert_log')
           .select('timestamp, lagerwert, kommentar')
@@ -142,17 +144,38 @@ export default function AreaGraph() {
 
         if (error) throw error;
 
+        // 2. Lade alle Barrel Oils Kosten (add-Einträge) aus Historie
+        const { data: barrelHistory, error: barrelError } = await supabase
+          .from('barrel_oil_history')
+          .select('created_at, total_cost, action')
+          .eq('action', 'add')
+          .gte('created_at', twelveMonthsAgo.toISOString())
+          .order('created_at', { ascending: true });
+
+        if (barrelError) {
+          console.warn('⚠️ Barrel history error:', barrelError);
+        }
+
         const filtered = (lagerwert ?? []).filter((r) =>
           (r.kommentar ?? '').toLowerCase().includes('automatisch')
         );
 
         const buckets: Record<string, number[]> = {};
 
+        // Berechne kumulierte Barrel Oils Kosten bis zu jedem Zeitpunkt
+        const barrelCosts = barrelHistory ?? [];
+
         filtered.forEach((r) => {
           const d = new Date(r.timestamp);
-          const local = new Date(d.getTime() + d.getTimezoneOffset() * -60000);
           const key = `${d.getFullYear()}-${d.getMonth()}`;
-          (buckets[key] ??= []).push(Number(r.lagerwert) || 0);
+
+          // Berechne Barrel Oils Kosten bis zu diesem Zeitpunkt
+          const barrelValueUpToNow = barrelCosts
+            .filter(b => new Date(b.created_at) <= d)
+            .reduce((sum, b) => sum + (Number(b.total_cost) || 0), 0);
+
+          const totalValue = (Number(r.lagerwert) || 0) + barrelValueUpToNow;
+          (buckets[key] ??= []).push(totalValue);
         });
 
         const months: Date[] = [];
@@ -190,6 +213,7 @@ export default function AreaGraph() {
 
         setMonthlyData(monthly);
 
+        // Live-Daten: Ebenfalls mit Barrel Oils Kosten
         const { data: live, error: errLive } = await supabase
           .from('lagerwert_log')
           .select('timestamp, lagerwert, kommentar')
@@ -205,12 +229,20 @@ export default function AreaGraph() {
           .slice(-200)
           .map((r) => {
             const d = new Date(r.timestamp);
+
+            // Berechne Barrel Oils Kosten bis zu diesem Zeitpunkt
+            const barrelValueUpToNow = barrelCosts
+              .filter(b => new Date(b.created_at) <= d)
+              .reduce((sum, b) => sum + (Number(b.total_cost) || 0), 0);
+
+            const totalValue = (Number(r.lagerwert) || 0) + barrelValueUpToNow;
+
             return {
               label: d.toLocaleTimeString('de-DE', {
                 hour: '2-digit',
                 minute: '2-digit'
               }),
-              value: Number(r.lagerwert) || 0,
+              value: totalValue,
               dateLabel: d.toLocaleString('de-DE', {
                 day: '2-digit',
                 month: 'long',
@@ -241,6 +273,7 @@ export default function AreaGraph() {
       setOpenDrill(true);
       setDrillLoading(true);
 
+      // 1. Lade Produkt-Zugänge
       const { data, error } = await supabase
         .from('artikel_log')
         .select('artikelnummer, artikelname, menge_diff, preis_snapshot')
@@ -264,7 +297,8 @@ export default function AreaGraph() {
             artikelname: r.artikelname ?? null,
             total_qty: 0,
             unit_price: price,
-            total_value: 0
+            total_value: 0,
+            type: 'product'
           };
         }
 
@@ -272,9 +306,50 @@ export default function AreaGraph() {
         if (price != null) map[key].unit_price = price;
       }
 
+      // 2. Lade Barrel Oils Zugänge
+      const { data: barrelData, error: barrelError } = await supabase
+        .from('barrel_oil_history')
+        .select(`
+          amount,
+          unit_price,
+          total_cost,
+          barrel_id,
+          barrel_oils!inner(brand, viscosity)
+        `)
+        .eq('action', 'add')
+        .gte('created_at', p.monthStartISO)
+        .lte('created_at', p.monthEndISO);
+
+      if (barrelError) {
+        console.warn('⚠️ Barrel drilldown error:', barrelError);
+      } else if (barrelData) {
+        // Gruppiere nach Brand (ähnlich wie bei Produkten nach artikelnummer)
+        barrelData.forEach((b: any) => {
+          const brand = b.barrel_oils?.brand || 'Unbekannt';
+          const viscosity = b.barrel_oils?.viscosity || '';
+          const key = `BARREL_${brand}_${viscosity}`;
+
+          if (!map[key]) {
+            map[key] = {
+              artikelnummer: brand,
+              artikelname: viscosity ? `${viscosity} (Öl)` : '(Öl)',
+              total_qty: 0,
+              unit_price: Number(b.unit_price) || null,
+              total_value: 0,
+              type: 'barrel'
+            };
+          }
+
+          map[key].total_qty += Number(b.amount) || 0;
+          map[key].total_value += Number(b.total_cost) || 0;
+        });
+      }
+
       const rows = Object.values(map).map((r) => ({
         ...r,
-        total_value: r.unit_price != null ? r.unit_price * r.total_qty : 0
+        total_value: r.type === 'barrel'
+          ? r.total_value
+          : (r.unit_price != null ? r.unit_price * r.total_qty : 0)
       }));
 
       setDrillRows(rows.sort((a, b) => b.total_value - a.total_value));
@@ -501,10 +576,17 @@ export default function AreaGraph() {
                 <TableBody>
                   {drillRows.map((r) => (
                     <TableRow key={r.artikelnummer}>
-                      <TableCell>{r.artikelnummer}</TableCell>
+                      <TableCell>
+                        {r.artikelnummer}
+                        {r.type === 'barrel' && (
+                          <span className='ml-2 inline-flex items-center rounded-md bg-blue-500/10 px-2 py-0.5 text-xs font-medium text-blue-600'>
+                            Öl
+                          </span>
+                        )}
+                      </TableCell>
                       <TableCell>{r.artikelname ?? '—'}</TableCell>
                       <TableCell className='text-right'>
-                        {r.total_qty}
+                        {r.total_qty} {r.type === 'barrel' ? 'L' : 'Stk'}
                       </TableCell>
                       <TableCell className='text-right'>
                         {r.unit_price != null ? fmtEUR(r.unit_price) : '—'}
