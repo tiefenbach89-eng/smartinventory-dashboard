@@ -129,6 +129,7 @@
     "colLastLogin": "Last Login",
     "colActions": "Actions",
 
+    "status": "Status",
     "statusBanned": "Banned",
     "statusActive": "Active",
     "statusApproved": "Approved",

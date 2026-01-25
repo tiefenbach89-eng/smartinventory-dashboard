@@ -699,7 +699,7 @@ export default function AccountsPage() {
                           {/* Status Badges */}
                           <div className='mb-3 space-y-1'>
                             <div className='text-muted-foreground text-[10px] font-semibold uppercase tracking-wider'>
-                              Status
+                              {t('status')}
                             </div>
                             <div className='flex flex-wrap gap-2'>
                               {u.banned ? (

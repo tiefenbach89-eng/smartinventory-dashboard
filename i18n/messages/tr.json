@@ -129,6 +129,7 @@
     "colLastLogin": "Son Giriş",
     "colActions": "İşlemler",
 
+    "status": "Durum",
     "statusBanned": "Yasaklı",
     "statusActive": "Aktif",
     "statusApproved": "Onaylı",
