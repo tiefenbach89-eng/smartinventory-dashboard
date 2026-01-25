@@ -422,7 +422,7 @@ export default function ProductListing({
                       <img
                         src={p.image_url}
                         alt={p.artikelbezeichnung}
-                        className='h-full w-full cursor-pointer object-cover transition-all duration-500 group-hover:scale-110'
+                        className='h-full w-full cursor-pointer object-contain transition-all duration-500 group-hover:scale-110'
                         onDoubleClick={() => setImagePreview(p.image_url)}
                       />
                     ) : (
@@ -623,7 +623,7 @@ export default function ProductListing({
                     'https://placehold.co/150x150?text=No+Image'
                   }
                   alt='Product'
-                  className='h-32 w-32 cursor-pointer rounded-md border object-cover hover:opacity-90'
+                  className='h-32 w-32 cursor-pointer rounded-md border object-contain hover:opacity-90'
                   onDoubleClick={() =>
                     editProduct.image_url &&
                     setImagePreview(editProduct.image_url)
