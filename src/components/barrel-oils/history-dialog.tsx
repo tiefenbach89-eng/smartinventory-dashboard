@@ -120,6 +120,21 @@ export function HistoryDialog({ open, onOpenChange, barrelId, barrelName }: Hist
     if (!editingEntry) return;
 
     try {
+      // 1. Hole den ursprünglichen History-Eintrag aus der DB
+      const { data: originalEntry, error: fetchError } = await supabase
+        .from('barrel_oil_history')
+        .select('amount, action')
+        .eq('id', editingEntry.id)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      // 2. Berechne die Differenz zwischen alter und neuer Menge
+      const oldAmount = Number(originalEntry?.amount) || 0;
+      const newAmount = Number(editingEntry.amount) || 0;
+      const amountDiff = newAmount - oldAmount;
+
+      // 3. Update den History-Eintrag
       const { error } = await supabase
         .from('barrel_oil_history')
         .update({
@@ -135,7 +150,43 @@ export function HistoryDialog({ open, onOpenChange, barrelId, barrelName }: Hist
         throw error;
       }
 
-      toast.success('Eintrag erfolgreich gespeichert');
+      // 4. Korrigiere den current_level des Barrels
+      if (amountDiff !== 0) {
+        // Hole den aktuellen Füllstand
+        const { data: barrel, error: barrelFetchError } = await supabase
+          .from('barrel_oils')
+          .select('current_level, max_capacity')
+          .eq('id', barrelId)
+          .single();
+
+        if (barrelFetchError) throw barrelFetchError;
+
+        // Berechne neuen Füllstand basierend auf der Aktion
+        const currentLevel = Number(barrel?.current_level) || 0;
+        const maxCapacity = Number(barrel?.max_capacity) || 0;
+
+        let newLevel = currentLevel;
+        if (editingEntry.action === 'add') {
+          // Bei "add": Füllstand steigt mit der Differenz
+          newLevel = currentLevel + amountDiff;
+        } else if (editingEntry.action === 'remove') {
+          // Bei "remove": Füllstand sinkt mit der Differenz (aber umgekehrt)
+          newLevel = currentLevel - amountDiff;
+        }
+
+        // Validiere, dass der neue Füllstand im gültigen Bereich liegt
+        newLevel = Math.max(0, Math.min(newLevel, maxCapacity));
+
+        // Update den Füllstand
+        const { error: updateError } = await supabase
+          .from('barrel_oils')
+          .update({ current_level: newLevel })
+          .eq('id', barrelId);
+
+        if (updateError) throw updateError;
+      }
+
+      toast.success('Eintrag erfolgreich gespeichert und Füllstand korrigiert');
       setEditingEntry(null);
       loadHistory();
     } catch (error: any) {
@@ -153,6 +204,11 @@ export function HistoryDialog({ open, onOpenChange, barrelId, barrelName }: Hist
     if (!deleteTarget) return;
 
     try {
+      // 1. Merke die Daten des zu löschenden Eintrags für die Korrektur
+      const deletedAmount = Number(deleteTarget.amount) || 0;
+      const deletedAction = deleteTarget.action;
+
+      // 2. Lösche den History-Eintrag
       const { error } = await supabase
         .from('barrel_oil_history')
         .delete()
@@ -163,7 +219,42 @@ export function HistoryDialog({ open, onOpenChange, barrelId, barrelName }: Hist
         throw error;
       }
 
-      toast.success('Eintrag erfolgreich gelöscht');
+      // 3. Korrigiere den current_level des Barrels
+      // Hole den aktuellen Füllstand
+      const { data: barrel, error: barrelFetchError } = await supabase
+        .from('barrel_oils')
+        .select('current_level, max_capacity')
+        .eq('id', barrelId)
+        .single();
+
+      if (barrelFetchError) throw barrelFetchError;
+
+      const currentLevel = Number(barrel?.current_level) || 0;
+      const maxCapacity = Number(barrel?.max_capacity) || 0;
+
+      let newLevel = currentLevel;
+
+      // Umkehrung der ursprünglichen Aktion
+      if (deletedAction === 'add') {
+        // War eine Zubuchung → Füllstand muss sinken
+        newLevel = currentLevel - deletedAmount;
+      } else if (deletedAction === 'remove') {
+        // War eine Abbuchung → Füllstand muss steigen
+        newLevel = currentLevel + deletedAmount;
+      }
+
+      // Validiere, dass der neue Füllstand im gültigen Bereich liegt
+      newLevel = Math.max(0, Math.min(newLevel, maxCapacity));
+
+      // Update den Füllstand
+      const { error: updateError } = await supabase
+        .from('barrel_oils')
+        .update({ current_level: newLevel })
+        .eq('id', barrelId);
+
+      if (updateError) throw updateError;
+
+      toast.success('Eintrag erfolgreich gelöscht und Füllstand korrigiert');
       setDeleteTarget(null);
       loadHistory();
     } catch (error: any) {
