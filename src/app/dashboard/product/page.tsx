@@ -365,7 +365,7 @@ export default function ProductsPage() {
               className='group gap-2 rounded-xl border-2 bg-background px-4 py-2 font-bold transition-all duration-300 hover:scale-105 hover:border-primary/50 hover:bg-primary/10 hover:shadow-lg'
             >
               <Boxes className='h-4 w-4' />
-              Artikel hinzufügen
+              {p('tabList')}
             </Button>
           )}
         </div>

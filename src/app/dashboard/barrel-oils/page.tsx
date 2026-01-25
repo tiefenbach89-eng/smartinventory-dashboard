@@ -457,7 +457,7 @@ export default function BarrelOilsPage() {
               <div className='inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 backdrop-blur-sm'>
                 <Droplet className='h-4 w-4 text-primary' />
                 <span className='text-xs font-semibold uppercase tracking-wider text-primary'>
-                  Fass Verwaltung
+                  {t('barrelManagement')}
                 </span>
               </div>
               <h1 className='text-4xl font-black tracking-tight sm:text-5xl'>
@@ -488,7 +488,7 @@ export default function BarrelOilsPage() {
 
           {/* Ölwegweiser Buttons */}
           <div className='flex flex-wrap items-center gap-2'>
-            <span className='text-muted-foreground mr-2 text-sm font-medium'>Ölwegweiser:</span>
+            <span className='text-muted-foreground mr-2 text-sm font-medium'>{t('oilGuideLabel')}</span>
             <OilGuideLinks />
           </div>
         </div>

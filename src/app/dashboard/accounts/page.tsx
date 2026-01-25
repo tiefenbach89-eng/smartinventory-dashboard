@@ -397,7 +397,7 @@ export default function AccountsPage() {
   }
 
   async function createUser() {
-    if (!isAdmin) return toast.error('Nur Admins können Benutzer erstellen.');
+    if (!isAdmin) return toast.error(t('onlyAdminsCreate'));
 
     if (!newUserEmail || !newUserPassword || !newUserFirstName || !newUserLastName) {
       return toast.error('Bitte alle Felder ausfüllen.');
@@ -582,7 +582,7 @@ export default function AccountsPage() {
               className='group gap-2 rounded-xl border-2 bg-background px-4 py-2 font-bold transition-all duration-300 hover:scale-105 hover:border-primary/50 hover:bg-primary/10 hover:shadow-lg'
             >
               <UserRound className='h-4 w-4' />
-              Benutzer erstellen
+              {t('createUser')}
             </Button>
           )}
         </div>
@@ -811,7 +811,7 @@ export default function AccountsPage() {
                                 className='border-border/30 text-foreground bg-muted/70 hover:bg-muted/90 flex-1 relative h-9 min-h-[44px] rounded-xl border px-3 text-xs font-semibold transition-all duration-200 hover:text-blue-500 hover:shadow-[0_0_10px_-2px_rgba(59,130,246,0.5)]'
                               >
                                 <Lock className='mr-1 h-4 w-4' />
-                                Passwort ändern
+                                {t('changePassword')}
                               </Button>
                             )}
 
@@ -955,7 +955,7 @@ export default function AccountsPage() {
         <Dialog open={createUserDialog} onOpenChange={setCreateUserDialog}>
           <DialogContent className='sm:max-w-md'>
             <DialogHeader>
-              <DialogTitle>Neuen Benutzer erstellen</DialogTitle>
+              <DialogTitle>{t('createUserTitle')}</DialogTitle>
               <DialogDescription>
                 Erstellen Sie einen neuen Benutzer ohne Registrierung
               </DialogDescription>
@@ -1030,10 +1030,10 @@ export default function AccountsPage() {
                     setNewUserRole('employee');
                   }}
                 >
-                  Abbrechen
+                  {t('dialogCancel')}
                 </Button>
                 <Button onClick={createUser}>
-                  Benutzer erstellen
+                  {t('createUser')}
                 </Button>
               </div>
             </div>
@@ -1044,7 +1044,7 @@ export default function AccountsPage() {
         <Dialog open={resetPasswordDialog} onOpenChange={setResetPasswordDialog}>
           <DialogContent className='sm:max-w-md'>
             <DialogHeader>
-              <DialogTitle>Passwort ändern</DialogTitle>
+              <DialogTitle>{t('changePasswordTitle')}</DialogTitle>
               <DialogDescription>
                 Neues Passwort für {resetPasswordUser?.user_metadata?.first_name} {resetPasswordUser?.user_metadata?.last_name} ({resetPasswordUser?.email})
               </DialogDescription>
@@ -1071,10 +1071,10 @@ export default function AccountsPage() {
                     setResetPasswordUser(null);
                   }}
                 >
-                  Abbrechen
+                  {t('dialogCancel')}
                 </Button>
                 <Button onClick={resetPassword}>
-                  Passwort ändern
+                  {t('changePassword')}
                 </Button>
               </div>
             </div>
