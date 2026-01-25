@@ -29,7 +29,8 @@
       "Bash(npx vercel:*)",
       "Bash(gh repo view:*)",
       "Bash(curl:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(find:*)"
     ]
   }
 }

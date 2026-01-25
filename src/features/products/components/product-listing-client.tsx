@@ -815,63 +815,70 @@ export default function ProductListing({
 
       {/* BOOKING DIALOG */}
       <Dialog open={openBookingDialog} onOpenChange={() => setOpenBookingDialog(false)}>
-        <DialogContent className='max-w-md'>
+        <DialogContent className='max-w-[95vw] sm:max-w-md'>
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className='text-base sm:text-lg'>
               {bookingAction === 'add' ? 'Artikel einbuchen' : 'Artikel ausbuchen'}
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className='text-xs sm:text-sm'>
               {bookingProduct?.artikelbezeichnung} (#{bookingProduct?.artikelnummer})
             </DialogDescription>
           </DialogHeader>
 
           {bookingProduct && (
-            <div className='space-y-4'>
+            <div className='space-y-3 sm:space-y-4'>
               {/* Current Stock */}
-              <div className='bg-muted/50 rounded-lg p-3'>
-                <div className='text-muted-foreground text-sm'>Aktueller Bestand</div>
-                <div className='text-2xl font-bold'>{bookingProduct.bestand} Stück</div>
+              <div className='bg-muted/50 rounded-lg p-2.5 sm:p-3'>
+                <div className='text-muted-foreground text-xs sm:text-sm'>Aktueller Bestand</div>
+                <div className='text-xl font-bold sm:text-2xl'>{bookingProduct.bestand} Stück</div>
               </div>
 
               {/* Amount */}
               <div>
-                <label className='text-sm font-medium'>Menge</label>
+                <label className='text-xs font-medium sm:text-sm'>Menge</label>
                 <Input
                   type='number'
                   min='1'
                   value={bookingAmount || ''}
                   onChange={(e) => setBookingAmount(Number(e.target.value))}
                   placeholder='Anzahl eingeben'
+                  autoFocus={false}
+                  inputMode='numeric'
+                  className='text-base'
                 />
               </div>
 
               {/* Delivery Note (only for add) */}
               {bookingAction === 'add' && (
                 <div>
-                  <label className='text-sm font-medium'>Lieferschein-Nr.</label>
+                  <label className='text-xs font-medium sm:text-sm'>Lieferschein-Nr.</label>
                   <Input
                     value={bookingDeliveryNote}
                     onChange={(e) => setBookingDeliveryNote(e.target.value)}
                     placeholder='Optional'
+                    autoFocus={false}
+                    className='text-base'
                   />
                 </div>
               )}
 
               {/* Comment */}
               <div>
-                <label className='text-sm font-medium'>Kommentar</label>
+                <label className='text-xs font-medium sm:text-sm'>Kommentar</label>
                 <Input
                   value={bookingComment}
                   onChange={(e) => setBookingComment(e.target.value)}
                   placeholder='Optional'
+                  autoFocus={false}
+                  className='text-base'
                 />
               </div>
 
               {/* New Stock Preview */}
               {bookingAmount > 0 && (
-                <div className='bg-muted/50 rounded-lg p-3'>
-                  <div className='text-muted-foreground text-sm'>Neuer Bestand</div>
-                  <div className={`text-2xl font-bold ${
+                <div className='bg-muted/50 rounded-lg p-2.5 sm:p-3'>
+                  <div className='text-muted-foreground text-xs sm:text-sm'>Neuer Bestand</div>
+                  <div className={`text-xl font-bold sm:text-2xl ${
                     bookingAction === 'add' ? 'text-green-600' : 'text-orange-600'
                   }`}>
                     {bookingAction === 'add'
@@ -882,20 +889,21 @@ export default function ProductListing({
               )}
 
               {/* Buttons */}
-              <div className='flex justify-end gap-2'>
+              <div className='flex justify-end gap-2 pt-2'>
                 <Button
                   variant='outline'
                   onClick={() => setOpenBookingDialog(false)}
+                  className='h-9 text-sm sm:h-10'
                 >
                   Abbrechen
                 </Button>
                 <Button
                   onClick={saveBooking}
-                  className={
+                  className={`h-9 text-sm sm:h-10 ${
                     bookingAction === 'add'
                       ? 'bg-green-600 hover:bg-green-700'
                       : 'bg-orange-600 hover:bg-orange-700'
-                  }
+                  }`}
                 >
                   {bookingAction === 'add' ? 'Einbuchen' : 'Ausbuchen'}
                 </Button>
