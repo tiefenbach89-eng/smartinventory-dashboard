@@ -277,6 +277,7 @@ export default function ProductListing({
         .from('artikel_log')
         .insert({
           artikelnummer: bookingProduct.artikelnummer,
+          artikelname: bookingProduct.artikelbezeichnung,
           aktion: bookingAction === 'add' ? 'Zugang' : 'Abgang',
           menge_diff: bookingAction === 'add' ? bookingAmount : -bookingAmount,
           benutzer: userName,
