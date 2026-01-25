@@ -481,7 +481,7 @@ export default function BarrelOilsPage() {
                 className='group gap-2 rounded-xl border-2 bg-background px-4 py-2 font-bold transition-all duration-300 hover:scale-105 hover:border-primary/50 hover:bg-primary/10 hover:shadow-lg'
               >
                 <Plus className='h-4 w-4' />
-                Flüssigkeit hinzufügen
+                {t('addLiquid')}
               </Button>
             )}
           </div>
@@ -720,7 +720,7 @@ export default function BarrelOilsPage() {
                         onClick={() => handleShowHistory(barrel)}
                       >
                         <History className='mr-1.5 h-3.5 w-3.5' />
-                        Historie
+                        {t('history')}
                       </Button>
                       {/* Bearbeiten Button - Admin und Manager */}
                       {(userRole === 'admin' || userRole === 'manager') && (
@@ -764,7 +764,7 @@ export default function BarrelOilsPage() {
             <div className='space-y-4'>
               {/* Flüssigkeitstyp Auswahl */}
               <div>
-                <label className='mb-1 block text-sm font-medium'>Flüssigkeitstyp</label>
+                <label className='mb-1 block text-sm font-medium'>{t('liquidType')}</label>
                 <Select value={liquidType} onValueChange={(val) => setLiquidType(val as LiquidType)}>
                   <SelectTrigger>
                     <SelectValue />
@@ -772,7 +772,7 @@ export default function BarrelOilsPage() {
                   <SelectContent>
                     <SelectItem value='oil'>Öl (Fass)</SelectItem>
                     <SelectItem value='windshield_washer'>Scheibenwischwasser (Kanister)</SelectItem>
-                    <SelectItem value='distilled_water'>Destilliertes Wasser (Kanister)</SelectItem>
+                    <SelectItem value='distilled_water'>{t('distilledWaterCanister')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -846,7 +846,7 @@ export default function BarrelOilsPage() {
                 </div>
 
                 <div>
-                  <label className='mb-1 block text-sm font-medium'>Artikelnummer</label>
+                  <label className='mb-1 block text-sm font-medium'>{t('articleNumber')}</label>
                   <Input
                     value={articleNumber}
                     onChange={(e) => setArticleNumber(e.target.value)}
