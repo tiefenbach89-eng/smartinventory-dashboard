@@ -1,0 +1,57 @@
+{
+  "en_additions_BarrelOils": {
+    "barrelManagement": "Barrel Management",
+    "oilGuide": "Oil Guide",
+    "oilGuideLabel": "Oil Guide:",
+    "addOilAction": "Add Oil",
+    "removeOilAction": "Remove Oil",
+    "addWater": "Add Water",
+    "removeWater": "Remove Water"
+  },
+  "en_additions_ProductListing": {
+    "bookIn": "Book In",
+    "bookOut": "Book Out",
+    "amount": "Amount",
+    "enterAmount": "Enter quantity",
+    "deliveryNote": "Delivery Note No.",
+    "comment": "Comment",
+    "optional": "Optional",
+    "currentStock": "Current Stock",
+    "newStock": "New Stock",
+    "pieces": "Pieces",
+    "lowStockProducts": "Low Stock Products",
+    "lowStockDescription": "Products below minimum stock - reorder recommended",
+    "showAllProducts": "Show All Products"
+  },
+  "tr_additions_Accounts": {
+    "createUser": "Kullanıcı Oluştur",
+    "createUserTitle": "Yeni Kullanıcı Oluştur",
+    "onlyAdminsCreate": "Sadece yöneticiler kullanıcı oluşturabilir.",
+    "changePassword": "Şifre Değiştir",
+    "changePasswordTitle": "Şifre Değiştir"
+  },
+  "tr_additions_BarrelOils": {
+    "barrelManagement": "Varil Yönetimi",
+    "oilGuide": "Yağ Rehberi",
+    "oilGuideLabel": "Yağ Rehberi:",
+    "addOilAction": "Yağ Ekle",
+    "removeOilAction": "Yağ Çıkar",
+    "addWater": "Su Ekle",
+    "removeWater": "Su Çıkar"
+  },
+  "tr_additions_ProductListing": {
+    "bookIn": "Giriş Kaydet",
+    "bookOut": "Çıkış Kaydet",
+    "amount": "Miktar",
+    "enterAmount": "Miktar girin",
+    "deliveryNote": "İrsaliye No.",
+    "comment": "Yorum",
+    "optional": "İsteğe bağlı",
+    "currentStock": "Mevcut Stok",
+    "newStock": "Yeni Stok",
+    "pieces": "Adet",
+    "lowStockProducts": "Düşük Stoklu Ürünler",
+    "lowStockDescription": "Minimum stok altındaki ürünler - yeniden sipariş önerilir",
+    "showAllProducts": "Tüm Ürünleri Göster"
+  }
+}

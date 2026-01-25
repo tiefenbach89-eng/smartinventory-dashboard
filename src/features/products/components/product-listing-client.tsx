@@ -515,7 +515,7 @@ export default function ProductListing({
                     <div className='mt-3 space-y-2'>
                       {/* Booking Buttons Row */}
                       <div className='flex flex-col gap-1.5 lg:flex-row'>
-                        {/* Einbuchen Button - Admin/Manager only */}
+                        {/* Book In Button - Admin/Manager only */}
                         {canManageProducts && (
                           <Button
                             size='sm'
@@ -523,17 +523,17 @@ export default function ProductListing({
                             className='flex-1 rounded-xl bg-gradient-to-r from-green-500/10 to-green-600/10 px-3 py-1.5 text-[11px] font-semibold text-green-600 shadow-sm transition-all duration-300 hover:scale-105 hover:from-green-500/20 hover:to-green-600/20 hover:shadow-md dark:text-green-400'
                           >
                             <TrendingUp className='mr-1 h-3.5 w-3.5' />
-                            Einbuchen
+                            {t('bookIn')}
                           </Button>
                         )}
-                        {/* Ausbuchen Button - Always visible */}
+                        {/* Book Out Button - Always visible */}
                         <Button
                           size='sm'
                           onClick={() => handleBooking(p, 'remove')}
                           className='flex-1 rounded-xl bg-gradient-to-r from-orange-500/10 to-orange-600/10 px-3 py-1.5 text-[11px] font-semibold text-orange-600 shadow-sm transition-all duration-300 hover:scale-105 hover:from-orange-500/20 hover:to-orange-600/20 hover:shadow-md dark:text-orange-400'
                         >
                           <TrendingDown className='mr-1 h-3.5 w-3.5' />
-                          Ausbuchen
+                          {t('bookOut')}
                         </Button>
                       </div>
 
@@ -819,7 +819,7 @@ export default function ProductListing({
         <DialogContent className='max-w-[95vw] sm:max-w-md'>
           <DialogHeader>
             <DialogTitle className='text-base sm:text-lg'>
-              {bookingAction === 'add' ? 'Artikel einbuchen' : 'Artikel ausbuchen'}
+              {bookingAction === 'add' ? t('bookIn') : t('bookOut')}
             </DialogTitle>
             <DialogDescription className='text-xs sm:text-sm'>
               {bookingProduct?.artikelbezeichnung} (#{bookingProduct?.artikelnummer})
@@ -830,19 +830,19 @@ export default function ProductListing({
             <div className='space-y-3 sm:space-y-4'>
               {/* Current Stock */}
               <div className='bg-muted/50 rounded-lg p-2.5 sm:p-3'>
-                <div className='text-muted-foreground text-xs sm:text-sm'>Aktueller Bestand</div>
-                <div className='text-xl font-bold sm:text-2xl'>{bookingProduct.bestand} Stück</div>
+                <div className='text-muted-foreground text-xs sm:text-sm'>{t('currentStock')}</div>
+                <div className='text-xl font-bold sm:text-2xl'>{bookingProduct.bestand} {t('pieces')}</div>
               </div>
 
               {/* Amount */}
               <div>
-                <label className='text-xs font-medium sm:text-sm'>Menge</label>
+                <label className='text-xs font-medium sm:text-sm'>{t('amount')}</label>
                 <Input
                   type='number'
                   min='1'
                   value={bookingAmount || ''}
                   onChange={(e) => setBookingAmount(Number(e.target.value))}
-                  placeholder='Anzahl eingeben'
+                  placeholder={t('enterAmount')}
                   autoFocus={false}
                   inputMode='numeric'
                   className='text-base'
@@ -852,11 +852,11 @@ export default function ProductListing({
               {/* Delivery Note (only for add) */}
               {bookingAction === 'add' && (
                 <div>
-                  <label className='text-xs font-medium sm:text-sm'>Lieferschein-Nr.</label>
+                  <label className='text-xs font-medium sm:text-sm'>{t('deliveryNote')}</label>
                   <Input
                     value={bookingDeliveryNote}
                     onChange={(e) => setBookingDeliveryNote(e.target.value)}
-                    placeholder='Optional'
+                    placeholder={t('optional')}
                     autoFocus={false}
                     className='text-base'
                   />
@@ -865,11 +865,11 @@ export default function ProductListing({
 
               {/* Comment */}
               <div>
-                <label className='text-xs font-medium sm:text-sm'>Kommentar</label>
+                <label className='text-xs font-medium sm:text-sm'>{t('comment')}</label>
                 <Input
                   value={bookingComment}
                   onChange={(e) => setBookingComment(e.target.value)}
-                  placeholder='Optional'
+                  placeholder={t('optional')}
                   autoFocus={false}
                   className='text-base'
                 />
@@ -878,13 +878,13 @@ export default function ProductListing({
               {/* New Stock Preview */}
               {bookingAmount > 0 && (
                 <div className='bg-muted/50 rounded-lg p-2.5 sm:p-3'>
-                  <div className='text-muted-foreground text-xs sm:text-sm'>Neuer Bestand</div>
+                  <div className='text-muted-foreground text-xs sm:text-sm'>{t('newStock')}</div>
                   <div className={`text-xl font-bold sm:text-2xl ${
                     bookingAction === 'add' ? 'text-green-600' : 'text-orange-600'
                   }`}>
                     {bookingAction === 'add'
                       ? bookingProduct.bestand + bookingAmount
-                      : bookingProduct.bestand - bookingAmount} Stück
+                      : bookingProduct.bestand - bookingAmount} {t('pieces')}
                   </div>
                 </div>
               )}
@@ -896,7 +896,7 @@ export default function ProductListing({
                   onClick={() => setOpenBookingDialog(false)}
                   className='h-9 text-sm sm:h-10'
                 >
-                  Abbrechen
+                  {t('cancel')}
                 </Button>
                 <Button
                   onClick={saveBooking}
@@ -906,7 +906,7 @@ export default function ProductListing({
                       : 'bg-orange-600 hover:bg-orange-700'
                   }`}
                 >
-                  {bookingAction === 'add' ? 'Einbuchen' : 'Ausbuchen'}
+                  {bookingAction === 'add' ? t('bookIn') : t('bookOut')}
                 </Button>
               </div>
             </div>
