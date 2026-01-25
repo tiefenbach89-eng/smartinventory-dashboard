@@ -843,9 +843,13 @@
   "noBarrels": "No barrels available",
   "addFirst": "Add your first barrel",
   "liquidType": "Liquid Type",
+  "oilBarrel": "Oil (Barrel)",
+  "windshieldWasherCanister": "Windshield Washer (Canister)",
   "distilledWaterCanister": "Distilled Water (Canister)",
   "distilledWaterPure": "Distilled Water (Pure)",
   "articleNumber": "Article Number",
+  "articleNumberShort": "Art. No.",
+  "supplier": "Supplier",
   "waterPlus": "Water +",
   "waterMinus": "Water -",
   "oilPlus": "Oil +",
@@ -902,6 +906,7 @@
   "fillLevel": "Fill Level",
   "remaining": "remaining",
   "capacity": "Capacity",
+  "ean": "EAN",
 
   "_locale": "en",
 
@@ -912,6 +917,7 @@
   "purchasePrice": "Purchase Price (total)",
   "pricePerLiter": "Price per Liter",
   "pricePerLiterCurrent": "Current Price/Liter",
+  "calculated": "calculated",
   "totalCost": "Total Cost",
 
   "oilGuides": "Oil Guides",

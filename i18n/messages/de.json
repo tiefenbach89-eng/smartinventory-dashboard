@@ -838,9 +838,13 @@
   "noBarrels": "Keine Fässer vorhanden",
   "addFirst": "Fügen Sie Ihr erstes Fass hinzu",
   "liquidType": "Flüssigkeitstyp",
+  "oilBarrel": "Öl (Fass)",
+  "windshieldWasherCanister": "Scheibenwischwasser (Kanister)",
   "distilledWaterCanister": "Destilliertes Wasser (Kanister)",
   "distilledWaterPure": "Destilliertes Wasser (rein)",
   "articleNumber": "Artikelnummer",
+  "articleNumberShort": "Art.-Nr.",
+  "supplier": "Lieferant",
   "waterPlus": "Wasser +",
   "waterMinus": "Wasser -",
   "oilPlus": "Öl +",
@@ -897,6 +901,7 @@
   "fillLevel": "Füllstand",
   "remaining": "verbleibend",
   "capacity": "Kapazität",
+  "ean": "EAN",
 
   "_locale": "de",
 
@@ -907,6 +912,7 @@
   "purchasePrice": "EK-Preis (gesamt)",
   "pricePerLiter": "Preis pro Liter",
   "pricePerLiterCurrent": "Aktueller Preis/Liter",
+  "calculated": "berechnet",
   "totalCost": "Gesamtkosten",
 
   "oilGuides": "Ölwegweiser",

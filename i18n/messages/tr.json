@@ -844,9 +844,13 @@
   "noBarrels": "Varil bulunmuyor",
   "addFirst": "İlk varilinizi ekleyin",
   "liquidType": "Sıvı Tipi",
+  "oilBarrel": "Yağ (Varil)",
+  "windshieldWasherCanister": "Cam Suyu (Bidon)",
   "distilledWaterCanister": "Damıtılmış Su (Bidon)",
   "distilledWaterPure": "Damıtılmış Su (Saf)",
   "articleNumber": "Ürün Numarası",
+  "articleNumberShort": "Ürün No.",
+  "supplier": "Tedarikçi",
   "waterPlus": "Su +",
   "waterMinus": "Su -",
   "oilPlus": "Yağ +",
@@ -903,6 +907,7 @@
   "fillLevel": "Doluluk Seviyesi",
   "remaining": "kalan",
   "capacity": "Kapasite",
+  "ean": "EAN",
 
   "_locale": "tr",
 
@@ -913,6 +918,7 @@
   "purchasePrice": "Satın Alma Fiyatı (toplam)",
   "pricePerLiter": "Litre Başına Fiyat",
   "pricePerLiterCurrent": "Mevcut Fiyat/Litre",
+  "calculated": "hesaplanmış",
   "totalCost": "Toplam Maliyet",
 
   "oilGuides": "Yağ Rehberleri",

@@ -570,13 +570,13 @@ export default function BarrelOilsPage() {
                       <div className='space-y-1 rounded-xl bg-gradient-to-r from-secondary/40 to-secondary/20 p-2.5 text-xs'>
                         {barrel.supplier && (
                           <div className='flex items-center gap-1.5'>
-                            <span className='text-muted-foreground font-medium'>Lieferant:</span>
+                            <span className='text-muted-foreground font-medium'>{t('supplier')}:</span>
                             <span className='font-bold'>{barrel.supplier}</span>
                           </div>
                         )}
                         {barrel.article_number && (
                           <div className='flex items-center gap-1.5'>
-                            <span className='text-muted-foreground font-medium'>Art.-Nr.:</span>
+                            <span className='text-muted-foreground font-medium'>{t('articleNumberShort')}:</span>
                             <span className='font-bold'>{barrel.article_number}</span>
                           </div>
                         )}
@@ -770,8 +770,8 @@ export default function BarrelOilsPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value='oil'>Öl (Fass)</SelectItem>
-                    <SelectItem value='windshield_washer'>Scheibenwischwasser (Kanister)</SelectItem>
+                    <SelectItem value='oil'>{t('oilBarrel')}</SelectItem>
+                    <SelectItem value='windshield_washer'>{t('windshieldWasherCanister')}</SelectItem>
                     <SelectItem value='distilled_water'>{t('distilledWaterCanister')}</SelectItem>
                   </SelectContent>
                 </Select>
@@ -837,7 +837,7 @@ export default function BarrelOilsPage() {
 
               <div className='grid gap-4 sm:grid-cols-2'>
                 <div>
-                  <label className='mb-1 block text-sm font-medium'>Lieferant</label>
+                  <label className='mb-1 block text-sm font-medium'>{t('supplier')}</label>
                   <Input
                     value={supplier}
                     onChange={(e) => setSupplier(e.target.value)}
@@ -897,7 +897,7 @@ export default function BarrelOilsPage() {
                 </div>
 
                 <div>
-                  <label className='mb-1 block text-sm font-medium'>Aktueller Preis/Liter</label>
+                  <label className='mb-1 block text-sm font-medium'>{t('pricePerLiterCurrent')}</label>
                   <Input
                     type='number'
                     step='0.0001'
@@ -920,7 +920,7 @@ export default function BarrelOilsPage() {
                 </div>
 
                 <div>
-                  <label className='mb-1 block text-sm font-medium'>{t('pricePerLiter')} (berechnet)</label>
+                  <label className='mb-1 block text-sm font-medium'>{t('pricePerLiter')} ({t('calculated')})</label>
                   <Input
                     type='number'
                     step='0.0001'
@@ -978,7 +978,7 @@ export default function BarrelOilsPage() {
 
               {/* EAN Feld für alle Flüssigkeitstypen */}
               <div>
-                <label className='mb-1 block text-sm font-medium'>EAN</label>
+                <label className='mb-1 block text-sm font-medium'>{t('ean')}</label>
                 <Input
                   value={ean}
                   onChange={(e) => setEan(e.target.value)}
