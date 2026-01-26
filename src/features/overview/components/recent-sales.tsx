@@ -149,14 +149,6 @@ export function RecentSales() {
 
         if (logsError) throw logsError;
 
-        // 2. Lade alle Artikel, die in den letzten 30 Tagen erstellt wurden
-        const { data: newArticles, error: articlesError } = await supabase
-          .from('artikel')
-          .select('artikelnummer, artikelbezeichnung, lieferant, ekpreis, erstellt_am')
-          .gte('erstellt_am', since);
-
-        if (articlesError) throw articlesError;
-
         const totalMoves: Record<string, number> = {};
 
         // Berechne Bewegungen aus Logs
@@ -170,13 +162,28 @@ export function RecentSales() {
           });
         }
 
-        // Füge neue Artikel ohne Buchungen hinzu (Bewegung = 0)
-        if (newArticles) {
-          newArticles.forEach((article) => {
-            if (!totalMoves[article.artikelnummer]) {
-              totalMoves[article.artikelnummer] = 0;
+        // 2. Wenn wir weniger als 6 Produkte haben, lade zusätzliche Artikel
+        let newArticles: any[] = [];
+        if (Object.keys(totalMoves).length < 6) {
+          try {
+            const { data, error: articlesError } = await supabase
+              .from('artikel')
+              .select('artikelnummer, artikelbezeichnung, lieferant, ekpreis')
+              .limit(10);
+
+            if (!articlesError && data) {
+              // Füge nur Artikel hinzu, die noch nicht in totalMoves sind
+              newArticles = data.filter(
+                (article) => !totalMoves[article.artikelnummer]
+              );
+
+              newArticles.forEach((article) => {
+                totalMoves[article.artikelnummer] = 0;
+              });
             }
-          });
+          } catch (err) {
+            console.warn('⚠️ Could not fetch additional articles:', err);
+          }
         }
 
         const moverArray: Mover[] = Object.entries(totalMoves)
