@@ -654,6 +654,8 @@
     "barRemoved": "Entfernt",
     "barLowStock": "Niedrigbestand",
     "barLoadError": "Fehler beim Laden.",
+    "barNoData": "Keine Bewegungsdaten vorhanden",
+    "barNoDataHint": "Buche Produkte ein oder aus, um hier Bewegungen zu sehen.",
     "barLowStockModalTitle": "Niedrigbestand ({count})",
     "barLowStockNone": "🎉 Alles im grünen Bereich.",
     "barColumnArticle": "Artikel",

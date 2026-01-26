@@ -180,36 +180,48 @@ export function BarGraph() {
         </CardHeader>
 
         <CardContent className='flex-1 px-2 pt-6 sm:px-6 sm:pt-8'>
-          <ChartContainer
-            config={chartConfig}
-            className='aspect-auto h-[250px] w-full'
-          >
-            <BarChart data={chartData} margin={{ left: 12, right: 12 }}>
-              <defs>
-                <linearGradient id='fillBar' x1='0' y1='0' x2='0' y2='1'>
-                  <stop offset='0%' stopColor='#3b82f6' stopOpacity={0.9} />
-                  <stop offset='100%' stopColor='#1d4ed8' stopOpacity={0.6} />
-                </linearGradient>
-              </defs>
+          {chartData.length === 0 ? (
+            <div className='flex h-[250px] items-center justify-center'>
+              <div className='text-center'>
+                <p className='text-muted-foreground text-sm font-semibold mb-2'>
+                  {t('barNoData')}
+                </p>
+                <p className='text-muted-foreground text-xs'>
+                  {t('barNoDataHint')}
+                </p>
+              </div>
+            </div>
+          ) : (
+            <ChartContainer
+              config={chartConfig}
+              className='aspect-auto h-[250px] w-full'
+            >
+              <BarChart data={chartData} margin={{ left: 12, right: 12 }}>
+                <defs>
+                  <linearGradient id='fillBar' x1='0' y1='0' x2='0' y2='1'>
+                    <stop offset='0%' stopColor='#3b82f6' stopOpacity={0.9} />
+                    <stop offset='100%' stopColor='#1d4ed8' stopOpacity={0.6} />
+                  </linearGradient>
+                </defs>
 
-              <CartesianGrid vertical={false} />
+                <CartesianGrid vertical={false} />
 
-              <XAxis
-                dataKey='date'
-                tickLine={false}
-                axisLine={false}
-                tickMargin={8}
-                minTickGap={32}
-                tickFormatter={(value) => {
-                  const date = new Date(value);
-                  return t('dateShort', {
-                    date: date.toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric'
-                    })
-                  });
-                }}
-              />
+                <XAxis
+                  dataKey='date'
+                  tickLine={false}
+                  axisLine={false}
+                  tickMargin={8}
+                  minTickGap={32}
+                  tickFormatter={(value) => {
+                    const date = new Date(value);
+                    return t('dateShort', {
+                      date: date.toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric'
+                      })
+                    });
+                  }}
+                />
 
               <ChartTooltip
                 cursor={{ fill: 'var(--primary)', opacity: 0.1 }}
@@ -263,13 +275,14 @@ export function BarGraph() {
                 }}
               />
 
-              <Bar
-                dataKey={activeChart}
-                fill='url(#fillBar)'
-                radius={[4, 4, 0, 0]}
-              />
-            </BarChart>
-          </ChartContainer>
+                <Bar
+                  dataKey={activeChart}
+                  fill='url(#fillBar)'
+                  radius={[4, 4, 0, 0]}
+                />
+              </BarChart>
+            </ChartContainer>
+          )}
         </CardContent>
       </Card>
 

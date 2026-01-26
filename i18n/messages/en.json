@@ -659,6 +659,8 @@
     "barRemoved": "Removed",
     "barLowStock": "Low stock",
     "barLoadError": "Failed to load stock data.",
+    "barNoData": "No movement data available",
+    "barNoDataHint": "Book products in or out to see movements here.",
     "barLowStockModalTitle": "Low stock items ({count})",
     "barLowStockNone": "🎉 All products are above minimum stock.",
     "barColumnArticle": "Article",

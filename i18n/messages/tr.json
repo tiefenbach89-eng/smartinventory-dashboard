@@ -660,6 +660,8 @@
     "barRemoved": "Çıkarıldı",
     "barLowStock": "Düşük stok",
     "barLoadError": "Stok verileri yüklenemedi.",
+    "barNoData": "Hareket verisi yok",
+    "barNoDataHint": "Ürünleri giriş veya çıkış yaparak burada hareketleri görebilirsiniz.",
     "barLowStockModalTitle": "Düşük stoklu ürünler ({count})",
     "barLowStockNone": "🎉 Tüm ürünlerde stok yeterli.",
     "barColumnArticle": "Ürün",
