@@ -139,37 +139,66 @@ export function RecentSales() {
           Date.now() - 30 * 24 * 60 * 60 * 1000
         ).toISOString();
 
-        const { data: logs, error } = await supabase
+        // 1. Lade alle Buchungen aus den letzten 30 Tagen
+        const { data: logs, error: logsError } = await supabase
           .from('artikel_log')
           .select(
             'artikelnummer, artikelname, menge_diff, lieferant, preis_snapshot'
           )
           .gte('timestamp', since);
 
-        if (error) throw error;
-        if (!logs) return;
+        if (logsError) throw logsError;
+
+        // 2. Lade alle Artikel, die in den letzten 30 Tagen erstellt wurden
+        const { data: newArticles, error: articlesError } = await supabase
+          .from('artikel')
+          .select('artikelnummer, artikelbezeichnung, lieferant, ekpreis, erstellt_am')
+          .gte('erstellt_am', since);
+
+        if (articlesError) throw articlesError;
 
         const totalMoves: Record<string, number> = {};
-        logs.forEach((l) => {
-          const qty = Math.abs(l.menge_diff ?? 0);
-          if (!isNaN(qty)) {
-            totalMoves[l.artikelnummer] =
-              (totalMoves[l.artikelnummer] ?? 0) + qty;
-          }
-        });
+
+        // Berechne Bewegungen aus Logs
+        if (logs) {
+          logs.forEach((l) => {
+            const qty = Math.abs(l.menge_diff ?? 0);
+            if (!isNaN(qty)) {
+              totalMoves[l.artikelnummer] =
+                (totalMoves[l.artikelnummer] ?? 0) + qty;
+            }
+          });
+        }
+
+        // Füge neue Artikel ohne Buchungen hinzu (Bewegung = 0)
+        if (newArticles) {
+          newArticles.forEach((article) => {
+            if (!totalMoves[article.artikelnummer]) {
+              totalMoves[article.artikelnummer] = 0;
+            }
+          });
+        }
 
         const moverArray: Mover[] = Object.entries(totalMoves)
           .map(([artikelnummer, menge]) => {
-            const log = logs.find(
+            // Versuche zuerst aus Logs zu laden
+            const log = logs?.find(
               (l) => String(l.artikelnummer) === String(artikelnummer)
             );
+
+            // Wenn nicht in Logs, lade aus neuen Artikeln
+            const article = newArticles?.find(
+              (a) => String(a.artikelnummer) === String(artikelnummer)
+            );
+
             return {
               artikelnummer,
               artikelname:
                 log?.artikelname ||
+                article?.artikelbezeichnung ||
                 t('fallback_product', { id: artikelnummer }),
-              lieferant: log?.lieferant || '—',
-              preis: log?.preis_snapshot || null,
+              lieferant: log?.lieferant || article?.lieferant || '—',
+              preis: log?.preis_snapshot || article?.ekpreis || null,
               menge
             };
           })
