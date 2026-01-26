@@ -105,10 +105,20 @@ export function BarGraph() {
           const itemName = entry.artikelname || entry.artikelnummer || 'Unbekannt';
           const qty = Math.abs(entry.menge_diff || 0);
 
-          if (['zubuchung', 'addition', 'added'].includes(entry.aktion)) {
+          // Prüfe ob es eine Zugangsbuchung ist (positive Bewegung)
+          const isAddition =
+            ['zubuchung', 'addition', 'added', 'zugang'].includes(entry.aktion?.toLowerCase()) ||
+            (entry.menge_diff && entry.menge_diff > 0);
+
+          // Prüfe ob es eine Abgangsbuchung ist (negative Bewegung)
+          const isRemoval =
+            ['ausbuchung', 'removal', 'removed', 'abgang'].includes(entry.aktion?.toLowerCase()) ||
+            (entry.menge_diff && entry.menge_diff < 0);
+
+          if (isAddition) {
             grouped[key].added += qty;
             grouped[key].addedItems.push({ name: itemName, qty });
-          } else if (['ausbuchung', 'removal', 'removed'].includes(entry.aktion)) {
+          } else if (isRemoval) {
             grouped[key].removed += qty;
             grouped[key].removedItems.push({ name: itemName, qty });
           }
