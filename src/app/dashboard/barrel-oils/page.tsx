@@ -32,7 +32,7 @@ import { HistoryDialog } from '@/components/barrel-oils/history-dialog';
 import { BarrelVisual } from '@/components/barrel-oils/barrel-visual';
 import { CanisterVisual } from '@/components/barrel-oils/canister-visual';
 
-type LiquidType = 'oil' | 'windshield_washer' | 'distilled_water';
+type LiquidType = 'oil' | 'windshield_washer' | 'distilled_water' | 'adblue';
 
 type BarrelOil = {
   id: string;
@@ -136,6 +136,7 @@ export default function BarrelOilsPage() {
     if (!liquidType || liquidType === 'oil') return 'Öl';
     if (liquidType === 'windshield_washer') return 'Wasser';
     if (liquidType === 'distilled_water') return 'Wasser';
+    if (liquidType === 'adblue') return 'AdBlue';
     return 'Öl';
   }
 
@@ -773,6 +774,7 @@ export default function BarrelOilsPage() {
                     <SelectItem value='oil'>{t('oilBarrel')}</SelectItem>
                     <SelectItem value='windshield_washer'>{t('windshieldWasherCanister')}</SelectItem>
                     <SelectItem value='distilled_water'>{t('distilledWaterCanister')}</SelectItem>
+                    <SelectItem value='adblue'>{t('adBlueCanister')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -826,13 +828,19 @@ export default function BarrelOilsPage() {
                       </SelectContent>
                     </Select>
                   </div>
-                ) : (
+                ) : liquidType === 'distilled_water' ? (
                   <div className='flex items-center py-2'>
                     <span className='text-sm text-muted-foreground italic'>
                       {t('distilledWaterPure')}
                     </span>
                   </div>
-                )}
+                ) : liquidType === 'adblue' ? (
+                  <div className='flex items-center py-2'>
+                    <span className='text-sm text-muted-foreground italic'>
+                      {t('adBlueCanister')}
+                    </span>
+                  </div>
+                ) : null}
               </div>
 
               <div className='grid gap-4 sm:grid-cols-2'>
