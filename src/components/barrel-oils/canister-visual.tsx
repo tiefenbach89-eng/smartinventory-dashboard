@@ -4,7 +4,7 @@ type CanisterVisualProps = {
   currentLevel: number;
   maxCapacity: number;
   canisterSize: number;
-  liquidType: 'windshield_washer' | 'distilled_water';
+  liquidType: 'windshield_washer' | 'distilled_water' | 'adblue';
 };
 
 export function CanisterVisual({
@@ -49,6 +49,14 @@ export function CanisterVisual({
         primary: '#3b82f6',
         dark: '#2563eb',
         glow: 'rgba(59, 130, 246, 0.4)'
+      };
+    }
+    if (liquidType === 'adblue') {
+      return {
+        light: '#93c5fd',
+        primary: '#60a5fa',
+        dark: '#3b82f6',
+        glow: 'rgba(96, 165, 250, 0.4)'
       };
     }
     // distilled_water
