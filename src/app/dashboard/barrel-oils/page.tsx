@@ -1066,10 +1066,12 @@ export default function BarrelOilsPage() {
                 <label className='mb-1 block text-sm font-medium'>{t('amount')}</label>
                 <Input
                   type='number'
-                  value={adjustAmount}
+                  value={adjustAmount || ''}
                   onChange={(e) => setAdjustAmount(parseFloat(e.target.value) || 0)}
                   placeholder={t('amountPlaceholder')}
                   step='0.1'
+                  inputMode='decimal'
+                  autoFocus={false}
                 />
               </div>
 
@@ -1081,9 +1083,10 @@ export default function BarrelOilsPage() {
                     <Input
                       type='number'
                       step='0.0001'
-                      value={adjustPrice}
+                      value={adjustPrice || ''}
                       onChange={(e) => setAdjustPrice(parseFloat(e.target.value) || 0)}
                       placeholder='0.00'
+                      inputMode='decimal'
                     />
                   </div>
 
