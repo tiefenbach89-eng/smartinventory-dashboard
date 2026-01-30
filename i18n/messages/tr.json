@@ -861,8 +861,9 @@
   "oilMinus": "Yağ -",
 
   "barrelSize": "Varil Boyutu",
-  "barrel208L": "208 Litre",
   "barrel60L": "60 Litre",
+  "barrel120L": "120 Litre",
+  "barrel208L": "208 Litre",
 
   "brand": "Marka",
   "brandPlaceholder": "örn. Castrol, Shell, Mobil",

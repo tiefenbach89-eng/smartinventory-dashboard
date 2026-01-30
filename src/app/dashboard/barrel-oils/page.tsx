@@ -879,6 +879,7 @@ export default function BarrelOilsPage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value='60'>{t('barrel60L')}</SelectItem>
+                      <SelectItem value='120'>{t('barrel120L')}</SelectItem>
                       <SelectItem value='208'>{t('barrel208L')}</SelectItem>
                     </SelectContent>
                   </Select>
@@ -1044,7 +1045,7 @@ export default function BarrelOilsPage() {
 
         {/* Adjust Level Dialog */}
         <Dialog open={openAdjustDialog} onOpenChange={setOpenAdjustDialog}>
-          <DialogContent className='sm:max-w-md'>
+          <DialogContent className='max-h-[90vh] overflow-y-auto sm:max-w-md'>
             <DialogHeader>
               <DialogTitle>
                 {adjustAction === 'add'

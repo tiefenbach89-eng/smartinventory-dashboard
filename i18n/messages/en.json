@@ -860,8 +860,9 @@
   "oilMinus": "Oil -",
 
   "barrelSize": "Barrel Size",
-  "barrel208L": "208 Liters",
   "barrel60L": "60 Liters",
+  "barrel120L": "120 Liters",
+  "barrel208L": "208 Liters",
 
   "brand": "Brand",
   "brandPlaceholder": "e.g. Castrol, Shell, Mobil",
