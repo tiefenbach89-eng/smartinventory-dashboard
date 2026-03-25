@@ -80,7 +80,7 @@ export default function OverViewPage() {
               Smart Inventory · Live
             </p>
           </div>
-          <Button className='glow-amber-sm h-11 min-w-[44px] rounded-xl bg-primary px-5 font-semibold text-primary-foreground active:scale-95 sm:h-10'>
+          <Button className='h-11 min-w-[44px] rounded-xl bg-primary px-5 font-semibold text-primary-foreground active:scale-95 sm:h-10'>
             <IconDownload className='mr-1.5 h-4 w-4' />
             {t('download')}
           </Button>

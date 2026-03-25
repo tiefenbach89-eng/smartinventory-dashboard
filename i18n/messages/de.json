@@ -575,7 +575,17 @@
     "areaDrillError": "Monatsdaten konnten nicht geladen werden.",
     "areaDrillOilBadge": "Öl",
     "barItemsLabel": "Artikel:",
-    "barMoreItems": "+{count} weitere..."
+    "barMoreItems": "+{count} weitere...",
+    "warningProductsTitle": "Niedrige Produktbestände",
+    "warningProductsDesc": "Produkte unter Mindestbestand – Nachbestellung empfohlen",
+    "warningLiquidsTitle": "Niedrige Flüssigkeitsstände",
+    "warningLiquidsDesc": "Flüssigkeiten unter 30% – Nachbestellung empfohlen",
+    "warningShowAllProducts": "Alle Produkte anzeigen",
+    "warningShowAllLiquids": "Alle Flüssigkeiten anzeigen",
+    "warningOil": "Öl",
+    "warningWasher": "Wischwasser",
+    "warningWater": "Destilliertes Wasser",
+    "warningPieces": "Stk"
   },
 
   "RecentSales": {
@@ -698,7 +708,17 @@
     "areaDrillError": "Fehler beim Laden.",
     "areaDrillOilBadge": "Öl",
     "barItemsLabel": "Artikel:",
-    "barMoreItems": "+{count} weitere..."
+    "barMoreItems": "+{count} weitere...",
+    "warningProductsTitle": "Niedrige Produktbestände",
+    "warningProductsDesc": "Produkte unter Mindestbestand – Nachbestellung empfohlen",
+    "warningLiquidsTitle": "Niedrige Flüssigkeitsstände",
+    "warningLiquidsDesc": "Flüssigkeiten unter 30% – Nachbestellung empfohlen",
+    "warningShowAllProducts": "Alle Produkte anzeigen",
+    "warningShowAllLiquids": "Alle Flüssigkeiten anzeigen",
+    "warningOil": "Öl",
+    "warningWasher": "Wischwasser",
+    "warningWater": "Destilliertes Wasser",
+    "warningPieces": "Stk"
   },
 
   "header": {

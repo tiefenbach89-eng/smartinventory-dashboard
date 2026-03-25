@@ -393,42 +393,35 @@ export default function ProductListing({
               return (
                 <Card
                   key={p.artikelnummer}
-                  className='group relative flex flex-col overflow-hidden rounded-2xl border-0 bg-gradient-to-br from-background via-background to-secondary/20 p-4 shadow-lg backdrop-blur-xl transition-all duration-300 active:scale-[0.98]'
+                  className='relative flex flex-col overflow-hidden rounded-xl border border-border/50 bg-card p-4 shadow-sm transition-shadow hover:shadow-md'
                 >
-                  {/* iOS-Style Gradient Overlay */}
-                  <div className='bg-gradient-to-br from-primary/5 via-transparent to-accent/5 pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100' />
-
                   {/* Stock Status Badge */}
-                  <div className='absolute right-3 top-3 z-10 flex items-center gap-1.5 rounded-full bg-background/90 px-2.5 py-1 shadow-md backdrop-blur-md'>
+                  <div className='absolute right-3 top-3 z-10'>
                     {isLowStock ? (
-                      <>
-                        <AlertTriangle className='h-3.5 w-3.5 text-red-500' />
-                        <span className='text-[10px] font-semibold text-red-500'>
-                          {t('filterLow')}
-                        </span>
-                      </>
+                      <Badge variant='outline' className='gap-1 rounded-md border-red-200 bg-red-50 text-[10px] font-medium text-red-600 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-400'>
+                        <AlertTriangle className='h-3 w-3' />
+                        {t('filterLow')}
+                      </Badge>
                     ) : (
-                      <>
-                        <CheckCircle2 className='h-3.5 w-3.5 text-emerald-500' />
-                        <span className='text-[10px] font-semibold text-emerald-500'>
-                          {t('filterInstock')}
-                        </span>
-                      </>
+                      <Badge variant='outline' className='gap-1 rounded-md border-emerald-200 bg-emerald-50 text-[10px] font-medium text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-400'>
+                        <CheckCircle2 className='h-3 w-3' />
+                        {t('filterInstock')}
+                      </Badge>
                     )}
                   </div>
 
                   {/* Product Image */}
-                  <div className='relative mb-3 flex h-40 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-muted/30 to-muted/60'>
+                  <div className='relative mb-3 flex h-40 items-center justify-center overflow-hidden rounded-lg bg-muted/40'>
                     {p.image_url ? (
                       <img
                         src={p.image_url}
                         alt={p.artikelbezeichnung}
-                        className='h-full w-full cursor-pointer object-contain transition-all duration-500 group-hover:scale-110'
+                        className='h-full w-full cursor-pointer object-contain transition-opacity hover:opacity-90'
                         onDoubleClick={() => setImagePreview(p.image_url)}
                       />
                     ) : (
                       <div className='flex flex-col items-center justify-center gap-2 text-muted-foreground'>
-                        <Package className='h-12 w-12 opacity-30' />
+                        <Package className='h-12 w-12 opacity-20' />
                         <span className='text-[10px] font-medium opacity-50'>
                           {t('noImage')}
                         </span>
@@ -439,12 +432,8 @@ export default function ProductListing({
                   {/* Product Info */}
                   <div className='relative z-10 flex flex-1 flex-col gap-2'>
                     {/* Article Number */}
-                    <div className='flex items-center gap-1.5'>
-                      <div className='flex h-6 w-6 items-center justify-center rounded-lg bg-primary/10'>
-                        <span className='text-primary text-[10px] font-bold'>
-                          #
-                        </span>
-                      </div>
+                    <div className='flex items-center gap-1'>
+                      <span className='text-muted-foreground/60 font-mono text-[11px]'>#</span>
                       <span className='text-muted-foreground truncate font-mono text-[11px] font-medium'>
                         {p.artikelnummer}
                       </span>
@@ -460,7 +449,7 @@ export default function ProductListing({
                       <span className='text-muted-foreground truncate text-[11px] font-medium'>
                         {p.lieferant}
                       </span>
-                      <span className='text-primary whitespace-nowrap text-sm font-bold'>
+                      <span className='text-foreground whitespace-nowrap text-sm font-semibold'>
                         {p.preis?.toFixed(2)} €
                       </span>
                     </div>
@@ -491,10 +480,10 @@ export default function ProductListing({
                           {t('colStock')}
                         </span>
                         <span
-                          className={`text-xs font-bold ${
+                          className={`text-xs font-medium tabular-nums ${
                             isLowStock
-                              ? 'text-red-500'
-                              : 'text-emerald-500'
+                              ? 'text-red-600 dark:text-red-400'
+                              : 'text-muted-foreground'
                           }`}
                         >
                           {p.bestand} / {p.sollbestand || 0}
@@ -502,50 +491,53 @@ export default function ProductListing({
                       </div>
                       <Progress
                         value={Math.min(stockPercentage, 100)}
-                        className='h-2'
+                        className='h-1.5'
                         indicatorClassName={
                           isLowStock
-                            ? 'bg-gradient-to-r from-red-500 to-red-600'
-                            : 'bg-gradient-to-r from-emerald-500 to-emerald-600'
+                            ? 'bg-red-500 dark:bg-red-400'
+                            : 'bg-primary/60'
                         }
                       />
                     </div>
 
                     {/* Action Buttons */}
-                    <div className='mt-3 space-y-2'>
+                    <div className='mt-3 space-y-1.5'>
                       {/* Booking Buttons Row */}
-                      <div className='flex flex-col gap-1.5 lg:flex-row'>
+                      <div className='flex gap-1.5'>
                         {/* Book In Button - Admin/Manager only */}
                         {canManageProducts && (
                           <Button
                             size='sm'
+                            variant='outline'
                             onClick={() => handleBooking(p, 'add')}
-                            className='flex-1 rounded-xl bg-gradient-to-r from-green-500/10 to-green-600/10 px-3 py-1.5 text-[11px] font-semibold text-green-600 shadow-sm transition-all duration-300 active:scale-[0.97]hover:from-green-500/20 hover:to-green-600/20 hover:shadow-md dark:text-green-400'
+                            className='flex-1 h-8 rounded-lg gap-1.5 border-primary/25 bg-primary/5 text-[11px] font-medium text-foreground hover:bg-primary/10 hover:border-primary/40 transition-colors'
                           >
-                            <TrendingUp className='mr-1 h-3.5 w-3.5' />
+                            <TrendingUp className='h-3.5 w-3.5 text-primary' />
                             {t('bookIn')}
                           </Button>
                         )}
                         {/* Book Out Button - Always visible */}
                         <Button
                           size='sm'
+                          variant='outline'
                           onClick={() => handleBooking(p, 'remove')}
-                          className='flex-1 rounded-xl bg-gradient-to-r from-orange-500/10 to-orange-600/10 px-3 py-1.5 text-[11px] font-semibold text-orange-600 shadow-sm transition-all duration-300 active:scale-[0.97]hover:from-orange-500/20 hover:to-orange-600/20 hover:shadow-md dark:text-orange-400'
+                          className='flex-1 h-8 rounded-lg gap-1.5 text-[11px] font-medium text-muted-foreground hover:bg-accent/60 hover:text-foreground transition-colors'
                         >
-                          <TrendingDown className='mr-1 h-3.5 w-3.5' />
+                          <TrendingDown className='h-3.5 w-3.5' />
                           {t('bookOut')}
                         </Button>
                       </div>
 
                       {/* Management Buttons Row */}
-                      <div className='flex flex-wrap gap-1.5'>
+                      <div className='flex gap-1.5'>
                       {/* History Button - Always visible */}
                       <Button
                         size='sm'
+                        variant='ghost'
                         onClick={() => fetchLogs(p.artikelnummer)}
-                        className='flex-1 rounded-xl bg-gradient-to-r from-blue-500/10 to-blue-600/10 px-3 py-1.5 text-[11px] font-semibold text-blue-600 shadow-sm transition-all duration-300 active:scale-[0.97]hover:from-blue-500/20 hover:to-blue-600/20 hover:shadow-md dark:text-blue-400'
+                        className='flex-1 h-8 rounded-lg gap-1.5 text-[11px] font-medium text-muted-foreground hover:bg-accent/60 hover:text-foreground transition-colors'
                       >
-                        <History className='mr-1 h-3.5 w-3.5' />
+                        <History className='h-3.5 w-3.5' />
                         {t('logs')}
                       </Button>
 
@@ -553,10 +545,11 @@ export default function ProductListing({
                       {canManageProducts && (
                         <Button
                           size='sm'
+                          variant='ghost'
                           onClick={() => setEditProduct(p)}
-                          className='flex-1 rounded-xl bg-gradient-to-r from-yellow-500/10 to-yellow-600/10 px-3 py-1.5 text-[11px] font-semibold text-yellow-600 shadow-sm transition-all duration-300 active:scale-[0.97]hover:from-yellow-500/20 hover:to-yellow-600/20 hover:shadow-md dark:text-yellow-400'
+                          className='flex-1 h-8 rounded-lg gap-1.5 text-[11px] font-medium text-muted-foreground hover:bg-accent/60 hover:text-foreground transition-colors'
                         >
-                          <Pencil className='mr-1 h-3.5 w-3.5' />
+                          <Pencil className='h-3.5 w-3.5' />
                           {t('edit')}
                         </Button>
                       )}
@@ -567,10 +560,11 @@ export default function ProductListing({
                           <AlertDialogTrigger asChild>
                             <Button
                               size='sm'
+                              variant='ghost'
                               onClick={() => setDeleteTarget(p)}
-                              className='flex-1 rounded-xl bg-gradient-to-r from-red-500/10 to-red-600/10 px-3 py-1.5 text-[11px] font-semibold text-red-600 shadow-sm transition-all duration-300 active:scale-[0.97]hover:from-red-500/20 hover:to-red-600/20 hover:shadow-md dark:text-red-400'
+                              className='flex-1 h-8 rounded-lg gap-1.5 text-[11px] font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors'
                             >
-                              <Trash2 className='mr-1 h-3.5 w-3.5' />
+                              <Trash2 className='h-3.5 w-3.5' />
                               {t('delete')}
                             </Button>
                           </AlertDialogTrigger>
@@ -711,7 +705,6 @@ export default function ProductListing({
                 </Button>
 
                 <Button
-                  className='border-border/30 text-foreground bg-muted/70 hover:bg-muted/90 relative h-8 rounded-2xl border px-4 text-sm font-medium transition-all duration-200 hover:text-emerald-500 hover:shadow-[0_0_10px_-2px_rgba(16,185,129,0.5)]'
                   onClick={handleSave}
                   disabled={!canManageProducts}
                 >
@@ -762,10 +755,11 @@ export default function ProductListing({
 
                       <TableCell>
                         <Badge
+                          variant='outline'
                           className={
                             l.menge_diff >= 0
-                              ? 'bg-emerald-500/15 text-emerald-400'
-                              : 'bg-red-500/15 text-red-400'
+                              ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-400'
+                              : 'border-red-200 bg-red-50 text-red-600 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-400'
                           }
                         >
                           {l.menge_diff >= 0 ? t('added') : t('removed')}
@@ -900,11 +894,8 @@ export default function ProductListing({
                 </Button>
                 <Button
                   onClick={saveBooking}
-                  className={`h-9 text-sm sm:h-10 ${
-                    bookingAction === 'add'
-                      ? 'bg-green-600 hover:bg-green-700'
-                      : 'bg-orange-600 hover:bg-orange-700'
-                  }`}
+                  variant={bookingAction === 'add' ? 'default' : 'outline'}
+                  className='h-9 text-sm sm:h-10'
                 >
                   {bookingAction === 'add' ? t('bookIn') : t('bookOut')}
                 </Button>

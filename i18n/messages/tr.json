@@ -577,7 +577,17 @@
     "areaDrillError": "Aylık veriler yüklenemedi.",
     "areaDrillOilBadge": "Yağ",
     "barItemsLabel": "Ürünler:",
-    "barMoreItems": "+{count} daha..."
+    "barMoreItems": "+{count} daha...",
+    "warningProductsTitle": "Düşük Stok Ürünleri",
+    "warningProductsDesc": "ürün minimum altında — yeniden sipariş önerilir",
+    "warningLiquidsTitle": "Düşük Sıvı Seviyeleri",
+    "warningLiquidsDesc": "sıvı %30 altında — yeniden sipariş önerilir",
+    "warningShowAllProducts": "Tüm ürünleri göster",
+    "warningShowAllLiquids": "Tüm sıvıları göster",
+    "warningOil": "Yağ",
+    "warningWasher": "Cam Suyu",
+    "warningWater": "Saf Su",
+    "warningPieces": "adet"
   },
 
   "RecentSales": {
@@ -704,7 +714,17 @@
     "areaDrillError": "Aylık veriler yüklenemedi.",
     "areaDrillOilBadge": "Yağ",
     "barItemsLabel": "Ürünler:",
-    "barMoreItems": "+{count} daha..."
+    "barMoreItems": "+{count} daha...",
+    "warningProductsTitle": "Düşük Stok Ürünleri",
+    "warningProductsDesc": "ürün minimum altında — yeniden sipariş önerilir",
+    "warningLiquidsTitle": "Düşük Sıvı Seviyeleri",
+    "warningLiquidsDesc": "sıvı %30 altında — yeniden sipariş önerilir",
+    "warningShowAllProducts": "Tüm ürünleri göster",
+    "warningShowAllLiquids": "Tüm sıvıları göster",
+    "warningOil": "Yağ",
+    "warningWasher": "Cam Suyu",
+    "warningWater": "Saf Su",
+    "warningPieces": "adet"
   },
 
   "header": {
