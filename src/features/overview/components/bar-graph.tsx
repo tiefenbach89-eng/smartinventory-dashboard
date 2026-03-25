@@ -140,7 +140,6 @@ export function BarGraph() {
           lowstock: lowCount
         });
       } catch (err) {
-        console.error('❌ Failed to load chart data:', err);
         toast.error(t('barLoadError'));
       }
     };
@@ -172,6 +171,8 @@ export function BarGraph() {
             {(['added', 'removed'] as const).map((key) => (
               <button
                 key={key}
+                role='tab'
+                aria-selected={activeChart === key}
                 data-active={activeChart === key}
                 className='data-[active=true]:bg-primary/10 data-[active=true]:shadow-inner hover:bg-primary/5 relative flex flex-1 flex-col justify-center gap-1.5 border-t border-border/10 px-6 py-4 text-left transition-all duration-300 even:border-l sm:border-t-0 sm:border-l sm:px-8 sm:py-6'
                 onClick={() => {
@@ -209,8 +210,8 @@ export function BarGraph() {
               <BarChart data={chartData} margin={{ left: 12, right: 12 }}>
                 <defs>
                   <linearGradient id='fillBar' x1='0' y1='0' x2='0' y2='1'>
-                    <stop offset='0%' stopColor='#3b82f6' stopOpacity={0.9} />
-                    <stop offset='100%' stopColor='#1d4ed8' stopOpacity={0.6} />
+                    <stop offset='0%' stopColor='var(--primary)' stopOpacity={0.9} />
+                    <stop offset='100%' stopColor='var(--primary)' stopOpacity={0.6} />
                   </linearGradient>
                 </defs>
 
@@ -261,7 +262,7 @@ export function BarGraph() {
                       {items.length > 0 && (
                         <div className='border-border/20 border-t pt-2 mt-2'>
                           <div className='text-muted-foreground text-xs font-semibold mb-1'>
-                            Artikel:
+                            {t('barItemsLabel')}
                           </div>
                           <div className='space-y-1 max-h-[200px] overflow-y-auto'>
                             {items.slice(0, 10).map((item: any, idx: number) => (
@@ -274,7 +275,7 @@ export function BarGraph() {
                             ))}
                             {items.length > 10 && (
                               <div className='text-muted-foreground text-xs italic mt-1'>
-                                +{items.length - 10} weitere...
+                                {t('barMoreItems', { count: items.length - 10 })}
                               </div>
                             )}
                           </div>

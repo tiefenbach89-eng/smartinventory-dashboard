@@ -247,7 +247,7 @@ export default function ProductListing({
 
   async function saveBooking() {
     if (!bookingProduct || bookingAmount <= 0) {
-      toast.error('Bitte gültige Menge eingeben');
+      toast.error(t('bookingInvalidAmount'));
       return;
     }
 
@@ -260,7 +260,7 @@ export default function ProductListing({
         : bookingProduct.bestand - bookingAmount;
 
       if (newStock < 0) {
-        toast.error('Nicht genügend Bestand vorhanden');
+        toast.error(t('bookingInsufficientStock'));
         return;
       }
 
@@ -287,14 +287,14 @@ export default function ProductListing({
 
       if (logError) throw logError;
 
-      toast.success(bookingAction === 'add' ? 'Eingebucht' : 'Ausgebucht');
+      toast.success(t(bookingAction === 'add' ? 'bookingSuccessIn' : 'bookingSuccessOut'));
       setOpenBookingDialog(false);
 
       // Reload products
       const { data } = await supabase.from('artikel').select('*');
       setProducts(data || []);
     } catch (err: any) {
-      toast.error('Fehler bei der Buchung: ' + err.message);
+      toast.error(t('bookingFailed', { message: err.message }));
     }
   }
 
@@ -393,7 +393,7 @@ export default function ProductListing({
               return (
                 <Card
                   key={p.artikelnummer}
-                  className='group relative flex flex-col overflow-hidden rounded-2xl border-0 bg-gradient-to-br from-background via-background to-secondary/20 p-4 shadow-lg backdrop-blur-xl transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl'
+                  className='group relative flex flex-col overflow-hidden rounded-2xl border-0 bg-gradient-to-br from-background via-background to-secondary/20 p-4 shadow-lg backdrop-blur-xl transition-all duration-300 active:scale-[0.98]'
                 >
                   {/* iOS-Style Gradient Overlay */}
                   <div className='bg-gradient-to-br from-primary/5 via-transparent to-accent/5 pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100' />
@@ -520,7 +520,7 @@ export default function ProductListing({
                           <Button
                             size='sm'
                             onClick={() => handleBooking(p, 'add')}
-                            className='flex-1 rounded-xl bg-gradient-to-r from-green-500/10 to-green-600/10 px-3 py-1.5 text-[11px] font-semibold text-green-600 shadow-sm transition-all duration-300 hover:scale-105 hover:from-green-500/20 hover:to-green-600/20 hover:shadow-md dark:text-green-400'
+                            className='flex-1 rounded-xl bg-gradient-to-r from-green-500/10 to-green-600/10 px-3 py-1.5 text-[11px] font-semibold text-green-600 shadow-sm transition-all duration-300 active:scale-[0.97]hover:from-green-500/20 hover:to-green-600/20 hover:shadow-md dark:text-green-400'
                           >
                             <TrendingUp className='mr-1 h-3.5 w-3.5' />
                             {t('bookIn')}
@@ -530,7 +530,7 @@ export default function ProductListing({
                         <Button
                           size='sm'
                           onClick={() => handleBooking(p, 'remove')}
-                          className='flex-1 rounded-xl bg-gradient-to-r from-orange-500/10 to-orange-600/10 px-3 py-1.5 text-[11px] font-semibold text-orange-600 shadow-sm transition-all duration-300 hover:scale-105 hover:from-orange-500/20 hover:to-orange-600/20 hover:shadow-md dark:text-orange-400'
+                          className='flex-1 rounded-xl bg-gradient-to-r from-orange-500/10 to-orange-600/10 px-3 py-1.5 text-[11px] font-semibold text-orange-600 shadow-sm transition-all duration-300 active:scale-[0.97]hover:from-orange-500/20 hover:to-orange-600/20 hover:shadow-md dark:text-orange-400'
                         >
                           <TrendingDown className='mr-1 h-3.5 w-3.5' />
                           {t('bookOut')}
@@ -543,7 +543,7 @@ export default function ProductListing({
                       <Button
                         size='sm'
                         onClick={() => fetchLogs(p.artikelnummer)}
-                        className='flex-1 rounded-xl bg-gradient-to-r from-blue-500/10 to-blue-600/10 px-3 py-1.5 text-[11px] font-semibold text-blue-600 shadow-sm transition-all duration-300 hover:scale-105 hover:from-blue-500/20 hover:to-blue-600/20 hover:shadow-md dark:text-blue-400'
+                        className='flex-1 rounded-xl bg-gradient-to-r from-blue-500/10 to-blue-600/10 px-3 py-1.5 text-[11px] font-semibold text-blue-600 shadow-sm transition-all duration-300 active:scale-[0.97]hover:from-blue-500/20 hover:to-blue-600/20 hover:shadow-md dark:text-blue-400'
                       >
                         <History className='mr-1 h-3.5 w-3.5' />
                         {t('logs')}
@@ -554,7 +554,7 @@ export default function ProductListing({
                         <Button
                           size='sm'
                           onClick={() => setEditProduct(p)}
-                          className='flex-1 rounded-xl bg-gradient-to-r from-yellow-500/10 to-yellow-600/10 px-3 py-1.5 text-[11px] font-semibold text-yellow-600 shadow-sm transition-all duration-300 hover:scale-105 hover:from-yellow-500/20 hover:to-yellow-600/20 hover:shadow-md dark:text-yellow-400'
+                          className='flex-1 rounded-xl bg-gradient-to-r from-yellow-500/10 to-yellow-600/10 px-3 py-1.5 text-[11px] font-semibold text-yellow-600 shadow-sm transition-all duration-300 active:scale-[0.97]hover:from-yellow-500/20 hover:to-yellow-600/20 hover:shadow-md dark:text-yellow-400'
                         >
                           <Pencil className='mr-1 h-3.5 w-3.5' />
                           {t('edit')}
@@ -568,7 +568,7 @@ export default function ProductListing({
                             <Button
                               size='sm'
                               onClick={() => setDeleteTarget(p)}
-                              className='flex-1 rounded-xl bg-gradient-to-r from-red-500/10 to-red-600/10 px-3 py-1.5 text-[11px] font-semibold text-red-600 shadow-sm transition-all duration-300 hover:scale-105 hover:from-red-500/20 hover:to-red-600/20 hover:shadow-md dark:text-red-400'
+                              className='flex-1 rounded-xl bg-gradient-to-r from-red-500/10 to-red-600/10 px-3 py-1.5 text-[11px] font-semibold text-red-600 shadow-sm transition-all duration-300 active:scale-[0.97]hover:from-red-500/20 hover:to-red-600/20 hover:shadow-md dark:text-red-400'
                             >
                               <Trash2 className='mr-1 h-3.5 w-3.5' />
                               {t('delete')}

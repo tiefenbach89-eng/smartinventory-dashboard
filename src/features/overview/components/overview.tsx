@@ -113,10 +113,10 @@ export default function OverViewPage() {
             </div>
 
             {/* KPI Cards — 2 col mobile / 4 col desktop */}
-            <div className='grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4'>
+            <div className='grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 xl:grid-cols-4'>
               {kpiCards.map((card, i) => (
                 <Card
-                  key={i}
+                  key={card.title}
                   className={`card-premium touch-press animate-fade-up ${card.delay} group relative cursor-default overflow-hidden rounded-2xl`}
                 >
                   {/* Amber top-line accent on active / primary card */}

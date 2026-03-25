@@ -50,15 +50,12 @@ export default function SettingsPage() {
     loadUser();
   }, [supabase]);
 
-  // 🔁 Automatisches Neuladen der Userdaten
+  // 🔁 Automatisches Neuladen der Userdaten via Auth-State-Listener
   useEffect(() => {
-    const interval = setInterval(async () => {
-      const {
-        data: { user }
-      } = await supabase.auth.getUser();
-      if (user?.email) setEmail(user.email);
-    }, 10000);
-    return () => clearInterval(interval);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user?.email) setEmail(session.user.email);
+    });
+    return () => subscription.unsubscribe();
   }, [supabase]);
 
   // 🔐 Passwort ändern
@@ -112,7 +109,7 @@ export default function SettingsPage() {
     try {
       setDeleting(true);
       const res = await fetch('/api/delete-user', { method: 'POST' });
-      const body = await res.json();
+      const body = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(body?.error || 'Failed to delete account');
       toast.success(t('accountDeleted'));
       window.location.href = '/auth/sign-in';

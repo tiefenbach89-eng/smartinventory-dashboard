@@ -153,7 +153,7 @@ export default function AreaGraph() {
           .order('created_at', { ascending: true });
 
         if (barrelError) {
-          console.warn('⚠️ Barrel history error:', barrelError);
+          // barrel data is optional — continue without it
         }
 
         const filtered = (lagerwert ?? []).filter((r) =>
@@ -162,19 +162,31 @@ export default function AreaGraph() {
 
         const buckets: Record<string, number[]> = {};
 
-        // Berechne kumulierte Barrel Oils Kosten bis zu jedem Zeitpunkt
         const barrelCosts = barrelHistory ?? [];
+
+        // Pre-compute cumulative barrel costs for O(log n) lookups
+        const cumulativeBarrel: { ts: number; total: number }[] = [];
+        let cumSum = 0;
+        for (const b of barrelCosts) {
+          cumSum += Number(b.total_cost) || 0;
+          cumulativeBarrel.push({ ts: new Date(b.created_at).getTime(), total: cumSum });
+        }
+
+        const getBarrelValueUpTo = (d: Date): number => {
+          const ts = d.getTime();
+          let lo = 0, hi = cumulativeBarrel.length - 1, result = 0;
+          while (lo <= hi) {
+            const mid = (lo + hi) >> 1;
+            if (cumulativeBarrel[mid].ts <= ts) { result = cumulativeBarrel[mid].total; lo = mid + 1; }
+            else hi = mid - 1;
+          }
+          return result;
+        };
 
         filtered.forEach((r) => {
           const d = new Date(r.timestamp);
           const key = `${d.getFullYear()}-${d.getMonth()}`;
-
-          // Berechne Barrel Oils Kosten bis zu diesem Zeitpunkt
-          const barrelValueUpToNow = barrelCosts
-            .filter(b => new Date(b.created_at) <= d)
-            .reduce((sum, b) => sum + (Number(b.total_cost) || 0), 0);
-
-          const totalValue = (Number(r.lagerwert) || 0) + barrelValueUpToNow;
+          const totalValue = (Number(r.lagerwert) || 0) + getBarrelValueUpTo(d);
           (buckets[key] ??= []).push(totalValue);
         });
 
@@ -213,29 +225,15 @@ export default function AreaGraph() {
 
         setMonthlyData(monthly);
 
-        // Live-Daten: Ebenfalls mit Barrel Oils Kosten
-        const { data: live, error: errLive } = await supabase
-          .from('lagerwert_log')
-          .select('timestamp, lagerwert, kommentar')
-          .gte('timestamp', twelveMonthsAgo.toISOString())
-          .order('timestamp', { ascending: true });
-
-        if (errLive) throw errLive;
-
-        const livePts: LivePoint[] = (live ?? [])
+        // Live data — reuse lagerwert (no second DB fetch needed)
+        const livePts: LivePoint[] = (lagerwert ?? [])
           .filter((r) =>
             (r.kommentar ?? '').toLowerCase().includes('automatisch')
           )
           .slice(-200)
           .map((r) => {
             const d = new Date(r.timestamp);
-
-            // Berechne Barrel Oils Kosten bis zu diesem Zeitpunkt
-            const barrelValueUpToNow = barrelCosts
-              .filter(b => new Date(b.created_at) <= d)
-              .reduce((sum, b) => sum + (Number(b.total_cost) || 0), 0);
-
-            const totalValue = (Number(r.lagerwert) || 0) + barrelValueUpToNow;
+            const totalValue = (Number(r.lagerwert) || 0) + getBarrelValueUpTo(d);
 
             return {
               label: d.toLocaleTimeString('de-DE', {
@@ -256,7 +254,6 @@ export default function AreaGraph() {
 
         setLiveData(livePts);
       } catch (e) {
-        console.error('❌ Fetch error:', e);
         toast.error(t('areaLoadError'));
       } finally {
         setLoading(false);
@@ -321,7 +318,7 @@ export default function AreaGraph() {
         .lte('created_at', p.monthEndISO);
 
       if (barrelError) {
-        console.warn('⚠️ Barrel drilldown error:', barrelError);
+        // barrel data is optional in drilldown
       } else if (barrelData) {
         // Gruppiere nach Brand (ähnlich wie bei Produkten nach artikelnummer)
         barrelData.forEach((b: any) => {
@@ -354,7 +351,6 @@ export default function AreaGraph() {
 
       setDrillRows(rows.sort((a, b) => b.total_value - a.total_value));
     } catch (e) {
-      console.error('❌ Drilldown error:', e);
       toast.error(t('areaDrillError'));
     } finally {
       setDrillLoading(false);
@@ -425,12 +421,12 @@ export default function AreaGraph() {
                 <linearGradient id='fillValue' x1='0' y1='0' x2='0' y2='1'>
                   <stop
                     offset='5%'
-                    stopColor='#f97316'
+                    stopColor='var(--primary)'
                     stopOpacity={0.8}
                   />
                   <stop
                     offset='95%'
-                    stopColor='#ea580c'
+                    stopColor='var(--primary)'
                     stopOpacity={0.05}
                   />
                 </linearGradient>
@@ -452,8 +448,6 @@ export default function AreaGraph() {
                 axisLine={false}
                 tick={<AxisTick />}
               />
-
-              <YAxis domain={['dataMin - 10', 'dataMax + 10']} />
 
               <ReTooltip
                 content={({ active, payload }) => {
@@ -514,7 +508,7 @@ export default function AreaGraph() {
                 dataKey='value'
                 type='monotone'
                 fill='url(#fillValue)'
-                stroke='#f97316'
+                stroke='var(--primary)'
                 strokeWidth={2.5}
                 activeDot={{ r: 5 }}
               />
@@ -579,8 +573,8 @@ export default function AreaGraph() {
                       <TableCell>
                         {r.artikelnummer}
                         {r.type === 'barrel' && (
-                          <span className='ml-2 inline-flex items-center rounded-md bg-blue-500/10 px-2 py-0.5 text-xs font-medium text-blue-600'>
-                            Öl
+                          <span className='ml-2 inline-flex items-center rounded-md bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary'>
+                            {t('areaDrillOilBadge')}
                           </span>
                         )}
                       </TableCell>

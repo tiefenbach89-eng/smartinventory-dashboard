@@ -467,7 +467,12 @@
     "toastDeleted": "Ürün silindi.",
     "toastDeleteFailed": "Silme hatası: {message}",
     "toastLogFailed": "Geçmiş yüklenemedi: {message}",
-    "errorLoadProducts": "Ürünler yüklenemedi."
+    "errorLoadProducts": "Ürünler yüklenemedi.",
+    "bookingInvalidAmount": "Lütfen geçerli bir miktar girin.",
+    "bookingInsufficientStock": "Yeterli stok yok.",
+    "bookingSuccessIn": "Stok girişi başarılı.",
+    "bookingSuccessOut": "Stok çıkışı başarılı.",
+    "bookingFailed": "İşlem hatası: {message}"
   },
 
   "Sidebar": {
@@ -569,7 +574,10 @@
     "areaDrillColPrice": "Fiyat",
     "areaDrillColTotal": "Toplam",
     "areaLoadError": "Değer geçmişi yüklenemedi.",
-    "areaDrillError": "Aylık veriler yüklenemedi."
+    "areaDrillError": "Aylık veriler yüklenemedi.",
+    "areaDrillOilBadge": "Yağ",
+    "barItemsLabel": "Ürünler:",
+    "barMoreItems": "+{count} daha..."
   },
 
   "RecentSales": {
@@ -693,7 +701,10 @@
     "areaDrillColPrice": "Fiyat",
     "areaDrillColTotal": "Toplam",
     "areaLoadError": "Grafik yüklenemedi.",
-    "areaDrillError": "Aylık veriler yüklenemedi."
+    "areaDrillError": "Aylık veriler yüklenemedi.",
+    "areaDrillOilBadge": "Yağ",
+    "barItemsLabel": "Ürünler:",
+    "barMoreItems": "+{count} daha..."
   },
 
   "header": {

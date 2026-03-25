@@ -67,7 +67,7 @@ export function PieGraph() {
           .eq('action', 'add'); // Nur Zugänge (Kosten)
 
         if (barrelError) {
-          console.warn('⚠️ Barrel oils history error:', barrelError);
+          // barrel data is optional — continue without it
         } else if (barrelData) {
           // Aggregiere Barrel Oils Kosten nach Brand
           barrelData.forEach((row: any) => {
@@ -89,7 +89,6 @@ export function PieGraph() {
 
         setChartData(formatted);
       } catch (err: any) {
-        console.error('❌ PieChart error:', err);
         toast.error(t('pieLoadError'));
       } finally {
         setLoading(false);
@@ -144,12 +143,12 @@ export function PieGraph() {
                 >
                   <stop
                     offset='0%'
-                    stopColor='#8b5cf6'
+                    stopColor='var(--primary)'
                     stopOpacity={1 - index * 0.15}
                   />
                   <stop
                     offset='100%'
-                    stopColor='#6d28d9'
+                    stopColor='var(--primary)'
                     stopOpacity={0.8 - index * 0.15}
                   />
                 </linearGradient>

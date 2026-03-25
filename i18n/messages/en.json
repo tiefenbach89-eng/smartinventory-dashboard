@@ -467,7 +467,12 @@
     "toastDeleted": "Product deleted.",
     "toastDeleteFailed": "Delete failed: {message}",
     "toastLogFailed": "Failed to load logs: {message}",
-    "errorLoadProducts": "Failed to load products."
+    "errorLoadProducts": "Failed to load products.",
+    "bookingInvalidAmount": "Please enter a valid quantity.",
+    "bookingInsufficientStock": "Insufficient stock available.",
+    "bookingSuccessIn": "Booked in successfully.",
+    "bookingSuccessOut": "Booked out successfully.",
+    "bookingFailed": "Booking failed: {message}"
   },
 
   "Sidebar": {
@@ -566,7 +571,10 @@
     "areaDrillColPrice": "Price",
     "areaDrillColTotal": "Total value",
     "areaLoadError": "Failed to load historical values.",
-    "areaDrillError": "Failed to load monthly data."
+    "areaDrillError": "Failed to load monthly data.",
+    "areaDrillOilBadge": "Oil",
+    "barItemsLabel": "Items:",
+    "barMoreItems": "+{count} more..."
   },
 
   "RecentSales": {
@@ -692,7 +700,10 @@
     "areaDrillColPrice": "Price",
     "areaDrillColTotal": "Total",
     "areaLoadError": "Could not load chart.",
-    "areaDrillError": "Could not load monthly data."
+    "areaDrillError": "Could not load monthly data.",
+    "areaDrillOilBadge": "Oil",
+    "barItemsLabel": "Items:",
+    "barMoreItems": "+{count} more..."
   },
 
   "header": {

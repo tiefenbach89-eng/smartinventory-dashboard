@@ -465,7 +465,12 @@
     "toastDeleted": "Produkt gelöscht.",
     "toastDeleteFailed": "Löschen fehlgeschlagen: {message}",
     "toastLogFailed": "Fehler beim Laden der Logs: {message}",
-    "errorLoadProducts": "Fehler beim Laden der Produkte."
+    "errorLoadProducts": "Fehler beim Laden der Produkte.",
+    "bookingInvalidAmount": "Bitte gültige Menge eingeben.",
+    "bookingInsufficientStock": "Nicht genügend Bestand vorhanden.",
+    "bookingSuccessIn": "Erfolgreich eingebucht.",
+    "bookingSuccessOut": "Erfolgreich ausgebucht.",
+    "bookingFailed": "Buchungsfehler: {message}"
   },
 
   "Sidebar": {
@@ -567,7 +572,10 @@
     "areaDrillColPrice": "Preis",
     "areaDrillColTotal": "Gesamtwert",
     "areaLoadError": "Verlauf konnte nicht geladen werden.",
-    "areaDrillError": "Monatsdaten konnten nicht geladen werden."
+    "areaDrillError": "Monatsdaten konnten nicht geladen werden.",
+    "areaDrillOilBadge": "Öl",
+    "barItemsLabel": "Artikel:",
+    "barMoreItems": "+{count} weitere..."
   },
 
   "RecentSales": {
@@ -687,7 +695,10 @@
     "areaDrillColPrice": "Preis",
     "areaDrillColTotal": "Gesamtwert",
     "areaLoadError": "Fehler beim Laden.",
-    "areaDrillError": "Fehler beim Laden."
+    "areaDrillError": "Fehler beim Laden.",
+    "areaDrillOilBadge": "Öl",
+    "barItemsLabel": "Artikel:",
+    "barMoreItems": "+{count} weitere..."
   },
 
   "header": {
