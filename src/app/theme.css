@@ -3,7 +3,9 @@ body {
 }
 
 :root {
-  --font-sans: var(--font-inter);
+  /* Use Instrument Sans — distinctive, not generic Inter */
+  --font-sans: var(--font-instrument);
+  --font-display: var(--font-instrument);
   --header-height: calc(var(--spacing) * 12 + 1px);
 }
 

@@ -10,7 +10,7 @@ import { ModeToggle } from './ThemeToggle/theme-toggle';
 
 export default function Header() {
   return (
-    <header className='sticky top-0 z-40 flex h-14 shrink-0 items-center justify-between gap-2 border-b border-border/40 bg-background/85 backdrop-blur-xl transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12' style={{ WebkitBackdropFilter: 'blur(20px) saturate(180%)', backdropFilter: 'blur(20px) saturate(180%)' }}>
+    <header className='sticky top-0 z-40 flex h-14 shrink-0 items-center justify-between gap-2 border-b border-border/50 bg-background/90 backdrop-blur-xl transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12' style={{ WebkitBackdropFilter: 'blur(24px) saturate(200%)', backdropFilter: 'blur(24px) saturate(200%)' }}>
       {/* Left Section: Navigation */}
       <div className='flex items-center gap-2 px-3 sm:px-4'>
         {/* Sidebar Toggle nur auf sehr großen Desktops */}

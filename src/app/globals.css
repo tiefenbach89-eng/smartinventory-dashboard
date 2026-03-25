@@ -61,73 +61,132 @@ button, [role="button"] {
 }
 
 
+/* ============================================================
+   INDUSTRIAL GOLD — Light Mode
+   Warm cream base, deep charcoal text, amber gold primary
+   ============================================================ */
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(0.99 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --radius: 0.75rem;
+
+  /* Backgrounds — warm cream, not cold white */
+  --background: oklch(0.975 0.006 75);
+  --foreground: oklch(0.12 0.015 260);
+
+  /* Cards — slightly elevated warm white */
+  --card: oklch(0.995 0.003 75);
+  --card-foreground: oklch(0.12 0.015 260);
+
+  /* Popover */
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.96 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.96 0 0);
-  --muted-foreground: oklch(0.5 0 0);
-  --accent: oklch(0.96 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.12 0.015 260);
+
+  /* PRIMARY — Amber Gold (the signature accent) */
+  --primary: oklch(0.72 0.165 55);
+  --primary-foreground: oklch(0.10 0.02 55);
+
+  /* Secondary — warm stone */
+  --secondary: oklch(0.93 0.008 75);
+  --secondary-foreground: oklch(0.25 0.015 260);
+
+  /* Muted */
+  --muted: oklch(0.93 0.008 75);
+  --muted-foreground: oklch(0.48 0.015 260);
+
+  /* Accent — warm amber tint */
+  --accent: oklch(0.93 0.015 70);
+  --accent-foreground: oklch(0.20 0.02 55);
+
+  /* Destructive */
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.85 0 0);
-  --input: oklch(0.88 0 0);
-  --ring: oklch(0.6 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.96 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.85 0 0);
-  --sidebar-ring: oklch(0.6 0 0);
+
+  /* Borders — warm, soft */
+  --border: oklch(0.86 0.01 75);
+  --input: oklch(0.90 0.008 75);
+  --ring: oklch(0.72 0.165 55);
+
+  /* Charts — warm amber palette */
+  --chart-1: oklch(0.72 0.165 55);
+  --chart-2: oklch(0.65 0.14 180);
+  --chart-3: oklch(0.55 0.12 260);
+  --chart-4: oklch(0.78 0.16 85);
+  --chart-5: oklch(0.62 0.18 30);
+
+  /* Sidebar — warm off-white */
+  --sidebar: oklch(0.97 0.006 75);
+  --sidebar-foreground: oklch(0.12 0.015 260);
+  --sidebar-primary: oklch(0.72 0.165 55);
+  --sidebar-primary-foreground: oklch(0.10 0.02 55);
+  --sidebar-accent: oklch(0.93 0.015 70);
+  --sidebar-accent-foreground: oklch(0.20 0.02 55);
+  --sidebar-border: oklch(0.88 0.01 75);
+  --sidebar-ring: oklch(0.72 0.165 55);
+
+  /* Amber glow for special effects */
+  --amber-glow: oklch(0.72 0.165 55 / 0.25);
+  --amber-glow-strong: oklch(0.72 0.165 55 / 0.5);
 }
 
+/* ============================================================
+   INDUSTRIAL GOLD — Dark Mode
+   Deep charcoal base, amber gold accents, warm whites
+   ============================================================ */
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.22 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.269 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.28 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.28 0 0);
-  --muted-foreground: oklch(0.7 0 0);
-  --accent: oklch(0.35 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 18%);
-  --input: oklch(1 0 0 / 20%);
-  --ring: oklch(0.6 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.28 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 18%);
-  --sidebar-ring: oklch(0.6 0 0);
+  /* Backgrounds — deep charcoal, not pure black */
+  --background: oklch(0.11 0.012 260);
+  --foreground: oklch(0.95 0.008 75);
+
+  /* Cards — slightly elevated */
+  --card: oklch(0.155 0.012 260);
+  --card-foreground: oklch(0.95 0.008 75);
+
+  /* Popover */
+  --popover: oklch(0.18 0.012 260);
+  --popover-foreground: oklch(0.95 0.008 75);
+
+  /* PRIMARY — Amber Gold (glows in the dark!) */
+  --primary: oklch(0.78 0.17 58);
+  --primary-foreground: oklch(0.09 0.02 58);
+
+  /* Secondary */
+  --secondary: oklch(0.22 0.012 260);
+  --secondary-foreground: oklch(0.90 0.008 75);
+
+  /* Muted */
+  --muted: oklch(0.20 0.01 260);
+  --muted-foreground: oklch(0.62 0.015 260);
+
+  /* Accent */
+  --accent: oklch(0.24 0.018 260);
+  --accent-foreground: oklch(0.78 0.17 58);
+
+  /* Destructive */
+  --destructive: oklch(0.65 0.22 22);
+
+  /* Borders — subtle warm tint */
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 10%);
+  --ring: oklch(0.78 0.17 58);
+
+  /* Charts — amber-dominant warm palette */
+  --chart-1: oklch(0.78 0.17 58);
+  --chart-2: oklch(0.65 0.15 180);
+  --chart-3: oklch(0.72 0.18 85);
+  --chart-4: oklch(0.60 0.20 30);
+  --chart-5: oklch(0.55 0.15 260);
+
+  /* Sidebar — slightly darker than card */
+  --sidebar: oklch(0.13 0.012 260);
+  --sidebar-foreground: oklch(0.92 0.008 75);
+  --sidebar-primary: oklch(0.78 0.17 58);
+  --sidebar-primary-foreground: oklch(0.09 0.02 58);
+  --sidebar-accent: oklch(0.22 0.018 260);
+  --sidebar-accent-foreground: oklch(0.78 0.17 58);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.78 0.17 58);
+
+  /* Amber glow effects */
+  --amber-glow: oklch(0.78 0.17 58 / 0.20);
+  --amber-glow-strong: oklch(0.78 0.17 58 / 0.45);
 }
 
 @theme inline {
@@ -174,7 +233,114 @@ button, [role="button"] {
   }
   body {
     @apply bg-background text-foreground;
+    /* Subtle grain texture for depth */
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.025'/%3E%3C/svg%3E");
+    background-blend-mode: overlay;
   }
+}
+
+/* ============================================================
+   INDUSTRIAL GOLD — Signature Utilities
+   ============================================================ */
+
+/* Amber glow effect for primary elements */
+.glow-amber {
+  box-shadow: 0 0 20px var(--amber-glow), 0 0 60px oklch(0.78 0.17 58 / 0.08);
+}
+
+.glow-amber-sm {
+  box-shadow: 0 0 8px var(--amber-glow), 0 2px 12px oklch(0.78 0.17 58 / 0.12);
+}
+
+/* Number display — always use JetBrains Mono */
+.font-numeric {
+  font-family: var(--font-mono), 'JetBrains Mono', monospace;
+  font-feature-settings: "tnum" 1, "zero" 1;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Amber accent border */
+.border-amber-accent {
+  border-color: oklch(0.78 0.17 58 / 0.4);
+}
+
+/* Staggered fade-in animations */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.4s ease both;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Stagger delays */
+.delay-50  { animation-delay: 50ms; }
+.delay-100 { animation-delay: 100ms; }
+.delay-150 { animation-delay: 150ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-250 { animation-delay: 250ms; }
+.delay-300 { animation-delay: 300ms; }
+.delay-350 { animation-delay: 350ms; }
+.delay-400 { animation-delay: 400ms; }
+
+/* Atmospheric ambient gradient — used on page backgrounds */
+.ambient-gradient {
+  position: relative;
+}
+.ambient-gradient::before {
+  content: '';
+  position: fixed;
+  top: -20%;
+  right: -10%;
+  width: 60vw;
+  height: 60vw;
+  background: radial-gradient(circle, oklch(0.78 0.17 58 / 0.06) 0%, transparent 65%);
+  pointer-events: none;
+  z-index: 0;
+}
+.dark .ambient-gradient::before {
+  background: radial-gradient(circle, oklch(0.78 0.17 58 / 0.10) 0%, transparent 65%);
+}
+
+/* Premium card style */
+.card-premium {
+  background: linear-gradient(135deg, var(--card) 0%, color-mix(in oklch, var(--card), transparent 20%) 100%);
+  border: 1px solid var(--border);
+  box-shadow: 0 1px 3px oklch(0 0 0 / 0.08), 0 1px 2px oklch(0 0 0 / 0.06), inset 0 1px 0 oklch(1 0 0 / 0.06);
+}
+.dark .card-premium {
+  box-shadow: 0 2px 8px oklch(0 0 0 / 0.4), 0 1px 2px oklch(0 0 0 / 0.3), inset 0 1px 0 oklch(1 0 0 / 0.04);
 }
 
 /* Enhanced Shadows für bessere Sichtbarkeit in light & dark mode */

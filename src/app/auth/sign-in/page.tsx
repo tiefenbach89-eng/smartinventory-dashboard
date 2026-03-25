@@ -6,16 +6,8 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import {
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent
-} from '@/components/ui/card';
-import { CardModern } from '@/components/ui/card-modern';
 import { toast } from 'sonner';
 import { Loader2, Eye, EyeOff } from 'lucide-react';
-
 import { useTranslations } from 'next-intl';
 import LanguageSwitch from '@/components/language-switch';
 
@@ -41,13 +33,8 @@ export default function SignInPage() {
 
       if (error) {
         const msg = error.message?.toLowerCase?.() || '';
-
-        if (msg.includes('email not confirmed'))
-          return toast.info(t('emailNotConfirmed'));
-
-        if (msg.includes('invalid login credentials'))
-          return toast.error(t('invalidCredentials'));
-
+        if (msg.includes('email not confirmed')) return toast.info(t('emailNotConfirmed'));
+        if (msg.includes('invalid login credentials')) return toast.error(t('invalidCredentials'));
         return toast.error(t('loginFailed'));
       }
 
@@ -86,108 +73,141 @@ export default function SignInPage() {
   }
 
   return (
-    <div className='grid min-h-[100dvh] lg:grid-cols-2'>
-      {/* ---------------- LEFT SIDE ---------------- */}
-      <div className='flex flex-col items-center justify-center px-5 py-safe pt-8 pb-8 sm:px-8 sm:py-12'>
-        <div className='w-full max-w-sm'>
-          <CardModern className='border-border/40 from-card/90 via-card/70 to-background/40 w-full border bg-gradient-to-b p-6 shadow-lg backdrop-blur-md sm:p-8'>
-            <CardHeader className='px-0 pt-0'>
-              <CardTitle className='text-2xl font-bold sm:text-3xl'>
-                {t('title')}
-              </CardTitle>
-              <CardDescription className='text-muted-foreground mt-1 text-sm'>
-                {t('email')} / {t('password')}
-              </CardDescription>
-            </CardHeader>
+    <div className='relative flex min-h-[100dvh] flex-col items-center justify-center overflow-hidden px-5 py-10 sm:px-8'>
 
-            <CardContent className='px-0 pb-0'>
-              <form onSubmit={handleSignIn} className='space-y-3'>
-                <Input
-                  type='email'
-                  placeholder={t('email')}
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className='h-12 rounded-xl text-base'
-                  autoComplete='email'
-                  autoCapitalize='none'
-                />
-
-                <div className='relative'>
-                  <Input
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder={t('password')}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    className='h-12 rounded-xl pr-12 text-base'
-                    autoComplete='current-password'
-                  />
-                  <button
-                    type='button'
-                    onClick={() => setShowPassword(!showPassword)}
-                    className='text-muted-foreground absolute top-1/2 right-0 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-r-xl'
-                    aria-label={showPassword ? 'Passwort verbergen' : 'Passwort anzeigen'}
-                  >
-                    {showPassword ? (
-                      <EyeOff className='h-4 w-4' />
-                    ) : (
-                      <Eye className='h-4 w-4' />
-                    )}
-                  </button>
-                </div>
-
-                <Button
-                  type='submit'
-                  className='h-12 w-full rounded-xl text-base font-semibold active:scale-[0.98]'
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-                      {t('button')}
-                    </>
-                  ) : (
-                    t('button')
-                  )}
-                </Button>
-              </form>
-
-              {/* Links */}
-              <div className='text-muted-foreground mt-5 space-y-2 text-center text-sm'>
-                <p>
-                  {t('noAccount')}{' '}
-                  <Link href='/auth/sign-up' className='text-primary font-medium underline underline-offset-2'>
-                    {t('signUp')}
-                  </Link>
-                </p>
-                <p>
-                  <Link
-                    href='/auth/reset-password'
-                    className='text-primary font-medium underline underline-offset-2'
-                  >
-                    {t('forgot')}
-                  </Link>
-                </p>
-              </div>
-            </CardContent>
-          </CardModern>
-
-          {/* Language Switch */}
-          <div className='mt-5 flex justify-center'>
-            <LanguageSwitch />
-          </div>
-        </div>
+      {/* ── Atmospheric Background ── */}
+      <div className='pointer-events-none fixed inset-0 -z-10'>
+        {/* Base */}
+        <div className='absolute inset-0 bg-background' />
+        {/* Amber radial glow — top right */}
+        <div className='absolute -right-[20%] -top-[20%] h-[60vw] w-[60vw] rounded-full bg-primary/10 blur-[100px] dark:bg-primary/15' />
+        {/* Subtle second glow — bottom left */}
+        <div className='absolute -bottom-[10%] -left-[10%] h-[40vw] w-[40vw] rounded-full bg-primary/6 blur-[80px] dark:bg-primary/10' />
+        {/* Fine grid overlay */}
+        <div
+          className='absolute inset-0 opacity-[0.03] dark:opacity-[0.06]'
+          style={{
+            backgroundImage:
+              'linear-gradient(var(--foreground) 1px, transparent 1px), linear-gradient(90deg, var(--foreground) 1px, transparent 1px)',
+            backgroundSize: '32px 32px'
+          }}
+        />
       </div>
 
-      {/* ---------------- RIGHT SIDE (desktop only) ---------------- */}
-      <div className='bg-muted/50 hidden lg:flex lg:flex-col lg:items-center lg:justify-center'>
-        <blockquote className='max-w-md space-y-3 px-8 text-center'>
-          <p className='text-xl leading-relaxed font-medium'>{t('quote')}</p>
-          <footer className='text-muted-foreground text-sm font-medium'>
-            {t('brand')}
-          </footer>
-        </blockquote>
+      {/* ── Language Switcher — top right ── */}
+      <div className='fixed top-5 right-5 z-10'>
+        <LanguageSwitch />
+      </div>
+
+      {/* ── Login Card ── */}
+      <div className='animate-scale-in w-full max-w-[400px]'>
+
+        {/* Logo / Brand mark */}
+        <div className='mb-8 text-center'>
+          <div className='mb-3 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-primary shadow-lg' style={{ boxShadow: '0 0 32px var(--amber-glow-strong)' }}>
+            <svg viewBox='0 0 24 24' fill='none' className='h-7 w-7 text-primary-foreground' stroke='currentColor' strokeWidth='2.2'>
+              <path d='M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z' />
+              <polyline points='9 22 9 12 15 12 15 22' />
+            </svg>
+          </div>
+          <h1 className='text-2xl font-bold tracking-tight sm:text-3xl'>
+            SmartInventory
+          </h1>
+          <p className='text-muted-foreground mt-1 text-sm'>
+            {t('title')}
+          </p>
+        </div>
+
+        {/* Form Card */}
+        <div className='card-premium rounded-3xl p-6 sm:p-8'>
+          <form onSubmit={handleSignIn} className='space-y-4'>
+
+            {/* Email */}
+            <div className='space-y-1.5'>
+              <label className='text-foreground/80 text-xs font-semibold uppercase tracking-wider'>
+                {t('email')}
+              </label>
+              <Input
+                type='email'
+                placeholder='name@firma.de'
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className='h-12 rounded-xl border-border/60 bg-background/60 text-base backdrop-blur-sm focus:border-primary focus:ring-primary/20'
+                autoComplete='email'
+                autoCapitalize='none'
+              />
+            </div>
+
+            {/* Password */}
+            <div className='space-y-1.5'>
+              <label className='text-foreground/80 text-xs font-semibold uppercase tracking-wider'>
+                {t('password')}
+              </label>
+              <div className='relative'>
+                <Input
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder='••••••••'
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className='h-12 rounded-xl border-border/60 bg-background/60 pr-12 text-base backdrop-blur-sm focus:border-primary focus:ring-primary/20'
+                  autoComplete='current-password'
+                />
+                <button
+                  type='button'
+                  onClick={() => setShowPassword(!showPassword)}
+                  className='text-muted-foreground absolute top-1/2 right-0 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-r-xl active:opacity-60'
+                  aria-label={showPassword ? 'Passwort verbergen' : 'Passwort anzeigen'}
+                >
+                  {showPassword ? <EyeOff className='h-4 w-4' /> : <Eye className='h-4 w-4' />}
+                </button>
+              </div>
+            </div>
+
+            {/* Forgot password link */}
+            <div className='flex justify-end'>
+              <Link
+                href='/auth/reset-password'
+                className='text-primary text-xs font-semibold underline-offset-2 hover:underline'
+              >
+                {t('forgot')}
+              </Link>
+            </div>
+
+            {/* Submit */}
+            <Button
+              type='submit'
+              className='glow-amber-sm mt-1 h-12 w-full rounded-xl bg-primary text-base font-bold text-primary-foreground active:scale-[0.98]'
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                  {t('button')}
+                </>
+              ) : (
+                t('button')
+              )}
+            </Button>
+          </form>
+
+          {/* Sign up link */}
+          <p className='text-muted-foreground mt-5 text-center text-sm'>
+            {t('noAccount')}{' '}
+            <Link
+              href='/auth/sign-up'
+              className='text-primary font-semibold underline-offset-2 hover:underline'
+            >
+              {t('signUp')}
+            </Link>
+          </p>
+        </div>
+
+        {/* Footer */}
+        <p className='text-muted-foreground/50 mt-6 text-center text-[11px]'>
+          Smart Inventory 2026 · Programmed by Alexander T.
+        </p>
       </div>
     </div>
   );

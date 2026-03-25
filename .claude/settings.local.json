@@ -30,7 +30,8 @@
       "Bash(gh repo view:*)",
       "Bash(curl:*)",
       "Bash(grep:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(ls:*)"
     ]
   }
 }

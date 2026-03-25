@@ -56,8 +56,8 @@ export function NavMain({ items }: { items: NavMainItem[] }) {
               'active:scale-[0.97] active:bg-accent/90',
               'transition-colors duration-150',
               item.isActive && [
-                'bg-primary/10 text-primary',
-                'border border-primary/20 shadow-sm'
+                'bg-primary/12 text-primary font-semibold',
+                'border border-primary/25',
               ]
             );
 
