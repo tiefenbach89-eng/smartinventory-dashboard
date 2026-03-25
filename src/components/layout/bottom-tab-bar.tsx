@@ -53,20 +53,20 @@ export default function BottomTabBar() {
 
   return (
     <>
-      {/* Spacer um Content nicht zu verdecken */}
-      <div className='h-20 md:h-24' />
+      {/* Spacer — muss Bottom Tab Bar + safe area abdecken */}
+      <div className='h-[calc(72px+env(safe-area-inset-bottom))] md:h-[calc(84px+env(safe-area-inset-bottom))]' />
 
       {/* iOS Bottom Tab Bar */}
-      <nav className='fixed bottom-0 left-0 right-0 z-50 safe-area-inset-bottom'>
+      <nav className='fixed bottom-0 left-0 right-0 z-50' style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
         {/* Glasmorphismus Container */}
         <div className='relative'>
           {/* Backdrop Blur Layer */}
-          <div className='absolute inset-0 bg-background/80 backdrop-blur-2xl border-t border-border/50' />
+          <div className='absolute inset-0 bg-background/85 backdrop-blur-2xl border-t border-border/40' style={{ WebkitBackdropFilter: 'blur(24px) saturate(180%)', backdropFilter: 'blur(24px) saturate(180%)' }} />
 
           {/* Content Layer */}
           <div className='relative'>
             {/* Tab Container */}
-            <div className='flex items-center justify-around px-2 py-2 md:px-4 md:py-3'>
+            <div className='flex items-center justify-around px-2 py-1.5 md:px-4 md:py-2'>
               {displayItems.map((item) => {
                 const IconComponent = Icons[item.icon] ?? Icons.logo;
 
@@ -80,10 +80,10 @@ export default function BottomTabBar() {
                     key={item.key}
                     href={item.url}
                     className={cn(
-                      'group relative flex flex-col items-center justify-center gap-1',
-                      'min-w-[60px] rounded-2xl px-4 py-2.5 transition-all duration-300',
-                      'hover:scale-105 active:scale-95',
-                      'md:min-w-[80px] md:px-6 md:py-3'
+                      'group relative flex flex-col items-center justify-center gap-0.5',
+                      'min-h-[52px] min-w-[56px] rounded-2xl px-3 py-2',
+                      'active:scale-90 transition-transform duration-100',
+                      'md:min-w-[72px] md:px-5 md:py-2.5'
                     )}
                   >
                     {/* Active Background Pill */}
@@ -95,19 +95,17 @@ export default function BottomTabBar() {
                     <div className='relative z-10'>
                       <div
                         className={cn(
-                          'flex h-7 w-7 items-center justify-center rounded-xl transition-all duration-300',
+                          'flex h-7 w-7 items-center justify-center rounded-xl',
                           'md:h-8 md:w-8',
-                          isActive
-                            ? 'scale-110'
-                            : 'group-hover:scale-110'
+                          isActive ? 'scale-110' : ''
                         )}
                       >
                         <IconComponent
                           className={cn(
-                            'h-5 w-5 transition-all duration-300 md:h-6 md:w-6',
+                            'h-5 w-5 md:h-6 md:w-6',
                             isActive
                               ? 'text-primary drop-shadow-sm'
-                              : 'text-muted-foreground group-hover:text-foreground'
+                              : 'text-muted-foreground'
                           )}
                         />
                       </div>
@@ -116,10 +114,8 @@ export default function BottomTabBar() {
                     {/* Label */}
                     <span
                       className={cn(
-                        'relative z-10 text-[10px] font-semibold transition-all duration-300 md:text-xs',
-                        isActive
-                          ? 'text-primary'
-                          : 'text-muted-foreground group-hover:text-foreground'
+                        'relative z-10 text-[10px] font-semibold md:text-xs',
+                        isActive ? 'text-primary' : 'text-muted-foreground'
                       )}
                     >
                       {item.label}

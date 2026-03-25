@@ -6,31 +6,51 @@
 
 @import './theme.css';
 
-/* iOS Tablet Optimizations */
-@supports (-webkit-touch-callout: none) {
-  /* Smooth scrolling for iOS */
-  * {
-    -webkit-overflow-scrolling: touch;
-  }
+/* ============================================================
+   iOS / Apple Device Optimizations
+   ============================================================ */
 
-  /* Prevent text selection issues on iOS */
-  .touch-none {
-    -webkit-user-select: none;
-    -webkit-touch-callout: none;
-  }
+/* Prevent tap highlight on all interactive elements */
+a, button, input, select, textarea, [role="button"] {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
 
-  /* Better tap highlighting */
-  * {
-    -webkit-tap-highlight-color: transparent;
-  }
+/* Minimum 44px touch targets for iOS HIG */
+button, [role="button"], a {
+  min-height: 44px;
+  min-width: 44px;
+}
 
-  /* Smooth animations for iOS */
-  * {
-    -webkit-transform: translateZ(0);
-    transform: translateZ(0);
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
-  }
+/* Prevent iOS input zoom (font-size must be ≥ 16px) */
+input, select, textarea {
+  font-size: 16px !important;
+}
+
+/* Smooth native scrolling on iOS */
+.overflow-y-auto,
+.overflow-y-scroll,
+.overflow-auto,
+.overflow-scroll {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Prevent text selection on interactive elements */
+button, [role="button"] {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* GPU-accelerate only specific animated elements */
+.animate-spin,
+.animate-spin-slow,
+[data-motion],
+.transition-transform {
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  will-change: transform;
 }
 
 /* Grid Pattern Utility */
@@ -40,23 +60,6 @@
   background-size: 24px 24px;
 }
 
-/* iOS-Style Backdrop Blur Enhancement */
-@supports (backdrop-filter: blur(20px)) {
-  .backdrop-blur-xl {
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-  }
-
-  .backdrop-blur-md {
-    backdrop-filter: blur(12px) saturate(160%);
-    -webkit-backdrop-filter: blur(12px) saturate(160%);
-  }
-
-  .backdrop-blur-sm {
-    backdrop-filter: blur(8px) saturate(140%);
-    -webkit-backdrop-filter: blur(8px) saturate(140%);
-  }
-}
 
 :root {
   --radius: 0.625rem;
@@ -260,36 +263,36 @@
   animation: reveal 0.4s ease-in-out forwards;
 }
 
-/* 🌊 Smooth UI transitions and subtle hover effects */
+/* 🌊 Smooth UI transitions — NO transform globally (iOS jank) */
 * {
   transition:
-    color 0.25s ease,
-    background-color 0.25s ease,
-    border-color 0.25s ease,
-    box-shadow 0.3s ease,
-    transform 0.25s ease;
+    color 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    opacity 0.2s ease;
 }
 
-/* 💎 Optional helper class for reusable hover glow */
-.hover-glow {
-  transition: all 0.3s ease;
-}
-.hover-glow:hover {
-  transform: scale(1.02);
-  box-shadow: 0 0 12px var(--tw-shadow-color, rgba(0, 0, 0, 0.15));
+/* 💎 Hover glow — desktop only */
+@media (hover: hover) {
+  .hover-glow:hover {
+    transform: scale(1.02);
+    box-shadow: 0 0 12px var(--tw-shadow-color, rgba(0, 0, 0, 0.15));
+  }
 }
 
 /* -----------------------------------
-   Global Hover Utility for Tables
+   Table Row Hover — desktop only
 ----------------------------------- */
 .hover-focus-row {
-  transition: all 0.25s ease;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.hover-focus-row:hover {
-  background-color: color-mix(in oklab, var(--muted) 25%, transparent);
-  box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.15);
-  transform: translateY(1px);
+@media (hover: hover) {
+  .hover-focus-row:hover {
+    background-color: color-mix(in oklab, var(--muted) 25%, transparent);
+    box-shadow: 0 1px 4px -1px rgba(0, 0, 0, 0.1);
+  }
 }
 
 /* 🧭 Global Scroll Fix (stellt sicher, dass Body & HTML immer scrollbar bleiben) */
@@ -311,4 +314,102 @@ body {
 
 .animate-spin-slow {
   animation: spin-slow 4s linear infinite;
+}
+
+/* ============================================================
+   iOS Safe Area Utilities
+   ============================================================ */
+
+/* Safe area padding for iOS notch / home bar */
+.pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.pl-safe {
+  padding-left: env(safe-area-inset-left);
+}
+.pr-safe {
+  padding-right: env(safe-area-inset-right);
+}
+.px-safe {
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/* iOS-style active press feedback for touch (replaces hover:scale) */
+.touch-press {
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.touch-press:active {
+  transform: scale(0.97);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+}
+
+/* Full-screen height that respects iOS address bar */
+.h-screen-safe {
+  height: 100dvh;
+}
+
+/* Prevent overscroll / bounce on iOS for fixed panels */
+.no-bounce {
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Smooth card active state for iOS */
+@media (hover: none) and (pointer: coarse) {
+  /* Touch devices only */
+  .hover\:scale-\[1\.02\]:active,
+  .hover\:scale-\[1\.01\]:active {
+    transform: scale(0.98);
+  }
+
+  /* Disable hover scales on touch */
+  .hover\:scale-\[1\.02\]:not(:active),
+  .hover\:scale-\[1\.01\]:not(:active) {
+    transform: none;
+  }
+
+  /* Disable hover:shadow on touch (unnecessary) */
+  .hover\:shadow-2xl:not(:active) {
+    box-shadow: inherit;
+  }
+}
+
+/* ============================================================
+   iOS Backdrop Blur Enhancement
+   ============================================================ */
+@supports (backdrop-filter: blur(20px)) or (-webkit-backdrop-filter: blur(20px)) {
+  .backdrop-blur-xl {
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+  }
+  .backdrop-blur-md {
+    backdrop-filter: blur(12px) saturate(160%);
+    -webkit-backdrop-filter: blur(12px) saturate(160%);
+  }
+  .backdrop-blur-sm {
+    backdrop-filter: blur(8px) saturate(140%);
+    -webkit-backdrop-filter: blur(8px) saturate(140%);
+  }
+}
+
+/* ============================================================
+   Mobile-first Typography Improvements
+   ============================================================ */
+@media (max-width: 768px) {
+  /* Prevent text overflow on mobile */
+  h1, h2, h3, h4, h5, h6 {
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+
+  /* Better mobile table scrolling */
+  table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
 }

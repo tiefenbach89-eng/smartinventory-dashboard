@@ -86,13 +86,13 @@ export default function SignInPage() {
   }
 
   return (
-    <div className='grid min-h-screen lg:grid-cols-2'>
+    <div className='grid min-h-[100dvh] lg:grid-cols-2'>
       {/* ---------------- LEFT SIDE ---------------- */}
-      <div className='flex flex-col justify-center px-8 py-12'>
-        <div className='mx-auto w-full max-w-sm'>
-          <CardModern className='border-border/40 from-primary/10 via-card/70 to-background/30 hover:border-primary/40 hover:shadow-primary/25 animate-gradient-move w-full max-w-md border bg-gradient-to-b p-8 shadow-sm backdrop-blur-md transition-all duration-500 hover:shadow-[0_0_25px_var(--tw-shadow-color)]'>
-            <CardHeader>
-              <CardTitle className='text-2xl font-semibold'>
+      <div className='flex flex-col items-center justify-center px-5 py-safe pt-8 pb-8 sm:px-8 sm:py-12'>
+        <div className='w-full max-w-sm'>
+          <CardModern className='border-border/40 from-card/90 via-card/70 to-background/40 w-full border bg-gradient-to-b p-6 shadow-lg backdrop-blur-md sm:p-8'>
+            <CardHeader className='px-0 pt-0'>
+              <CardTitle className='text-2xl font-bold sm:text-3xl'>
                 {t('title')}
               </CardTitle>
               <CardDescription className='text-muted-foreground mt-1 text-sm'>
@@ -100,14 +100,17 @@ export default function SignInPage() {
               </CardDescription>
             </CardHeader>
 
-            <CardContent>
-              <form onSubmit={handleSignIn} className='space-y-4'>
+            <CardContent className='px-0 pb-0'>
+              <form onSubmit={handleSignIn} className='space-y-3'>
                 <Input
                   type='email'
                   placeholder={t('email')}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  className='h-12 rounded-xl text-base'
+                  autoComplete='email'
+                  autoCapitalize='none'
                 />
 
                 <div className='relative'>
@@ -117,11 +120,14 @@ export default function SignInPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
+                    className='h-12 rounded-xl pr-12 text-base'
+                    autoComplete='current-password'
                   />
                   <button
                     type='button'
                     onClick={() => setShowPassword(!showPassword)}
-                    className='text-muted-foreground absolute top-1/2 right-3 -translate-y-1/2'
+                    className='text-muted-foreground absolute top-1/2 right-0 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-r-xl'
+                    aria-label={showPassword ? 'Passwort verbergen' : 'Passwort anzeigen'}
                   >
                     {showPassword ? (
                       <EyeOff className='h-4 w-4' />
@@ -131,7 +137,11 @@ export default function SignInPage() {
                   </button>
                 </div>
 
-                <Button type='submit' className='w-full' disabled={loading}>
+                <Button
+                  type='submit'
+                  className='h-12 w-full rounded-xl text-base font-semibold active:scale-[0.98]'
+                  disabled={loading}
+                >
                   {loading ? (
                     <>
                       <Loader2 className='mr-2 h-4 w-4 animate-spin' />
@@ -144,17 +154,17 @@ export default function SignInPage() {
               </form>
 
               {/* Links */}
-              <div className='text-muted-foreground mt-4 space-y-1 text-center text-sm'>
+              <div className='text-muted-foreground mt-5 space-y-2 text-center text-sm'>
                 <p>
                   {t('noAccount')}{' '}
-                  <Link href='/auth/sign-up' className='text-primary underline'>
+                  <Link href='/auth/sign-up' className='text-primary font-medium underline underline-offset-2'>
                     {t('signUp')}
                   </Link>
                 </p>
                 <p>
                   <Link
                     href='/auth/reset-password'
-                    className='text-primary underline'
+                    className='text-primary font-medium underline underline-offset-2'
                   >
                     {t('forgot')}
                   </Link>
@@ -163,18 +173,18 @@ export default function SignInPage() {
             </CardContent>
           </CardModern>
 
-          {/* ----------- NEW: LANGUAGE SWITCH under frame ----------- */}
-          <div className='mt-6 flex justify-center'>
+          {/* Language Switch */}
+          <div className='mt-5 flex justify-center'>
             <LanguageSwitch />
           </div>
         </div>
       </div>
 
-      {/* ---------------- RIGHT SIDE ---------------- */}
-      <div className='bg-muted hidden lg:flex lg:flex-col lg:items-center lg:justify-center'>
-        <blockquote className='max-w-md space-y-2 text-center'>
-          <p className='text-lg leading-relaxed font-medium'>{t('quote')}</p>
-          <footer className='text-muted-foreground text-sm'>
+      {/* ---------------- RIGHT SIDE (desktop only) ---------------- */}
+      <div className='bg-muted/50 hidden lg:flex lg:flex-col lg:items-center lg:justify-center'>
+        <blockquote className='max-w-md space-y-3 px-8 text-center'>
+          <p className='text-xl leading-relaxed font-medium'>{t('quote')}</p>
+          <footer className='text-muted-foreground text-sm font-medium'>
             {t('brand')}
           </footer>
         </blockquote>

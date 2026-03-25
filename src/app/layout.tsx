@@ -27,11 +27,27 @@ const META_THEME_COLORS = {
 
 export const metadata: Metadata = {
   title: 'SmartInventory Dashboard',
-  description: 'Realtime warehouse tracking and analytics dashboard'
+  description: 'Realtime warehouse tracking and analytics dashboard',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'SmartInventory'
+  },
+  formatDetection: {
+    telephone: false
+  }
 };
 
 export const viewport: Viewport = {
-  themeColor: META_THEME_COLORS.light
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: META_THEME_COLORS.light },
+    { media: '(prefers-color-scheme: dark)', color: META_THEME_COLORS.dark }
+  ],
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: 'cover'
 };
 
 export default async function RootLayout({
@@ -90,7 +106,7 @@ export default async function RootLayout({
 
       <body
         className={cn(
-          'bg-background overflow-x-hidden overflow-y-auto overscroll-none font-sans antialiased',
+          'bg-background overflow-x-hidden overflow-y-auto overscroll-none font-sans antialiased selection:bg-primary/20',
           fontVariables
         )}
       >

@@ -134,7 +134,7 @@ export function LiquidWarnings() {
     <>
     {/* Niedrige Produktbestände */}
     {lowProducts.length > 0 && (
-      <Card className='group relative overflow-hidden rounded-3xl border-0 bg-gradient-to-br from-background via-background to-secondary/20 shadow-xl backdrop-blur-xl transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl'>
+      <Card className='group relative overflow-hidden rounded-3xl border-0 bg-gradient-to-br from-background via-background to-secondary/20 shadow-xl backdrop-blur-xl touch-press'>
         <div className='absolute inset-0 -z-10 opacity-[0.02]'>
           <div className='absolute inset-0 bg-grid-white [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.5))]' />
         </div>
@@ -159,7 +159,7 @@ export function LiquidWarnings() {
           {lowProducts.slice(0, 5).map((product) => (
             <div
               key={product.artikelnummer}
-              className='relative overflow-hidden rounded-2xl border border-border/20 bg-gradient-to-br from-background/50 to-secondary/10 p-4 backdrop-blur-sm transition-all duration-300 hover:scale-[1.01] hover:border-border/40 hover:shadow-lg'
+              className='relative overflow-hidden rounded-2xl border border-border/20 bg-gradient-to-br from-background/50 to-secondary/10 p-4 backdrop-blur-sm transition-colors duration-200 active:scale-[0.98]'
             >
               <div className='flex items-start gap-3'>
                 <div className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-xl shadow-sm',
@@ -211,7 +211,7 @@ export function LiquidWarnings() {
           {lowProducts.length > 5 && (
             <Button
               variant='ghost'
-              className='w-full rounded-xl font-semibold'
+              className='h-11 w-full rounded-xl font-semibold active:scale-95'
               onClick={() => router.push('/dashboard/product')}
             >
               Alle Produkte anzeigen →
@@ -223,7 +223,7 @@ export function LiquidWarnings() {
 
     {/* Niedrige Flüssigkeitsstände */}
     {lowLiquids.length > 0 && (
-    <Card className='group relative overflow-hidden rounded-3xl border-0 bg-gradient-to-br from-background via-background to-secondary/20 shadow-xl backdrop-blur-xl transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl'>
+    <Card className='group relative overflow-hidden rounded-3xl border-0 bg-gradient-to-br from-background via-background to-secondary/20 shadow-xl backdrop-blur-xl touch-press'>
       {/* Subtle Pattern */}
       <div className='absolute inset-0 -z-10 opacity-[0.02]'>
         <div className='absolute inset-0 bg-grid-white [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.5))]' />
@@ -251,7 +251,7 @@ export function LiquidWarnings() {
         {lowLiquids.map((liquid) => (
           <div
             key={liquid.id}
-            className='relative overflow-hidden rounded-2xl border border-border/20 bg-gradient-to-br from-background/50 to-secondary/10 p-4 backdrop-blur-sm transition-all duration-300 hover:scale-[1.01] hover:border-border/40 hover:shadow-lg'
+            className='relative overflow-hidden rounded-2xl border border-border/20 bg-gradient-to-br from-background/50 to-secondary/10 p-4 backdrop-blur-sm transition-colors duration-200 active:scale-[0.98]'
           >
             <div className='flex items-start justify-between gap-4'>
               <div className='flex flex-1 items-start gap-3'>
@@ -306,7 +306,7 @@ export function LiquidWarnings() {
         {lowLiquids.length > 3 && (
           <Button
             variant='ghost'
-            className='w-full rounded-xl font-semibold'
+            className='h-11 w-full rounded-xl font-semibold active:scale-95'
             onClick={() => router.push('/dashboard/barrel-oils')}
           >
             Alle Flüssigkeiten anzeigen →

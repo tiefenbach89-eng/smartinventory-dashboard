@@ -84,18 +84,18 @@ export function UserNav() {
       <DropdownMenuTrigger asChild>
         <Button
           variant='ghost'
-          className='relative h-8 w-8 rounded-full focus-visible:ring-0 focus-visible:ring-offset-0'
+          className='relative h-11 w-11 rounded-full active:scale-95 focus-visible:ring-0 focus-visible:ring-offset-0 sm:h-9 sm:w-9'
         >
           <Avatar className='h-8 w-8'>
             <AvatarImage src={avatarUrl || undefined} />
-            <AvatarFallback>
+            <AvatarFallback className='text-xs font-bold'>
               {(firstName?.[0] || 'A') + (lastName?.[0] || 'L')}
             </AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent className='w-56' align='end' sideOffset={10}>
+      <DropdownMenuContent className='w-60 rounded-2xl p-1.5' align='end' sideOffset={8}>
         {/* 🔹 Benutzerinformationen */}
         <DropdownMenuLabel className='font-normal'>
           <div className='flex flex-col space-y-1'>
@@ -110,11 +110,11 @@ export function UserNav() {
 
         {/* 🔹 Menüeinträge */}
         <DropdownMenuGroup>
-          <DropdownMenuItem onClick={() => router.push('/dashboard/profile')}>
+          <DropdownMenuItem className='min-h-[44px] cursor-pointer rounded-xl' onClick={() => router.push('/dashboard/profile')}>
             <UserIcon className='mr-2 h-4 w-4' />
             {t('profile')}
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => router.push('/dashboard/settings')}>
+          <DropdownMenuItem className='min-h-[44px] cursor-pointer rounded-xl' onClick={() => router.push('/dashboard/settings')}>
             <Settings className='mr-2 h-4 w-4' />
             {t('settings')}
           </DropdownMenuItem>
@@ -125,7 +125,7 @@ export function UserNav() {
         {/* 🔹 Logout */}
         <DropdownMenuItem
           onClick={handleSignOut}
-          className='cursor-pointer text-red-600 focus:text-red-700'
+          className='min-h-[44px] cursor-pointer rounded-xl text-red-600 focus:bg-red-50 focus:text-red-700 dark:focus:bg-red-950/30'
         >
           <LogOut className='mr-2 h-4 w-4' />
           {t('logout')}

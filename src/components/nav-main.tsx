@@ -51,12 +51,13 @@ export function NavMain({ items }: { items: NavMainItem[] }) {
 
             // 🔹 Einfacher Button-Style für Hauptpunkte
             const buttonClass = cn(
-              'min-w-8 justify-start gap-2 rounded-xl px-3 py-2 text-sm font-medium',
+              'min-h-[44px] min-w-8 justify-start gap-2 rounded-xl px-3 py-2.5 text-sm font-medium',
               'text-muted-foreground hover:text-foreground hover:bg-accent/70',
-              'transition-all duration-200 ease-out',
+              'active:scale-[0.97] active:bg-accent/90',
+              'transition-colors duration-150',
               item.isActive && [
                 'bg-primary/10 text-primary',
-                'border border-primary/30 shadow-sm'
+                'border border-primary/20 shadow-sm'
               ]
             );
 

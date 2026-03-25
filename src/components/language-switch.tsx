@@ -125,7 +125,7 @@ export default function LanguageSwitch() {
       <button
         type='button'
         onClick={() => setOpen(true)}
-        className='border-border bg-card/70 text-muted-foreground hover:bg-accent hover:text-foreground inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium shadow-sm backdrop-blur-md transition-all'
+        className='border-border bg-card/70 text-muted-foreground hover:bg-accent hover:text-foreground active:scale-95 inline-flex min-h-[44px] items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-medium shadow-sm backdrop-blur-md transition-colors'
       >
         <Globe2 className='h-3.5 w-3.5 opacity-80' />
         <CurrentFlag size={16} />
@@ -155,8 +155,8 @@ export default function LanguageSwitch() {
                   key={lang.code}
                   onClick={() => setValue(lang.code)}
                   className={cn(
-                    'group flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm',
-                    'bg-accent/30 border-border hover:bg-accent border shadow-sm transition-all',
+                    'group flex min-h-[52px] w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm',
+                    'bg-accent/30 border-border hover:bg-accent active:scale-[0.98] border shadow-sm transition-colors',
                     isActive && 'bg-primary/15 border-primary'
                   )}
                 >
@@ -173,10 +173,10 @@ export default function LanguageSwitch() {
           </div>
 
           <DialogFooter className='mt-4 flex justify-end gap-2'>
-            <Button variant='outline' size='sm' onClick={() => setOpen(false)}>
+            <Button variant='outline' className='h-11 rounded-xl px-5' onClick={() => setOpen(false)}>
               {t('cancel')}
             </Button>
-            <Button size='sm' onClick={changeLanguage}>
+            <Button className='h-11 rounded-xl px-5 active:scale-[0.98]' onClick={changeLanguage}>
               {t('confirm')}
             </Button>
           </DialogFooter>

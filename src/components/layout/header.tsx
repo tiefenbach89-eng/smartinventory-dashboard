@@ -10,21 +10,21 @@ import { ModeToggle } from './ThemeToggle/theme-toggle';
 
 export default function Header() {
   return (
-    <header className='flex h-16 shrink-0 items-center justify-between gap-2 border-b border-border/40 backdrop-blur-xl bg-background/80 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12'>
+    <header className='sticky top-0 z-40 flex h-14 shrink-0 items-center justify-between gap-2 border-b border-border/40 bg-background/85 backdrop-blur-xl transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12' style={{ WebkitBackdropFilter: 'blur(20px) saturate(180%)', backdropFilter: 'blur(20px) saturate(180%)' }}>
       {/* Left Section: Navigation */}
-      <div className='flex items-center gap-2 px-4'>
+      <div className='flex items-center gap-2 px-3 sm:px-4'>
         {/* Sidebar Toggle nur auf sehr großen Desktops */}
         <div className='hidden 2xl:flex 2xl:items-center 2xl:gap-2'>
           <SidebarTrigger className='-ml-1' />
           <Separator orientation='vertical' className='mr-2 h-4' />
         </div>
 
-        {/* Nur Breadcrumbs — kein PageTitle mehr */}
+        {/* Breadcrumbs */}
         <Breadcrumbs />
       </div>
 
       {/* Right Section: User + Theme */}
-      <div className='flex items-center gap-2 px-4'>
+      <div className='flex items-center gap-1 px-3 sm:gap-2 sm:px-4'>
         <UserNav />
         <ModeToggle />
         <ThemeSelector />
