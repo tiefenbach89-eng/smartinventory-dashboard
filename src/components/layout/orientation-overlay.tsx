@@ -10,8 +10,10 @@ export default function OrientationOverlay() {
 
   useEffect(() => {
     function check() {
+      // Only show on actual touch devices (tablets/phones), not desktop Chrome
+      const isTouchDevice = navigator.maxTouchPoints > 0 && window.innerWidth < 1024;
       const portrait = window.matchMedia('(orientation: portrait)').matches;
-      setIsPortrait(portrait);
+      setIsPortrait(isTouchDevice && portrait);
     }
 
     check();

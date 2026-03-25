@@ -98,10 +98,10 @@ export default function AppSidebar() {
   return (
     <Sidebar
       collapsible='icon'
-      className='transition-[width] duration-300 ease-in-out backdrop-blur-xl bg-gradient-to-b from-background/95 via-background/90 to-background/95 border-r border-border/50 safe-area-inset-left'
+      className='border-r border-border/50 bg-sidebar'
     >
       {/* iOS-Style Header mit Glasmorphismus */}
-      <SidebarHeader className='border-b border-border/30 px-4 py-4 backdrop-blur-xl'>
+      <SidebarHeader className='border-b border-border/30 px-4 py-4'>
         <div className='flex items-center justify-center'>
           {open ? (
             <div className='flex items-center gap-3 transition-all duration-300'>
@@ -148,8 +148,7 @@ export default function AppSidebar() {
               const buttonClass = cn(
                 'group relative min-w-8 justify-start gap-3 rounded-2xl px-4 py-3.5 text-sm font-semibold',
                 'backdrop-blur-sm transition-all duration-300 ease-out',
-                'hover:scale-[1.02] active:scale-[0.98]',
-                // Inactive State - iOS Card Style
+                                // Inactive State - iOS Card Style
                 !isActive && [
                   'bg-gradient-to-br from-accent/30 via-accent/20 to-accent/10',
                   'text-muted-foreground hover:text-foreground',
@@ -175,8 +174,7 @@ export default function AppSidebar() {
                       className={cn(
                         'group relative flex h-12 w-12 items-center justify-center rounded-xl',
                         'backdrop-blur-sm transition-all duration-300 ease-out',
-                        'hover:scale-[1.05] active:scale-[0.95]',
-                        !isActive && [
+                                                !isActive && [
                           'bg-transparent',
                           'text-muted-foreground hover:text-foreground',
                         ],
@@ -189,7 +187,7 @@ export default function AppSidebar() {
                       )}
                       onClick={() => router.push(item.url)}
                     >
-                      <IconComponent className='h-6 w-6 transition-transform duration-300 group-hover:scale-110' />
+                      <IconComponent className='h-6 w-6 ' />
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 );
@@ -228,7 +226,7 @@ export default function AppSidebar() {
                                 ? 'bg-white/20 shadow-inner'
                                 : 'bg-background/40 group-hover:bg-background/60'
                             )}>
-                              <IconComponent className='h-5 w-5 transition-transform duration-300 group-hover:scale-110' />
+                              <IconComponent className='h-5 w-5 ' />
                             </div>
                             <span className='truncate font-semibold'>{item.label}</span>
                             <Icons.chevronRight
@@ -240,30 +238,27 @@ export default function AppSidebar() {
                             />
                           </>
                         ) : (
-                          <IconComponent className='h-6 w-6 transition-transform duration-300 group-hover:scale-110' />
+                          <IconComponent className='h-6 w-6 ' />
                         )}
                       </button>
                     </SidebarMenuButton>
 
-                    {/* iOS-Style Smooth Dropdown mit Cards */}
+                    {/* Submenu — grid-rows trick avoids Chrome flicker from max-height+transform */}
                     <div
                       className={cn(
-                        'overflow-hidden transition-all duration-400 ease-in-out',
-                        'transform',
-                        isOpen
-                          ? 'mt-2 max-h-[600px] translate-y-0 opacity-100'
-                          : 'max-h-0 -translate-y-2 opacity-0'
+                        'grid transition-[grid-template-rows,opacity] duration-300 ease-in-out',
+                        isOpen ? 'mt-2 grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
                       )}
                     >
-                      <SidebarMenuSub className='space-y-1.5 rounded-2xl bg-background/40 p-2 backdrop-blur-sm ring-1 ring-border/20'>
+                    <div className='overflow-hidden'>
+                      <SidebarMenuSub className='space-y-1 rounded-2xl bg-background/40 p-2 ring-1 ring-border/20'>
                         {item.items!.map((sub) => (
                           <SidebarMenuSubItem key={sub.key}>
                             <SidebarMenuSubButton
                               asChild
                               isActive={pathname === sub.url}
                               className={cn(
-                                'rounded-xl px-4 py-2.5 text-xs font-medium transition-all duration-200',
-                                'hover:scale-[1.02] active:scale-[0.98]',
+                                'rounded-xl px-4 py-2.5 text-xs font-medium',
                                 pathname === sub.url
                                   ? 'bg-primary/20 text-primary ring-1 ring-primary/30 shadow-sm'
                                   : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'
@@ -271,10 +266,8 @@ export default function AppSidebar() {
                             >
                               <Link href={sub.url} className='flex items-center gap-2'>
                                 <div className={cn(
-                                  'h-1.5 w-1.5 rounded-full transition-all duration-200',
-                                  pathname === sub.url
-                                    ? 'bg-primary shadow-sm shadow-primary/50'
-                                    : 'bg-muted-foreground/30'
+                                  'h-1.5 w-1.5 rounded-full',
+                                  pathname === sub.url ? 'bg-primary' : 'bg-muted-foreground/30'
                                 )} />
                                 <span className='truncate'>{sub.label}</span>
                               </Link>
@@ -282,6 +275,7 @@ export default function AppSidebar() {
                           </SidebarMenuSubItem>
                         ))}
                       </SidebarMenuSub>
+                    </div>
                     </div>
                   </SidebarMenuItem>
                 );
@@ -313,12 +307,12 @@ export default function AppSidebar() {
                               ? 'bg-white/20 shadow-inner'
                               : 'bg-background/40 group-hover:bg-background/60'
                           )}>
-                            <IconComponent className='h-5 w-5 transition-transform duration-300 group-hover:scale-110' />
+                            <IconComponent className='h-5 w-5 ' />
                           </div>
                           <span className='truncate font-semibold'>{item.label}</span>
                         </>
                       ) : (
-                        <IconComponent className='h-6 w-6 transition-transform duration-300 group-hover:scale-110' />
+                        <IconComponent className='h-6 w-6 ' />
                       )}
                     </Link>
                   </SidebarMenuButton>

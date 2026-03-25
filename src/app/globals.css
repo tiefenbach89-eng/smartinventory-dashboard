@@ -7,45 +7,53 @@
 @import './theme.css';
 
 /* ============================================================
-   iOS / Apple Device Optimizations
+   Touch / Mobile Optimizations
+   Scoped to TOUCH DEVICES ONLY (pointer: coarse)
+   so desktop sidebar/buttons are NOT affected
    ============================================================ */
 
-/* Prevent tap highlight on all interactive elements */
+/* Prevent tap highlight on all interactive elements — ALL devices */
 a, button, input, select, textarea, [role="button"] {
   -webkit-tap-highlight-color: transparent;
+}
+
+/* touch-action: manipulation — ALL devices (prevents double-tap zoom) */
+button, [role="button"] {
   touch-action: manipulation;
 }
 
-/* Minimum 44px touch targets for iOS HIG */
-button, [role="button"], a {
-  min-height: 44px;
-  min-width: 44px;
-}
-
-/* Prevent iOS input zoom (font-size must be ≥ 16px) */
-input, select, textarea {
-  font-size: 16px !important;
-}
-
-/* Smooth native scrolling on iOS */
-.overflow-y-auto,
-.overflow-y-scroll,
-.overflow-auto,
-.overflow-scroll {
-  -webkit-overflow-scrolling: touch;
-}
-
-/* Prevent text selection on interactive elements */
+/* Prevent text selection on buttons — ALL devices */
 button, [role="button"] {
   -webkit-user-select: none;
   user-select: none;
 }
 
+/* ── Touch-only rules (NOT applied on desktop Chrome/Windows) ── */
+@media (pointer: coarse) {
+  /* Minimum 44px touch targets — ONLY on touch screens */
+  button, [role="button"], a {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Prevent iOS input zoom (font-size ≥ 16px prevents auto-zoom) */
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+
+  /* Native momentum scrolling on iOS */
+  .overflow-y-auto,
+  .overflow-y-scroll,
+  .overflow-auto,
+  .overflow-scroll {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
 /* GPU-accelerate only specific animated elements */
 .animate-spin,
 .animate-spin-slow,
-[data-motion],
-.transition-transform {
+[data-motion] {
   -webkit-transform: translateZ(0);
   transform: translateZ(0);
   -webkit-backface-visibility: hidden;
@@ -429,8 +437,8 @@ button, [role="button"] {
   animation: reveal 0.4s ease-in-out forwards;
 }
 
-/* 🌊 Smooth UI transitions — NO transform globally (iOS jank) */
-* {
+/* 🌊 Smooth UI transitions — scoped away from sidebar layout elements */
+*:not([data-slot='sidebar']):not([data-slot='sidebar-content']):not([data-slot='sidebar-gap']):not([data-slot='sidebar-inset']) {
   transition:
     color 0.2s ease,
     background-color 0.2s ease,

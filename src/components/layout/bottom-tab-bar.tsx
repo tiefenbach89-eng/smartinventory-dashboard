@@ -61,7 +61,7 @@ export default function BottomTabBar() {
         {/* Glasmorphismus Container */}
         <div className='relative'>
           {/* Backdrop Blur Layer */}
-          <div className='absolute inset-0 bg-background/85 backdrop-blur-2xl border-t border-border/40' style={{ WebkitBackdropFilter: 'blur(24px) saturate(180%)', backdropFilter: 'blur(24px) saturate(180%)' }} />
+          <div className='absolute inset-0 border-t border-border/40 bg-background/95 backdrop-blur-md' />
 
           {/* Content Layer */}
           <div className='relative'>
