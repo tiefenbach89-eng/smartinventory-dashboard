@@ -122,11 +122,11 @@ export default function SettingsPage() {
 
   // ⬇️ Render
   return (
-    <div className='flex justify-center overflow-y-auto px-4 py-10 sm:px-6 lg:px-8'>
-      <CardModern className='w-full max-w-2xl space-y-8 p-6 shadow-md sm:p-8'>
+    <div className='flex justify-center px-4 py-8 sm:px-6 sm:py-10 md:px-10 lg:px-12'>
+      <CardModern className='w-full max-w-2xl overflow-hidden rounded-2xl border border-border/60 p-6 shadow-sm sm:p-8 dark:border-border/40'>
         <CardHeader>
-          <CardTitle className='text-2xl font-semibold'>{t('title')}</CardTitle>
-          <CardDescription className='text-muted-foreground mt-1 text-sm'>
+          <CardTitle className='text-xl font-bold'>{t('title')}</CardTitle>
+          <CardDescription className='mt-1 text-sm text-muted-foreground'>
             {t('description')}
           </CardDescription>
         </CardHeader>

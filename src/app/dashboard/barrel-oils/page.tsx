@@ -448,36 +448,52 @@ export default function BarrelOilsPage() {
 
   return (
     <PageContainer>
-      <div className='flex flex-1 flex-col gap-8'>
+      <div className='flex flex-1 flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8 md:px-10 md:py-10 lg:px-12'>
 
         {/* Page Header */}
-        <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-          <div>
-            <h1 className='text-2xl font-bold tracking-tight'>{t('title')}</h1>
-            <p className='text-muted-foreground text-sm'>{t('barrelManagement')}</p>
-          </div>
-          <div className='flex flex-wrap items-center gap-3'>
-            <div className='flex items-center gap-2'>
-              <span className='text-muted-foreground hidden text-sm font-medium sm:block'>{t('oilGuideLabel')}</span>
-              <OilGuideLinks />
+        <div className='relative overflow-hidden rounded-2xl border border-primary/12 bg-gradient-to-br from-primary/8 via-primary/4 to-transparent dark:border-primary/15 dark:from-primary/12 dark:via-primary/6'>
+          <div className='absolute -top-6 -right-6 h-32 w-32 rounded-full bg-primary/8 blur-3xl dark:bg-primary/12' />
+          <div className='relative px-6 py-6 sm:px-8'>
+            <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
+              <div className='space-y-2'>
+                <div className='inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/8 px-3 py-1 dark:border-primary/25 dark:bg-primary/12'>
+                  <Droplet className='h-3.5 w-3.5 text-primary' />
+                  <span className='text-xs font-semibold uppercase tracking-widest text-primary'>
+                    {t('barrelManagement')}
+                  </span>
+                </div>
+                <h1 className='text-2xl font-black tracking-tight sm:text-3xl'>
+                  <span className='bg-gradient-to-br from-foreground via-foreground/90 to-foreground/60 bg-clip-text text-transparent'>
+                    {t('title')}
+                  </span>
+                </h1>
+              </div>
+              <div className='flex flex-wrap items-center gap-2'>
+                <div className='flex items-center gap-2'>
+                  <span className='text-muted-foreground hidden text-sm font-medium sm:block'>{t('oilGuideLabel')}</span>
+                  <OilGuideLinks />
+                </div>
+                {(userRole === 'admin' || userRole === 'manager') && (
+                  <Button onClick={handleAddNew} size='sm' className='gap-2 rounded-xl font-semibold shadow-lg shadow-primary/20'>
+                    <Plus className='h-4 w-4' />
+                    {t('addLiquid')}
+                  </Button>
+                )}
+              </div>
             </div>
-            {(userRole === 'admin' || userRole === 'manager') && (
-              <Button onClick={handleAddNew} size='sm' className='h-9 gap-2'>
-                <Plus className='h-4 w-4' />
-                {t('addLiquid')}
-              </Button>
-            )}
           </div>
         </div>
 
         {/* Barrels Grid */}
         {barrels.length === 0 ? (
-          <div className='flex flex-col items-center justify-center rounded-xl border border-border bg-card py-20 text-center'>
-            <Droplet className='text-muted-foreground/40 mb-4 h-12 w-12' />
+          <div className='flex flex-col items-center justify-center rounded-2xl border border-border/60 bg-card py-20 text-center dark:border-border/40'>
+            <div className='mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-muted'>
+              <Droplet className='text-muted-foreground/60 h-8 w-8' />
+            </div>
             <h3 className='mb-1 text-base font-semibold'>{t('noBarrels')}</h3>
             <p className='text-muted-foreground mb-6 max-w-sm text-sm'>{t('addFirst')}</p>
             {(userRole === 'admin' || userRole === 'manager') && (
-              <Button onClick={handleAddNew} size='sm' className='h-9 gap-2'>
+              <Button onClick={handleAddNew} size='sm' className='gap-2 rounded-xl font-semibold'>
                 <Plus className='h-4 w-4' />
                 {t('addBarrel')}
               </Button>
@@ -488,7 +504,7 @@ export default function BarrelOilsPage() {
             {barrels.map((barrel) => (
               <div
                 key={barrel.id}
-                className='flex flex-col overflow-hidden rounded-xl border border-border bg-card'
+                className='group flex flex-col overflow-hidden rounded-2xl border border-border/60 bg-card shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md dark:border-border/40'
               >
                 {/* Image */}
                 {barrel.image_url && (

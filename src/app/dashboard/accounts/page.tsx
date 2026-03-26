@@ -522,78 +522,71 @@ export default function AccountsPage() {
   // ---------------------------------------------------------------------------
   return (
     <PageContainer>
-      <div className='w-full space-y-8 px-6 py-8 sm:px-8 md:px-12 md:py-12'>
-        {/* iOS-Style Hero Header */}
-        <div className='relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-8 backdrop-blur-xl'>
-          <div className='absolute inset-0 bg-grid-white/[0.02] [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))]' />
-          <div className='relative space-y-2'>
-            <div className='inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 backdrop-blur-sm'>
-              <ShieldCheck className='h-4 w-4 text-primary' />
-              <span className='text-xs font-semibold uppercase tracking-wider text-primary'>
-                Admin Panel
-              </span>
+      <div className='w-full space-y-6 px-4 py-6 sm:px-6 sm:py-8 md:px-10 md:py-10 lg:px-12'>
+        {/* Page Header */}
+        <div className='relative overflow-hidden rounded-2xl border border-primary/12 bg-gradient-to-br from-primary/8 via-primary/4 to-transparent dark:border-primary/15 dark:from-primary/12 dark:via-primary/6'>
+          <div className='absolute -top-6 -right-6 h-32 w-32 rounded-full bg-primary/8 blur-3xl dark:bg-primary/12' />
+          <div className='relative px-6 py-6 sm:px-8'>
+            <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
+              <div className='space-y-2'>
+                <div className='inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/8 px-3 py-1 dark:border-primary/25 dark:bg-primary/12'>
+                  <ShieldCheck className='h-3.5 w-3.5 text-primary' />
+                  <span className='text-xs font-semibold uppercase tracking-widest text-primary'>
+                    Admin Panel
+                  </span>
+                </div>
+                <h1 className='text-2xl font-black tracking-tight sm:text-3xl'>
+                  <span className='bg-gradient-to-br from-foreground via-foreground/90 to-foreground/60 bg-clip-text text-transparent'>
+                    {t('title')}
+                  </span>
+                </h1>
+              </div>
+
+              {/* Create User Button */}
+              {isAdmin && activeTab === 'users' && (
+                <Button
+                  size='sm'
+                  onClick={() => setCreateUserDialog(true)}
+                  className='gap-2 rounded-xl font-semibold shadow-lg shadow-primary/20'
+                >
+                  <UserRound className='h-4 w-4' />
+                  {t('createUser')}
+                </Button>
+              )}
             </div>
-            <h1 className='text-4xl font-black tracking-tight sm:text-5xl'>
-              <span className='bg-gradient-to-r from-foreground via-foreground/80 to-foreground/60 bg-clip-text text-transparent'>
-                {t('title')}
-              </span>
-            </h1>
           </div>
         </div>
 
-        {/* Button Navigation */}
-        <div className='flex flex-wrap items-center justify-between gap-3'>
-          <div className='flex flex-wrap items-center gap-3'>
-            <Button
-              variant='outline'
-              size='default'
-              onClick={() => setActiveTab('users')}
-              className={`group gap-2 rounded-xl border-2 bg-background px-4 py-2 font-bold transition-all duration-300 hover:scale-105 hover:shadow-lg ${
-                activeTab === 'users'
-                  ? 'border-blue-500/50 bg-blue-500/10 text-blue-600 shadow-[0_0_20px_rgba(59,130,246,0.3)]'
-                  : 'border-border/50 hover:border-primary/50 hover:bg-primary/10'
-              }`}
-            >
-              <UserRound className='h-4 w-4' />
-              {t('tabUsers')}
-            </Button>
-
-            <Button
-              variant='outline'
-              size='default'
-              onClick={() => setActiveTab('activity')}
-              className={`group gap-2 rounded-xl border-2 bg-background px-4 py-2 font-bold transition-all duration-300 hover:scale-105 hover:shadow-lg ${
-                activeTab === 'activity'
-                  ? 'border-green-500/50 bg-green-500/10 text-green-600 shadow-[0_0_20px_rgba(34,197,94,0.3)]'
-                  : 'border-border/50 hover:border-primary/50 hover:bg-primary/10'
-              }`}
-            >
-              <ActivitySquare className='h-4 w-4' />
-              {t('tabActivity')}
-            </Button>
-          </div>
-
-          {/* Create User Button - Only for Admin */}
-          {isAdmin && activeTab === 'users' && (
-            <Button
-              variant='outline'
-              size='default'
-              onClick={() => setCreateUserDialog(true)}
-              className='group gap-2 rounded-xl border-2 bg-background px-4 py-2 font-bold transition-all duration-300 hover:scale-105 hover:border-primary/50 hover:bg-primary/10 hover:shadow-lg'
-            >
-              <UserRound className='h-4 w-4' />
-              {t('createUser')}
-            </Button>
-          )}
+        {/* Tab Navigation */}
+        <div className='flex gap-2'>
+          <button
+            onClick={() => setActiveTab('users')}
+            className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all ${
+              activeTab === 'users'
+                ? 'bg-primary/10 text-primary dark:bg-primary/15'
+                : 'text-muted-foreground hover:bg-muted/70 hover:text-foreground'
+            }`}
+          >
+            <UserRound className='h-4 w-4' />
+            {t('tabUsers')}
+          </button>
+          <button
+            onClick={() => setActiveTab('activity')}
+            className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all ${
+              activeTab === 'activity'
+                ? 'bg-primary/10 text-primary dark:bg-primary/15'
+                : 'text-muted-foreground hover:bg-muted/70 hover:text-foreground'
+            }`}
+          >
+            <ActivitySquare className='h-4 w-4' />
+            {t('tabActivity')}
+          </button>
         </div>
 
         {/* USERS TAB */}
         {activeTab === 'users' && (
-          <div className='mt-8'>
-            <CardModern className='relative overflow-hidden rounded-3xl border-0 bg-gradient-to-br from-background via-background to-secondary/20 p-6 shadow-xl backdrop-blur-xl sm:p-8'>
-              <div className='absolute inset-0 -z-10 opacity-[0.02]'>
-                <div className='absolute inset-0 bg-grid-white [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.5))]' />
-              </div>
+          <div>
+            <CardModern className='overflow-hidden rounded-2xl border border-border/60 p-5 shadow-sm sm:p-7 dark:border-border/40'>
               <CardHeader>
                 <CardTitle>{t('userManagementTitle')}</CardTitle>
                 <CardDescription>
@@ -614,7 +607,7 @@ export default function AccountsPage() {
                       return (
                         <div
                           key={u.id}
-                          className='group relative flex flex-col overflow-hidden rounded-2xl border-0 bg-gradient-to-br from-background via-background to-secondary/20 p-5 shadow-lg backdrop-blur-xl transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl'
+                          className='group relative flex flex-col overflow-hidden rounded-2xl border border-border/60 bg-card p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md dark:border-border/40'
                         >
                           {/* Subtle Pattern */}
                           <div className='absolute inset-0 -z-10 opacity-[0.02]'>
@@ -862,8 +855,8 @@ export default function AccountsPage() {
 
         {/* ACTIVITY TAB */}
         {activeTab === 'activity' && (
-          <div className='mt-6'>
-            <CardModern className='space-y-8 p-4 sm:p-6 md:p-8'>
+          <div>
+            <CardModern className='overflow-hidden rounded-2xl border border-border/60 p-5 shadow-sm sm:p-7 dark:border-border/40'>
               <CardHeader>
                 <CardTitle>{t('activityTitle')}</CardTitle>
                 <CardDescription>{t('activityDescription')}</CardDescription>

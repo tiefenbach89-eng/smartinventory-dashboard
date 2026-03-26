@@ -1,15 +1,6 @@
 'use client';
 
 import PageContainer from '@/components/layout/page-container';
-import { Badge } from '@/components/ui/badge';
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardAction,
-  CardFooter
-} from '@/components/ui/card';
 import {
   IconUser,
   IconArrowDown,
@@ -20,9 +11,41 @@ import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useUser } from '@/hooks/useUser';
 import { LiquidWarnings } from '@/features/overview/components/liquid-warnings';
-
-// 🌍 next-intl
 import { useTranslations } from 'next-intl';
+import { cn } from '@/lib/utils';
+
+const kpiColors = [
+  {
+    icon: 'text-indigo-500 dark:text-indigo-400',
+    iconBg: 'bg-indigo-500/10 dark:bg-indigo-400/10',
+    border: 'border-indigo-500/15 dark:border-indigo-400/12',
+    glow: 'dark:shadow-indigo-950/60',
+    gradient: 'from-indigo-500/8 via-transparent to-transparent dark:from-indigo-500/12'
+  },
+  {
+    icon: 'text-rose-500 dark:text-rose-400',
+    iconBg: 'bg-rose-500/10 dark:bg-rose-400/10',
+    border: 'border-rose-500/15 dark:border-rose-400/12',
+    glow: 'dark:shadow-rose-950/60',
+    gradient: 'from-rose-500/8 via-transparent to-transparent dark:from-rose-500/12'
+  },
+  {
+    icon: 'text-emerald-500 dark:text-emerald-400',
+    iconBg: 'bg-emerald-500/10 dark:bg-emerald-400/10',
+    border: 'border-emerald-500/15 dark:border-emerald-400/12',
+    glow: 'dark:shadow-emerald-950/60',
+    gradient: 'from-emerald-500/8 via-transparent to-transparent dark:from-emerald-500/12'
+  },
+  {
+    icon: 'text-violet-500 dark:text-violet-400',
+    iconBg: 'bg-violet-500/10 dark:bg-violet-400/10',
+    border: 'border-violet-500/15 dark:border-violet-400/12',
+    glow: 'dark:shadow-violet-950/60',
+    gradient: 'from-violet-500/8 via-transparent to-transparent dark:from-violet-500/12'
+  }
+];
+
+const kpiIcons = [IconPackage, IconArrowDown, IconArrowUp, IconUser];
 
 export default function OverViewLayout({
   sales,
@@ -37,8 +60,7 @@ export default function OverViewLayout({
 }) {
   const supabase = createClient();
   const user = useUser();
-
-  const t = useTranslations('Overview'); // <– NEW
+  const t = useTranslations('Overview');
 
   const [productCount, setProductCount] = useState(0);
   const [totalStock, setTotalStock] = useState(0);
@@ -103,7 +125,7 @@ export default function OverViewLayout({
           }
         }
       } catch (error) {
-        console.error('❌ Error fetching KPI data:', error);
+        console.error('Error fetching KPI data:', error);
       }
     }
 
@@ -117,127 +139,115 @@ export default function OverViewLayout({
       ? `${firstName} ${lastName}`.trim()
       : user?.email || t('guest');
 
-  // 🚀 KPI Daten strukturieren
   const cards = [
     {
-      icon: <IconPackage className='mr-1' />,
-      badge: t('card1.badge'),
       title: t('card1.title'),
-      value: t('card1.value', {
-        products: productCount,
-        stock: totalStock
-      }),
+      value: t('card1.value', { products: productCount, stock: totalStock }),
       desc: t('card1.desc'),
       sub: t('card1.sub')
     },
     {
-      icon: <IconArrowDown className='mr-1' />,
-      badge: t('card2.badge'),
       title: t('card2.title'),
-      value: t('card2.value', {
-        amount: totalWithdrawals
-      }),
+      value: t('card2.value', { amount: totalWithdrawals }),
       desc: t('card2.desc'),
       sub: t('card2.sub')
     },
     {
-      icon: <IconArrowUp className='mr-1' />,
-      badge: t('card3.badge'),
       title: t('card3.title'),
-      value: t('card3.value', {
-        amount: totalAdded
-      }),
+      value: t('card3.value', { amount: totalAdded }),
       desc: t('card3.desc'),
       sub: t('card3.sub')
     },
     {
-      icon: <IconUser className='mr-1' />,
-      badge: t('card4.badge', { count: activeUserCount }),
       title: t('card4.title'),
       value: activeUser || '—',
       desc: t('card4.desc'),
-      sub: t('card4.sub')
+      sub: t('card4.sub', { count: activeUserCount })
     }
   ];
 
   return (
     <PageContainer>
-      <div className='flex flex-1 flex-col space-y-8 px-6 py-8 sm:px-8 md:px-12 md:py-12'>
-        {/* iOS-Style Hero Greeting */}
-        <div className='relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-8 backdrop-blur-xl'>
-          <div className='absolute inset-0 bg-grid-white/[0.02] [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))]' />
-          <div className='relative space-y-2'>
-            <div className='inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 backdrop-blur-sm'>
-              <IconUser className='h-4 w-4 text-primary' />
-              <span className='text-xs font-semibold uppercase tracking-wider text-primary'>
+      <div className='flex flex-1 flex-col space-y-6 px-4 py-6 sm:px-6 sm:py-8 md:px-10 md:py-10 lg:px-12'>
+
+        {/* ── Hero Greeting ── */}
+        <div className='relative overflow-hidden rounded-2xl border border-primary/12 bg-gradient-to-br from-primary/8 via-primary/4 to-transparent backdrop-blur-sm dark:border-primary/15 dark:from-primary/12 dark:via-primary/6'>
+          {/* Grid pattern */}
+          <div className='absolute inset-0 bg-grid-white/[0.025] [mask-image:radial-gradient(ellipse_at_top_left,white_30%,transparent_80%)]' />
+          {/* Glow orb */}
+          <div className='absolute -top-8 -left-8 h-48 w-48 rounded-full bg-primary/10 blur-3xl dark:bg-primary/15' />
+
+          <div className='relative px-6 py-7 sm:px-8 sm:py-8'>
+            <div className='inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/8 px-3 py-1 backdrop-blur-sm dark:border-primary/25 dark:bg-primary/12'>
+              <div className='h-1.5 w-1.5 rounded-full bg-primary animate-pulse' />
+              <span className='text-xs font-semibold uppercase tracking-widest text-primary'>
                 Dashboard
               </span>
             </div>
-            <h1 className='text-4xl font-black tracking-tight sm:text-5xl'>
-              <span className='bg-gradient-to-r from-foreground via-foreground/80 to-foreground/60 bg-clip-text text-transparent'>
+            <h1 className='mt-3 text-3xl font-black tracking-tight sm:text-4xl lg:text-5xl'>
+              <span className='bg-gradient-to-br from-foreground via-foreground/90 to-foreground/60 bg-clip-text text-transparent'>
                 {t('greeting', { name: displayName })}
               </span>
             </h1>
           </div>
         </div>
 
-        {/* 🚨 Flüssigkeits-Warnungen */}
+        {/* ── Liquid Warnings ── */}
         <LiquidWarnings />
 
-        {/* iOS-Style KPI Cards */}
-        <div className='grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4'>
-          {cards.map((kpi, i) => (
-            <Card
-              key={i}
-              className='group relative overflow-hidden rounded-3xl border-0 bg-gradient-to-br from-background via-background to-secondary/20 p-6 shadow-xl backdrop-blur-xl transition-all duration-500 hover:scale-[1.03] hover:shadow-2xl'
-            >
-              {/* Subtle Pattern */}
-              <div className='absolute inset-0 -z-10 opacity-[0.02]'>
-                <div className='absolute inset-0 bg-grid-white [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.5))]' />
-              </div>
+        {/* ── KPI Cards ── */}
+        <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4'>
+          {cards.map((kpi, i) => {
+            const color = kpiColors[i];
+            const Icon = kpiIcons[i];
 
-              {/* Gradient Overlay on Hover */}
-              <div className='absolute inset-0 -z-10 opacity-0 transition-opacity duration-500 group-hover:opacity-100'>
-                <div
-                  className='absolute inset-0'
-                  style={{
-                    background: `radial-gradient(circle at 30% 20%, rgba(var(--primary), 0.1) 0%, transparent 60%)`
-                  }}
-                />
-              </div>
+            return (
+              <div
+                key={i}
+                className={cn(
+                  'group relative overflow-hidden rounded-2xl border bg-card p-5 shadow-sm',
+                  'transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg',
+                  color.border,
+                  color.glow
+                )}
+              >
+                {/* Card gradient */}
+                <div className={cn('absolute inset-0 bg-gradient-to-br opacity-100', color.gradient)} />
 
-              <CardHeader className='space-y-3 p-0'>
-                <div className='flex items-center justify-between'>
-                  <CardDescription className='text-muted-foreground text-sm font-bold uppercase tracking-wider'>
-                    {kpi.title}
-                  </CardDescription>
-                  <div className='flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary shadow-inner backdrop-blur-sm'>
-                    {kpi.icon}
+                <div className='relative space-y-4'>
+                  {/* Header */}
+                  <div className='flex items-center justify-between'>
+                    <p className='text-xs font-semibold uppercase tracking-widest text-muted-foreground'>
+                      {kpi.title}
+                    </p>
+                    <div className={cn('flex h-8 w-8 items-center justify-center rounded-lg', color.iconBg)}>
+                      <Icon className={cn('h-4 w-4', color.icon)} />
+                    </div>
+                  </div>
+
+                  {/* Value */}
+                  <p className='text-2xl font-black tracking-tight'>
+                    {kpi.value}
+                  </p>
+
+                  {/* Footer */}
+                  <div className='border-t border-border/40 pt-3'>
+                    <p className='text-xs font-semibold text-foreground/70'>{kpi.desc}</p>
+                    <p className='mt-0.5 text-[11px] text-muted-foreground'>{kpi.sub}</p>
                   </div>
                 </div>
-                <CardTitle className='text-3xl font-black tracking-tight'>
-                  {kpi.value}
-                </CardTitle>
-              </CardHeader>
-              <CardFooter className='mt-4 flex-col items-start gap-2 border-t border-border/10 p-0 pt-4 text-sm'>
-                <div className='font-bold'>{kpi.desc}</div>
-                <div className='text-muted-foreground text-xs font-semibold'>{kpi.sub}</div>
-              </CardFooter>
-            </Card>
-          ))}
+              </div>
+            );
+          })}
         </div>
 
-        {/* iOS-Style Charts */}
-        <div className='grid grid-cols-1 items-stretch gap-6 md:grid-cols-2'>
+        {/* ── Charts ── */}
+        <div className='grid grid-cols-1 items-stretch gap-4 md:grid-cols-2'>
           {[bar_stats, sales, area_stats, pie_stats].map((chart, i) => (
             <div
               key={i}
-              className='relative flex h-full min-h-[420px] flex-col overflow-hidden rounded-3xl border-0 bg-gradient-to-br from-background via-background to-secondary/20 shadow-xl backdrop-blur-xl transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl'
+              className='relative flex h-full min-h-[400px] flex-col overflow-hidden rounded-2xl border border-border/60 bg-card shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md dark:border-border/40'
             >
-              {/* Subtle Pattern */}
-              <div className='absolute inset-0 -z-10 opacity-[0.02]'>
-                <div className='absolute inset-0 bg-grid-white [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.5))]' />
-              </div>
               {chart}
             </div>
           ))}

@@ -29,21 +29,30 @@ export default function TopNav() {
   }, [t, canAccessAdmin]);
 
   return (
-    <header className='sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur-xl'>
+    <header className='sticky top-0 z-40 border-b border-border/60 bg-background/85 backdrop-blur-xl'>
+      {/* Subtle indigo gradient line at top */}
+      <div className='absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/60 to-transparent' />
+
       <div className='mx-auto flex h-14 max-w-screen-2xl items-center gap-4 px-4 sm:gap-6 sm:px-6 lg:px-8'>
 
         {/* ── Logo ── */}
         <Link
           href='/dashboard/overview'
-          className='flex shrink-0 items-center gap-2.5 transition-opacity hover:opacity-80'
+          className='group flex shrink-0 items-center gap-2.5 transition-opacity hover:opacity-90'
         >
-          <div className='flex h-7 w-7 items-center justify-center rounded-lg bg-primary'>
+          <div className='relative flex h-7 w-7 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-primary via-primary to-primary/80 shadow-lg shadow-primary/25'>
             <span className='text-[10px] font-black tracking-tighter text-primary-foreground'>
               SI
             </span>
+            <div className='absolute inset-0 bg-gradient-to-br from-white/20 to-transparent' />
           </div>
-          <span className='hidden text-sm font-semibold sm:block'>
-            SmartInventory
+          <span className='hidden text-sm font-bold tracking-tight sm:block'>
+            <span className='bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent'>
+              Smart
+            </span>
+            <span className='bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent'>
+              Inventory
+            </span>
           </span>
         </Link>
 
@@ -60,12 +69,16 @@ export default function TopNav() {
                 key={item.key}
                 href={item.url}
                 className={cn(
-                  'rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
+                  'relative rounded-lg px-3 py-1.5 text-sm font-medium transition-all duration-200',
                   isActive
                     ? 'bg-primary/10 text-primary'
-                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                    : 'text-muted-foreground hover:bg-muted/70 hover:text-foreground'
                 )}
               >
+                {/* Active underline indicator */}
+                {isActive && (
+                  <span className='absolute bottom-0.5 left-1/2 h-0.5 w-4 -translate-x-1/2 rounded-full bg-primary/70' />
+                )}
                 {item.label}
               </Link>
             );

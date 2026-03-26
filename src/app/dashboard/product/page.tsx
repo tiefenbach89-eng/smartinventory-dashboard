@@ -333,49 +333,68 @@ export default function ProductsPage() {
 
   return (
     <PageContainer>
-      <div className='w-full space-y-8 px-6 py-8 sm:px-8 md:px-12 md:py-12'>
-        {/* iOS-Style Hero Header */}
-        <div className='relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-8 backdrop-blur-xl'>
-          <div className='absolute inset-0 bg-grid-white/[0.02] [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))]' />
-          <div className='relative flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between'>
-            <div className='space-y-3'>
-              <div className='inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 backdrop-blur-sm'>
-                <Boxes className='h-4 w-4 text-primary' />
-                <span className='text-xs font-semibold uppercase tracking-wider text-primary'>
-                  Produkt Management
-                </span>
+      <div className='w-full space-y-6 px-4 py-6 sm:px-6 sm:py-8 md:px-10 md:py-10 lg:px-12'>
+
+        {/* ── Page Header ── */}
+        <div className='relative overflow-hidden rounded-2xl border border-primary/12 bg-gradient-to-br from-primary/8 via-primary/4 to-transparent dark:border-primary/15 dark:from-primary/12 dark:via-primary/6'>
+          <div className='absolute -top-6 -right-6 h-32 w-32 rounded-full bg-primary/8 blur-3xl dark:bg-primary/12' />
+          <div className='relative px-6 py-6 sm:px-8'>
+            <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
+              <div className='space-y-2'>
+                <div className='inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/8 px-3 py-1 dark:border-primary/25 dark:bg-primary/12'>
+                  <Boxes className='h-3.5 w-3.5 text-primary' />
+                  <span className='text-xs font-semibold uppercase tracking-widest text-primary'>
+                    Produkt Management
+                  </span>
+                </div>
+                <h1 className='text-2xl font-black tracking-tight sm:text-3xl'>
+                  <span className='bg-gradient-to-br from-foreground via-foreground/90 to-foreground/60 bg-clip-text text-transparent'>
+                    {p('title')}
+                  </span>
+                </h1>
               </div>
-              <h1 className='text-4xl font-black tracking-tight sm:text-5xl'>
-                <span className='bg-gradient-to-r from-foreground via-foreground/80 to-foreground/60 bg-clip-text text-transparent'>
-                  {p('title')}
-                </span>
-              </h1>
+
+              {/* Action Buttons */}
+              <div className='flex flex-wrap items-center gap-2'>
+                {canStockInOut && (
+                  <>
+                    <Button
+                      size='sm'
+                      onClick={() => setOpenAdd(true)}
+                      className='gap-2 rounded-xl bg-emerald-600 font-semibold text-white shadow-lg shadow-emerald-600/20 hover:bg-emerald-700 hover:shadow-emerald-700/30 dark:bg-emerald-500 dark:hover:bg-emerald-600'
+                    >
+                      <SquarePlus className='h-4 w-4' />
+                      {p('tabAdd') || 'Eingang'}
+                    </Button>
+                    <Button
+                      size='sm'
+                      onClick={() => setOpenRemove(true)}
+                      className='gap-2 rounded-xl bg-rose-600 font-semibold text-white shadow-lg shadow-rose-600/20 hover:bg-rose-700 hover:shadow-rose-700/30 dark:bg-rose-500 dark:hover:bg-rose-600'
+                    >
+                      <SquareMinus className='h-4 w-4' />
+                      {p('tabRemove') || 'Ausgang'}
+                    </Button>
+                  </>
+                )}
+                {canManageProducts && (
+                  <Button
+                    variant='outline'
+                    size='sm'
+                    onClick={handleListProduct}
+                    className='gap-2 rounded-xl border-border/60 font-semibold hover:border-primary/40 hover:bg-primary/8 hover:text-primary'
+                  >
+                    <Boxes className='h-4 w-4' />
+                    {p('tabList')}
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         </div>
 
-        {/* iOS-Style Action Buttons */}
-        <div className='flex flex-wrap items-center gap-3'>
-          {/* List Product Button – nur Admin/Manager */}
-          {canManageProducts && (
-            <Button
-              variant='outline'
-              size='default'
-              onClick={handleListProduct}
-              className='group gap-2 rounded-xl border-2 bg-background px-4 py-2 font-bold transition-all duration-300 hover:scale-105 hover:border-primary/50 hover:bg-primary/10 hover:shadow-lg'
-            >
-              <Boxes className='h-4 w-4' />
-              {p('tabList')}
-            </Button>
-          )}
-        </div>
-
-        {/* iOS-Style Product Listing */}
-        <CardModern className='relative overflow-hidden rounded-3xl border-0 bg-gradient-to-br from-background via-background to-secondary/20 p-6 shadow-xl backdrop-blur-xl sm:p-8'>
-          <div className='absolute inset-0 bg-grid-white/[0.02]' />
-          <div className='relative space-y-8'>
-            <ProductListing canManageProducts={!!canManageProducts} canDeleteProducts={!!canDeleteProducts} />
-          </div>
+        {/* ── Product Listing ── */}
+        <CardModern className='relative overflow-hidden rounded-2xl border border-border/60 bg-card p-5 shadow-sm sm:p-7 dark:border-border/40'>
+          <ProductListing canManageProducts={!!canManageProducts} canDeleteProducts={!!canDeleteProducts} />
         </CardModern>
 
         {/* ---------------------------- ADD STOCK DIALOG ---------------------------- */}

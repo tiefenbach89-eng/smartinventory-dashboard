@@ -54,12 +54,15 @@ export default function BottomTabBar() {
       {/* Spacer */}
       <div className='h-[calc(64px+env(safe-area-inset-bottom))]' />
 
-      {/* iOS-style Bottom Tab Bar */}
+      {/* Midnight Pro Bottom Tab Bar */}
       <nav
-        className='fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background/92 backdrop-blur-xl'
+        className='fixed bottom-0 left-0 right-0 z-50 border-t border-border/50 bg-background/90 backdrop-blur-2xl'
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
-        <div className='flex items-center justify-around px-1 py-1'>
+        {/* Subtle top gradient line */}
+        <div className='absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent' />
+
+        <div className='flex items-center justify-around px-2 py-1.5'>
           {displayItems.map((item) => {
             const IconComponent = Icons[item.icon] ?? Icons.logo;
 
@@ -72,26 +75,33 @@ export default function BottomTabBar() {
                 key={item.key}
                 href={item.url}
                 className={cn(
-                  'relative flex flex-col items-center justify-center gap-0.5',
-                  'min-h-[52px] min-w-[60px] rounded-xl px-3 py-2',
-                  'active:opacity-60 transition-opacity duration-75'
+                  'relative flex flex-col items-center justify-center gap-1',
+                  'min-h-[52px] min-w-[56px] rounded-xl px-3 py-2',
+                  'active:scale-95 transition-transform duration-75'
                 )}
               >
-                {/* Active indicator — thin line at top */}
+                {/* Active pill background */}
                 {isActive && (
-                  <div className='absolute top-0 left-1/2 h-0.5 w-6 -translate-x-1/2 rounded-full bg-primary' />
+                  <span className='absolute inset-0 rounded-xl bg-primary/10 dark:bg-primary/15' />
+                )}
+
+                {/* Active indicator — top bar */}
+                {isActive && (
+                  <span className='absolute top-0 left-1/2 h-0.5 w-5 -translate-x-1/2 rounded-full bg-primary' />
                 )}
 
                 <IconComponent
                   className={cn(
-                    'h-[22px] w-[22px]',
-                    isActive ? 'text-primary' : 'text-muted-foreground'
+                    'relative h-[21px] w-[21px] transition-colors',
+                    isActive
+                      ? 'text-primary'
+                      : 'text-muted-foreground'
                   )}
                 />
 
                 <span
                   className={cn(
-                    'text-[10px] font-medium',
+                    'relative text-[10px] font-semibold transition-colors',
                     isActive ? 'text-primary' : 'text-muted-foreground'
                   )}
                 >
