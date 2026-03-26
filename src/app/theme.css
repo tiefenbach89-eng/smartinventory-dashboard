@@ -52,12 +52,12 @@ body {
 
 .theme-green,
 .theme-green-scaled {
-  --primary: oklch(0.52 0.165 160);
-  --primary-foreground: oklch(0.98 0 0);
+  --primary: var(--color-lime-600);
+  --primary-foreground: var(--color-lime-50);
 
   @variant dark {
-    --primary: oklch(0.65 0.17 160);
-    --primary-foreground: oklch(0.08 0.02 160);
+    --primary: var(--color-lime-600);
+    --primary-foreground: var(--color-lime-50);
   }
 }
 

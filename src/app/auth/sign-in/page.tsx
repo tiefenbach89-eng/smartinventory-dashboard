@@ -75,8 +75,24 @@ export default function SignInPage() {
   return (
     <div className='relative flex min-h-[100dvh] flex-col items-center justify-center overflow-hidden px-5 py-10 sm:px-8'>
 
-      {/* ── Background ── */}
-      <div className='pointer-events-none fixed inset-0 -z-10 bg-background' />
+      {/* ── Atmospheric Background ── */}
+      <div className='pointer-events-none fixed inset-0 -z-10'>
+        {/* Base */}
+        <div className='absolute inset-0 bg-background' />
+        {/* Amber radial glow — top right */}
+        <div className='absolute -right-[20%] -top-[20%] h-[60vw] w-[60vw] rounded-full bg-primary/10 blur-[100px] dark:bg-primary/15' />
+        {/* Subtle second glow — bottom left */}
+        <div className='absolute -bottom-[10%] -left-[10%] h-[40vw] w-[40vw] rounded-full bg-primary/6 blur-[80px] dark:bg-primary/10' />
+        {/* Fine grid overlay */}
+        <div
+          className='absolute inset-0 opacity-[0.03] dark:opacity-[0.06]'
+          style={{
+            backgroundImage:
+              'linear-gradient(var(--foreground) 1px, transparent 1px), linear-gradient(90deg, var(--foreground) 1px, transparent 1px)',
+            backgroundSize: '32px 32px'
+          }}
+        />
+      </div>
 
       {/* ── Language Switcher — top right ── */}
       <div className='fixed top-5 right-5 z-10'>
@@ -88,7 +104,7 @@ export default function SignInPage() {
 
         {/* Logo / Brand mark */}
         <div className='mb-8 text-center'>
-          <div className='mb-3 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-primary shadow-md'>
+          <div className='mb-3 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-primary shadow-lg' style={{ boxShadow: '0 0 32px var(--amber-glow-strong)' }}>
             <svg viewBox='0 0 24 24' fill='none' className='h-7 w-7 text-primary-foreground' stroke='currentColor' strokeWidth='2.2'>
               <path d='M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z' />
               <polyline points='9 22 9 12 15 12 15 22' />
@@ -103,7 +119,7 @@ export default function SignInPage() {
         </div>
 
         {/* Form Card */}
-        <div className='rounded-2xl border border-border/60 bg-card p-6 shadow-sm sm:p-8'>
+        <div className='card-premium rounded-3xl p-6 sm:p-8'>
           <form onSubmit={handleSignIn} className='space-y-4'>
 
             {/* Email */}
@@ -162,7 +178,7 @@ export default function SignInPage() {
             {/* Submit */}
             <Button
               type='submit'
-              className='mt-1 h-12 w-full rounded-xl bg-primary text-base font-bold text-primary-foreground active:scale-[0.98]'
+              className='glow-amber-sm mt-1 h-12 w-full rounded-xl bg-primary text-base font-bold text-primary-foreground active:scale-[0.98]'
               disabled={loading}
             >
               {loading ? (
