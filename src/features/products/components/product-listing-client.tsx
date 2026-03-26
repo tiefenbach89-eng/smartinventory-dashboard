@@ -328,277 +328,198 @@ export default function ProductListing({
   // RENDER
   // ----------------------------------------------------------------------------------------------------
   return (
-    <div className='w-full px-4 py-6 sm:px-6 md:px-10 md:py-10'>
-      <CardHeader className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-        <div>
-          <h3 className='text-lg font-semibold tracking-tight'>{t('title')}</h3>
-          <CardDescription className='text-muted-foreground mt-1 text-sm'>
-            {t('subtitle')}
-          </CardDescription>
-        </div>
+    <div className='w-full'>
 
-        {/* SEARCH + FILTER */}
+      {/* ── Page Header ── */}
+      <div className='mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
+        <div>
+          <h1 className='text-xl font-bold tracking-tight'>{t('title')}</h1>
+          <p className='text-muted-foreground mt-0.5 text-sm'>{t('subtitle')}</p>
+        </div>
         <div className='flex items-center gap-2'>
           <Input
             placeholder={t('searchPlaceholder')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className='bg-background/70 h-8 max-w-xs text-sm'
+            className='h-9 w-full max-w-[220px] text-sm'
           />
-
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button
-                size='sm'
-                variant='outline'
-                className='flex h-8 items-center gap-2 rounded-xl'
-              >
-                <Filter className='h-4 w-4' /> {t('filter')}
+              <Button size='sm' variant='outline' className='h-9 gap-2 shrink-0'>
+                <Filter className='h-3.5 w-3.5' />
+                {t('filter')}
               </Button>
             </DropdownMenuTrigger>
-
             <DropdownMenuContent align='end' className='w-36'>
               <DropdownMenuLabel>{t('filterTitle')}</DropdownMenuLabel>
               <DropdownMenuSeparator />
-
-              <DropdownMenuItem onClick={() => setFilter('all')}>
-                {t('filterAll')}
-              </DropdownMenuItem>
-
-              <DropdownMenuItem onClick={() => setFilter('instock')}>
-                {t('filterInstock')}
-              </DropdownMenuItem>
-
-              <DropdownMenuItem onClick={() => setFilter('low')}>
-                {t('filterLow')}
-              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setFilter('all')}>{t('filterAll')}</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setFilter('instock')}>{t('filterInstock')}</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setFilter('low')}>{t('filterLow')}</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-      </CardHeader>
+      </div>
 
-      {/* iOS CARD GRID */}
-      <CardContent>
-        {loading ? (
-          <div className='flex justify-center py-6'>
-            <Loader2 className='text-muted-foreground h-6 w-6 animate-spin' />
-          </div>
-        ) : (
-          <div className='grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5'>
-            {filtered.map((p) => {
-              const stockPercentage =
-                p.sollbestand > 0 ? (p.bestand / p.sollbestand) * 100 : 100;
-              const isLowStock = p.bestand <= (p.sollbestand || 0);
+      {/* ── Product Grid ── */}
+      {loading ? (
+        <div className='flex justify-center py-16'>
+          <Loader2 className='text-muted-foreground h-6 w-6 animate-spin' />
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className='flex flex-col items-center justify-center py-20 text-center'>
+          <Package className='text-muted-foreground/30 mb-3 h-14 w-14' />
+          <p className='text-muted-foreground text-sm'>{t('noImage')}</p>
+        </div>
+      ) : (
+        <div className='grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5'>
+          {filtered.map((p) => {
+            const stockPercentage = p.sollbestand > 0 ? (p.bestand / p.sollbestand) * 100 : 100;
+            const isLowStock = p.bestand <= (p.sollbestand || 0);
 
-              return (
-                <Card
-                  key={p.artikelnummer}
-                  className='relative flex flex-col overflow-hidden rounded-xl border border-border/50 bg-card p-4 shadow-sm transition-shadow hover:shadow-md'
-                >
-                  {/* Stock Status Badge */}
-                  <div className='absolute right-3 top-3 z-10'>
+            return (
+              <div
+                key={p.artikelnummer}
+                className='flex flex-col overflow-hidden rounded-xl border border-border bg-card'
+              >
+                {/* ── Image ── */}
+                <div className='relative flex h-36 items-center justify-center bg-muted/30'>
+                  {p.image_url ? (
+                    <img
+                      src={p.image_url}
+                      alt={p.artikelbezeichnung}
+                      className='h-full w-full cursor-pointer object-contain p-2'
+                      onDoubleClick={() => setImagePreview(p.image_url)}
+                    />
+                  ) : (
+                    <Package className='text-muted-foreground/20 h-10 w-10' />
+                  )}
+                  {/* Status badge */}
+                  <div className='absolute right-2 top-2'>
                     {isLowStock ? (
-                      <Badge variant='outline' className='gap-1 rounded-md border-red-200 bg-red-50 text-[10px] font-medium text-red-600 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-400'>
-                        <AlertTriangle className='h-3 w-3' />
+                      <Badge variant='outline' className='gap-1 border-red-200 bg-red-50 text-[10px] text-red-600 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-400'>
+                        <AlertTriangle className='h-2.5 w-2.5' />
                         {t('filterLow')}
                       </Badge>
                     ) : (
-                      <Badge variant='outline' className='gap-1 rounded-md border-emerald-200 bg-emerald-50 text-[10px] font-medium text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-400'>
-                        <CheckCircle2 className='h-3 w-3' />
+                      <Badge variant='outline' className='gap-1 border-emerald-200 bg-emerald-50 text-[10px] text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-400'>
+                        <CheckCircle2 className='h-2.5 w-2.5' />
                         {t('filterInstock')}
                       </Badge>
                     )}
                   </div>
+                </div>
 
-                  {/* Product Image */}
-                  <div className='relative mb-3 flex h-40 items-center justify-center overflow-hidden rounded-lg bg-muted/40'>
-                    {p.image_url ? (
-                      <img
-                        src={p.image_url}
-                        alt={p.artikelbezeichnung}
-                        className='h-full w-full cursor-pointer object-contain transition-opacity hover:opacity-90'
-                        onDoubleClick={() => setImagePreview(p.image_url)}
-                      />
-                    ) : (
-                      <div className='flex flex-col items-center justify-center gap-2 text-muted-foreground'>
-                        <Package className='h-12 w-12 opacity-20' />
-                        <span className='text-[10px] font-medium opacity-50'>
-                          {t('noImage')}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Product Info */}
-                  <div className='relative z-10 flex flex-1 flex-col gap-2'>
-                    {/* Article Number */}
-                    <div className='flex items-center gap-1'>
-                      <span className='text-muted-foreground/60 font-mono text-[11px]'>#</span>
-                      <span className='text-muted-foreground truncate font-mono text-[11px] font-medium'>
-                        {p.artikelnummer}
-                      </span>
-                    </div>
-
-                    {/* Product Name */}
-                    <h4 className='line-clamp-2 min-h-[2.5rem] text-sm font-bold leading-tight'>
+                {/* ── Info ── */}
+                <div className='flex flex-1 flex-col gap-2.5 p-4'>
+                  <div>
+                    <span className='text-muted-foreground font-mono text-[11px]'>#{p.artikelnummer}</span>
+                    <h4 className='mt-0.5 line-clamp-2 text-sm font-semibold leading-snug'>
                       {p.artikelbezeichnung}
                     </h4>
+                  </div>
 
-                    {/* Supplier & Price */}
-                    <div className='flex items-center justify-between gap-2 border-t border-border/30 pt-2'>
-                      <span className='text-muted-foreground truncate text-[11px] font-medium'>
-                        {p.lieferant}
-                      </span>
-                      <span className='text-foreground whitespace-nowrap text-sm font-semibold'>
-                        {p.preis?.toFixed(2)} €
+                  <div className='flex items-center justify-between'>
+                    <span className='text-muted-foreground truncate text-xs'>{p.lieferant}</span>
+                    <span className='font-numeric whitespace-nowrap text-sm font-semibold'>
+                      {p.preis?.toFixed(2)} €
+                    </span>
+                  </div>
+
+                  {p.ean && (
+                    <p className='text-muted-foreground font-mono text-[11px]'>EAN {p.ean}</p>
+                  )}
+
+                  {/* Stock bar */}
+                  <div className='space-y-1'>
+                    <div className='flex items-center justify-between text-xs'>
+                      <span className='text-muted-foreground'>{t('colStock')}</span>
+                      <span className={isLowStock ? 'font-medium text-red-500' : 'text-muted-foreground'}>
+                        {p.bestand} / {p.sollbestand || 0}
                       </span>
                     </div>
+                    <Progress
+                      value={Math.min(stockPercentage, 100)}
+                      className='h-1'
+                      indicatorClassName={isLowStock ? 'bg-red-500' : 'bg-primary'}
+                    />
+                  </div>
 
-                    {/* EAN */}
-                    {p.ean && (
-                      <div className='flex items-center gap-1.5'>
-                        <span className='text-muted-foreground text-[10px] font-medium'>
-                          EAN:
-                        </span>
-                        <span className='text-foreground/70 truncate font-mono text-[10px]'>
-                          {p.ean}
-                        </span>
-                      </div>
+                  {/* ── Action buttons ── */}
+                  <div className='mt-auto flex items-center gap-1.5 border-t border-border/50 pt-3'>
+                    {/* Book In */}
+                    {canManageProducts && (
+                      <Button
+                        size='sm'
+                        onClick={() => handleBooking(p, 'add')}
+                        className='h-9 flex-1 gap-1 text-xs font-medium'
+                      >
+                        <TrendingUp className='h-3.5 w-3.5' />
+                        {t('bookIn')}
+                      </Button>
                     )}
-
-                    {/* Description */}
-                    {p.beschreibung && (
-                      <p className='text-muted-foreground line-clamp-2 text-[11px] leading-relaxed'>
-                        {p.beschreibung}
-                      </p>
-                    )}
-
-                    {/* Stock Level Visual */}
-                    <div className='mt-2 space-y-1.5'>
-                      <div className='flex items-baseline justify-between'>
-                        <span className='text-[11px] font-semibold'>
-                          {t('colStock')}
-                        </span>
-                        <span
-                          className={`text-xs font-medium tabular-nums ${
-                            isLowStock
-                              ? 'text-red-600 dark:text-red-400'
-                              : 'text-muted-foreground'
-                          }`}
-                        >
-                          {p.bestand} / {p.sollbestand || 0}
-                        </span>
-                      </div>
-                      <Progress
-                        value={Math.min(stockPercentage, 100)}
-                        className='h-1.5'
-                        indicatorClassName={
-                          isLowStock
-                            ? 'bg-red-500 dark:bg-red-400'
-                            : 'bg-primary/60'
-                        }
-                      />
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className='mt-3 space-y-1.5'>
-                      {/* Booking Buttons Row */}
-                      <div className='flex gap-1.5'>
-                        {/* Book In Button - Admin/Manager only */}
-                        {canManageProducts && (
-                          <Button
-                            size='sm'
-                            variant='outline'
-                            onClick={() => handleBooking(p, 'add')}
-                            className='flex-1 h-8 rounded-lg gap-1.5 border-primary/25 bg-primary/5 text-[11px] font-medium text-foreground hover:bg-primary/10 hover:border-primary/40 transition-colors'
-                          >
-                            <TrendingUp className='h-3.5 w-3.5 text-primary' />
-                            {t('bookIn')}
-                          </Button>
-                        )}
-                        {/* Book Out Button - Always visible */}
-                        <Button
-                          size='sm'
-                          variant='outline'
-                          onClick={() => handleBooking(p, 'remove')}
-                          className='flex-1 h-8 rounded-lg gap-1.5 text-[11px] font-medium text-muted-foreground hover:bg-accent/60 hover:text-foreground transition-colors'
-                        >
-                          <TrendingDown className='h-3.5 w-3.5' />
-                          {t('bookOut')}
-                        </Button>
-                      </div>
-
-                      {/* Management Buttons Row */}
-                      <div className='flex gap-1.5'>
-                      {/* History Button - Always visible */}
+                    {/* Book Out */}
+                    <Button
+                      size='sm'
+                      variant='outline'
+                      onClick={() => handleBooking(p, 'remove')}
+                      className='h-9 flex-1 gap-1 text-xs font-medium'
+                    >
+                      <TrendingDown className='h-3.5 w-3.5' />
+                      {t('bookOut')}
+                    </Button>
+                    {/* History icon */}
+                    <Button
+                      size='sm'
+                      variant='ghost'
+                      onClick={() => fetchLogs(p.artikelnummer)}
+                      className='h-9 w-9 shrink-0 p-0 text-muted-foreground hover:text-foreground'
+                    >
+                      <History className='h-4 w-4' />
+                    </Button>
+                    {/* Edit icon */}
+                    {canManageProducts && (
                       <Button
                         size='sm'
                         variant='ghost'
-                        onClick={() => fetchLogs(p.artikelnummer)}
-                        className='flex-1 h-8 rounded-lg gap-1.5 text-[11px] font-medium text-muted-foreground hover:bg-accent/60 hover:text-foreground transition-colors'
+                        onClick={() => setEditProduct(p)}
+                        className='h-9 w-9 shrink-0 p-0 text-muted-foreground hover:text-foreground'
                       >
-                        <History className='h-3.5 w-3.5' />
-                        {t('logs')}
+                        <Pencil className='h-4 w-4' />
                       </Button>
-
-                      {/* Edit Button - Admin/Manager only */}
-                      {canManageProducts && (
-                        <Button
-                          size='sm'
-                          variant='ghost'
-                          onClick={() => setEditProduct(p)}
-                          className='flex-1 h-8 rounded-lg gap-1.5 text-[11px] font-medium text-muted-foreground hover:bg-accent/60 hover:text-foreground transition-colors'
-                        >
-                          <Pencil className='h-3.5 w-3.5' />
-                          {t('edit')}
-                        </Button>
-                      )}
-
-                      {/* Delete Button - Admin only */}
-                      {canDeleteProducts && (
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              size='sm'
-                              variant='ghost'
-                              onClick={() => setDeleteTarget(p)}
-                              className='flex-1 h-8 rounded-lg gap-1.5 text-[11px] font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors'
-                            >
-                              <Trash2 className='h-3.5 w-3.5' />
-                              {t('delete')}
-                            </Button>
-                          </AlertDialogTrigger>
-
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>
-                                {t('deleteTitle')}
-                              </AlertDialogTitle>
-                              <AlertDialogDescription>
-                                {t('deleteDescription')}
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>
-                                {t('cancel')}
-                              </AlertDialogCancel>
-                              <AlertDialogAction onClick={confirmDelete}>
-                                {t('delete')}
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      )}
-                      </div>
-                    </div>
+                    )}
+                    {/* Delete icon */}
+                    {canDeleteProducts && (
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            size='sm'
+                            variant='ghost'
+                            onClick={() => setDeleteTarget(p)}
+                            className='h-9 w-9 shrink-0 p-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive'
+                          >
+                            <Trash2 className='h-4 w-4' />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>{t('deleteTitle')}</AlertDialogTitle>
+                            <AlertDialogDescription>{t('deleteDescription')}</AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
+                            <AlertDialogAction onClick={confirmDelete}>{t('delete')}</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    )}
                   </div>
-                </Card>
-              );
-            })}
-          </div>
-        )}
-      </CardContent>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* EDIT DIALOG */}
       <Dialog open={!!editProduct} onOpenChange={() => setEditProduct(null)}>

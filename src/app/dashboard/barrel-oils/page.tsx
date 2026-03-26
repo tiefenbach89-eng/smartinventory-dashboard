@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { Plus, Droplet, Edit, Trash2, TrendingUp, TrendingDown, History } from 'lucide-react';
 import PageContainer from '@/components/layout/page-container';
 import { Button } from '@/components/ui/button';
-import { CardModern } from '@/components/ui/card-modern';
 import {
   Dialog,
   DialogContent,
@@ -449,200 +448,138 @@ export default function BarrelOilsPage() {
 
   return (
     <PageContainer>
-      <div className='w-full space-y-8 px-6 py-8 sm:px-8 md:px-12 md:py-12'>
-        {/* iOS-Style Hero Header */}
-        <div className='relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-8 backdrop-blur-xl'>
-          <div className='absolute inset-0 bg-grid-white/[0.02] [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))]' />
-          <div className='relative flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between'>
-            <div className='space-y-3'>
-              <div className='inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 backdrop-blur-sm'>
-                <Droplet className='h-4 w-4 text-primary' />
-                <span className='text-xs font-semibold uppercase tracking-wider text-primary'>
-                  {t('barrelManagement')}
-                </span>
-              </div>
-              <h1 className='text-4xl font-black tracking-tight sm:text-5xl'>
-                <span className='bg-gradient-to-r from-foreground via-foreground/80 to-foreground/60 bg-clip-text text-transparent'>
-                  {t('title')}
-                </span>
-              </h1>
-            </div>
-          </div>
-        </div>
+      <div className='flex flex-1 flex-col gap-8'>
 
-        {/* iOS-Style Action Bar mit Ölwegweisern */}
-        <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
-          {/* Ölfass hinzufügen Button - nur für Admin und Manager */}
-          <div className='flex items-center gap-3'>
+        {/* Page Header */}
+        <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
+          <div>
+            <h1 className='text-2xl font-bold tracking-tight'>{t('title')}</h1>
+            <p className='text-muted-foreground text-sm'>{t('barrelManagement')}</p>
+          </div>
+          <div className='flex flex-wrap items-center gap-3'>
+            <div className='flex items-center gap-2'>
+              <span className='text-muted-foreground hidden text-sm font-medium sm:block'>{t('oilGuideLabel')}</span>
+              <OilGuideLinks />
+            </div>
             {(userRole === 'admin' || userRole === 'manager') && (
-              <Button
-                onClick={handleAddNew}
-                variant='outline'
-                size='default'
-                className='group gap-2 rounded-xl border-2 bg-background px-4 py-2 font-bold transition-all duration-300 hover:scale-105 hover:border-primary/50 hover:bg-primary/10 hover:shadow-lg'
-              >
+              <Button onClick={handleAddNew} size='sm' className='h-9 gap-2'>
                 <Plus className='h-4 w-4' />
                 {t('addLiquid')}
               </Button>
             )}
           </div>
-
-          {/* Ölwegweiser Buttons */}
-          <div className='flex flex-wrap items-center gap-2'>
-            <span className='text-muted-foreground mr-2 text-sm font-medium'>{t('oilGuideLabel')}</span>
-            <OilGuideLinks />
-          </div>
         </div>
 
         {/* Barrels Grid */}
         {barrels.length === 0 ? (
-          <CardModern className='relative overflow-hidden rounded-3xl border-0 bg-gradient-to-br from-secondary/30 via-secondary/10 to-transparent p-20 text-center shadow-xl backdrop-blur-xl'>
-            <div className='absolute inset-0 bg-grid-white/[0.02]' />
-            <div className='relative'>
-              <div className='mb-8 inline-flex rounded-full bg-gradient-to-br from-primary/20 to-primary/5 p-8 shadow-2xl'>
-                <Droplet className='h-20 w-20 text-primary drop-shadow-lg' />
-              </div>
-              <h3 className='mb-3 text-2xl font-black'>{t('noBarrels')}</h3>
-              <p className='text-muted-foreground mx-auto mb-8 max-w-md text-base font-medium leading-relaxed'>
-                {t('addFirst')}
-              </p>
-              <Button
-                onClick={handleAddNew}
-                size='lg'
-                className='rounded-2xl px-8 py-6 text-base font-bold shadow-xl transition-all duration-300 hover:scale-105'
-              >
-                <Plus className='mr-2 h-5 w-5' />
+          <div className='flex flex-col items-center justify-center rounded-xl border border-border bg-card py-20 text-center'>
+            <Droplet className='text-muted-foreground/40 mb-4 h-12 w-12' />
+            <h3 className='mb-1 text-base font-semibold'>{t('noBarrels')}</h3>
+            <p className='text-muted-foreground mb-6 max-w-sm text-sm'>{t('addFirst')}</p>
+            {(userRole === 'admin' || userRole === 'manager') && (
+              <Button onClick={handleAddNew} size='sm' className='h-9 gap-2'>
+                <Plus className='h-4 w-4' />
                 {t('addBarrel')}
               </Button>
-            </div>
-          </CardModern>
+            )}
+          </div>
         ) : (
-          <div className='grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5'>
-            {barrels.map((barrel) => {
-              const fillPercentage = getFillPercentage(barrel);
-
-              return (
-                <CardModern
-                  key={barrel.id}
-                  className='group relative flex flex-col overflow-hidden rounded-2xl border-0 bg-gradient-to-br from-background via-background to-secondary/20 p-4 shadow-lg backdrop-blur-xl transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl'
-                >
-                  {/* iOS-Style Gradient Overlay */}
-                  <div className='absolute inset-0 -z-10 opacity-0 transition-opacity duration-500 group-hover:opacity-100'>
-                    <div
-                      className='absolute inset-0'
-                      style={{
-                        background: `radial-gradient(circle at 30% 20%, ${getFillPercentage(barrel) < 20 ? 'rgba(239, 68, 68, 0.15)' : getFillPercentage(barrel) < 50 ? 'rgba(245, 158, 11, 0.15)' : 'rgba(16, 185, 129, 0.15)'} 0%, transparent 60%)`
-                      }}
+          <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'>
+            {barrels.map((barrel) => (
+              <div
+                key={barrel.id}
+                className='flex flex-col overflow-hidden rounded-xl border border-border bg-card'
+              >
+                {/* Image */}
+                {barrel.image_url && (
+                  <div className='bg-muted/30 flex h-32 items-center justify-center'>
+                    <img
+                      src={barrel.image_url}
+                      alt={barrel.brand}
+                      className='h-24 w-auto max-w-full object-contain'
                     />
                   </div>
+                )}
 
-                  {/* Subtle Pattern Overlay */}
-                  <div className='absolute inset-0 -z-10 opacity-[0.02]'>
-                    <div className='absolute inset-0 bg-grid-white [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.5))]' />
+                <div className='flex flex-1 flex-col gap-3 p-4'>
+                  {/* Header */}
+                  <div className='flex items-start justify-between gap-2'>
+                    <h3 className='font-semibold leading-tight'>{barrel.brand}</h3>
+                    <span className='text-muted-foreground bg-muted shrink-0 rounded-md px-2 py-0.5 text-xs font-medium'>
+                      {barrel.barrel_size}L
+                    </span>
                   </div>
 
-                  {/* Image with iOS-Style Frame */}
-                  {barrel.image_url && (
-                    <div className='mb-5 flex justify-center'>
-                      <div className='relative overflow-hidden rounded-2xl bg-gradient-to-br from-secondary/40 to-secondary/10 p-4 shadow-inner backdrop-blur-sm transition-all duration-500 group-hover:scale-105 group-hover:shadow-lg'>
-                        <img
-                          src={barrel.image_url}
-                          alt={barrel.brand}
-                          className='h-32 w-auto max-w-full object-contain drop-shadow-2xl'
-                        />
-                      </div>
+                  {/* Viscosity / Type */}
+                  {barrel.viscosity && (
+                    <span className='inline-flex w-fit rounded-md bg-primary/10 px-2 py-1 text-xs font-semibold text-primary'>
+                      {barrel.viscosity}
+                    </span>
+                  )}
+
+                  {/* Supplier / Article */}
+                  {(barrel.supplier || barrel.article_number) && (
+                    <div className='text-muted-foreground space-y-0.5 text-xs'>
+                      {barrel.supplier && (
+                        <div>{t('supplier')}: <span className='text-foreground font-medium'>{barrel.supplier}</span></div>
+                      )}
+                      {barrel.article_number && (
+                        <div>{t('articleNumberShort')}: <span className='text-foreground font-medium'>{barrel.article_number}</span></div>
+                      )}
                     </div>
                   )}
 
-                  {/* Header - Kompakter */}
-                  <div className='mb-4 space-y-2'>
-                    <div className='flex items-start justify-between gap-2'>
-                      <h3 className='text-lg font-black tracking-tight'>{barrel.brand}</h3>
-                      <div className='flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 shadow-md backdrop-blur-sm'>
-                        <span className='text-primary text-xs font-black'>{barrel.barrel_size}L</span>
-                      </div>
+                  {/* Price info */}
+                  {(barrel.last_price || barrel.price_per_liter) && (
+                    <div className='flex gap-2'>
+                      {barrel.last_price && (
+                        <div className='flex-1 rounded-lg border border-border p-2'>
+                          <div className='text-muted-foreground text-[10px]'>{t('current')}</div>
+                          <div className='text-sm font-semibold text-emerald-600 dark:text-emerald-400'>
+                            {calculateEffectivePricePerLiter(barrel.last_price, barrel.dilution_ratio).toFixed(2)} €/L
+                          </div>
+                          {barrel.dilution_ratio && barrel.dilution_ratio !== 'none' && (
+                            <div className='text-muted-foreground text-[10px]'>{t('diluted')} {barrel.dilution_ratio}</div>
+                          )}
+                        </div>
+                      )}
+                      {barrel.price_per_liter && barrel.price_per_liter !== barrel.last_price && (
+                        <div className='flex-1 rounded-lg border border-border p-2'>
+                          <div className='text-muted-foreground text-[10px]'>{t('purchase')}</div>
+                          <div className='text-primary text-sm font-semibold'>
+                            {calculateEffectivePricePerLiter(barrel.price_per_liter, barrel.dilution_ratio).toFixed(2)} €/L
+                          </div>
+                        </div>
+                      )}
                     </div>
-                    <div className='inline-flex items-center rounded-xl bg-gradient-to-r from-primary/20 to-primary/10 px-3 py-1.5 shadow-sm'>
-                      <span className='text-primary text-base font-black uppercase tracking-wide'>{barrel.viscosity}</span>
-                    </div>
+                  )}
 
-                    {/* Lieferant & Artikelnummer */}
-                    {(barrel.supplier || barrel.article_number) && (
-                      <div className='space-y-1 rounded-xl bg-gradient-to-r from-secondary/40 to-secondary/20 p-2.5 text-xs'>
-                        {barrel.supplier && (
-                          <div className='flex items-center gap-1.5'>
-                            <span className='text-muted-foreground font-medium'>{t('supplier')}:</span>
-                            <span className='font-bold'>{barrel.supplier}</span>
-                          </div>
-                        )}
-                        {barrel.article_number && (
-                          <div className='flex items-center gap-1.5'>
-                            <span className='text-muted-foreground font-medium'>{t('articleNumberShort')}:</span>
-                            <span className='font-bold'>{barrel.article_number}</span>
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Preis Info - Kompakter */}
-                    {(barrel.last_price || barrel.price_per_liter) && (
-                      <div className='flex items-center gap-2'>
-                        {barrel.last_price && (
-                          <div className='flex-1 rounded-lg bg-gradient-to-r from-green-500/15 to-green-500/5 px-2.5 py-1.5'>
-                            <div className='text-xs text-muted-foreground font-medium'>{t('current')}</div>
-                            <div className='text-green-600 text-sm font-black'>
-                              {calculateEffectivePricePerLiter(barrel.last_price, barrel.dilution_ratio).toFixed(2)} €/L
-                            </div>
-                            {barrel.dilution_ratio && barrel.dilution_ratio !== 'none' && (
-                              <div className='text-[10px] text-muted-foreground font-semibold mt-0.5'>
-                                {t('diluted')} {barrel.dilution_ratio}
-                              </div>
-                            )}
-                          </div>
-                        )}
-                        {barrel.price_per_liter && barrel.price_per_liter !== barrel.last_price && (
-                          <div className='flex-1 rounded-lg bg-gradient-to-r from-primary/15 to-primary/5 px-2.5 py-1.5'>
-                            <div className='text-xs text-muted-foreground font-medium'>{t('purchase')}</div>
-                            <div className='text-primary text-sm font-black'>
-                              {calculateEffectivePricePerLiter(barrel.price_per_liter, barrel.dilution_ratio).toFixed(2)} €/L
-                            </div>
-                            {barrel.dilution_ratio && barrel.dilution_ratio !== 'none' && (
-                              <div className='text-[10px] text-muted-foreground font-semibold mt-0.5'>
-                                {t('diluted')} {barrel.dilution_ratio}
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Specs - Kompakter */}
+                  {/* Specs */}
                   {(barrel.acea_specs || barrel.approvals || barrel.recommendations) && (
-                    <div className='mb-4 space-y-1.5 rounded-xl bg-gradient-to-br from-secondary/50 to-secondary/25 p-3 text-xs'>
+                    <div className='bg-muted/50 space-y-0.5 rounded-lg px-3 py-2 text-xs'>
                       {barrel.acea_specs && (
                         <div>
-                          <span className='text-primary font-black uppercase'>{t('aceaLabel')} </span>
-                          <span className='text-muted-foreground font-semibold'>{barrel.acea_specs}</span>
+                          <span className='font-semibold text-primary'>{t('aceaLabel')} </span>
+                          <span className='text-muted-foreground'>{barrel.acea_specs}</span>
                         </div>
                       )}
                       {barrel.approvals && (
                         <div>
-                          <span className='text-primary font-black uppercase'>{t('approvalsLabel')} </span>
-                          <span className='text-muted-foreground font-semibold'>{barrel.approvals}</span>
+                          <span className='font-semibold text-primary'>{t('approvalsLabel')} </span>
+                          <span className='text-muted-foreground'>{barrel.approvals}</span>
                         </div>
                       )}
                       {barrel.recommendations && (
                         <div>
-                          <span className='text-primary font-black uppercase'>{t('recommendationsLabel')} </span>
-                          <span className='text-muted-foreground font-semibold'>{barrel.recommendations}</span>
+                          <span className='font-semibold text-primary'>{t('recommendationsLabel')} </span>
+                          <span className='text-muted-foreground'>{barrel.recommendations}</span>
                         </div>
                       )}
                     </div>
                   )}
 
-                  {/* Fill Level - Visual (Fass oder Kanister) */}
-                  <div className='mb-6 transition-all duration-500 group-hover:scale-105'>
+                  {/* Fill Level Visual */}
+                  <div>
                     {!barrel.liquid_type || barrel.liquid_type === 'oil' ? (
                       <BarrelVisual
                         currentLevel={barrel.current_level}
@@ -659,87 +596,65 @@ export default function BarrelOilsPage() {
                     )}
                   </div>
 
-                  {/* Location - Kompakter */}
+                  {/* Location */}
                   {barrel.location && (
-                    <div className='mb-4 flex items-center gap-2 rounded-lg bg-gradient-to-r from-secondary/50 to-secondary/25 px-3 py-2 text-xs'>
-                      <svg
-                        className='text-primary h-3 w-3'
-                        fill='none'
-                        stroke='currentColor'
-                        viewBox='0 0 24 24'
-                      >
-                        <path
-                          strokeLinecap='round'
-                          strokeLinejoin='round'
-                          strokeWidth={2.5}
-                          d='M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z'
-                        />
-                        <path
-                          strokeLinecap='round'
-                          strokeLinejoin='round'
-                          strokeWidth={2.5}
-                          d='M15 11a3 3 0 11-6 0 3 3 0 016 0z'
-                        />
+                    <div className='text-muted-foreground flex items-center gap-1.5 text-xs'>
+                      <svg className='h-3 w-3 shrink-0' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2.5} d='M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z' />
+                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2.5} d='M15 11a3 3 0 11-6 0 3 3 0 016 0z' />
                       </svg>
-                      <span className='text-muted-foreground font-bold'>{barrel.location}</span>
+                      {barrel.location}
                     </div>
                   )}
 
-                  {/* iOS-Style Action Buttons mit Rollen-Berechtigungen */}
-                  <div className='mt-auto space-y-2'>
-                    <div className='flex flex-col gap-2 lg:flex-row'>
-                      {/* Zubuchen Button - Admin und Manager */}
+                  {/* Actions */}
+                  <div className='mt-auto flex flex-col gap-2 pt-1'>
+                    <div className='flex gap-2'>
                       {(userRole === 'admin' || userRole === 'manager') && (
                         <Button
                           size='sm'
-                          variant='outline'
-                          className='hover:bg-green-500/10 hover:border-green-500/50 flex-1 rounded-xl border-2 py-4 text-xs font-bold shadow-sm transition-all duration-300 hover:scale-105 hover:text-green-600 hover:shadow-lg'
+                          className='h-9 flex-1 gap-1.5'
                           onClick={() => handleAdjust(barrel, 'add')}
                         >
-                          <TrendingUp className='mr-1.5 h-3.5 w-3.5' />
+                          <TrendingUp className='h-3.5 w-3.5' />
                           {getLiquidLabel(barrel.liquid_type)} +
                         </Button>
                       )}
-                      {/* Ausbuchen Button - Alle Rollen */}
                       <Button
                         size='sm'
                         variant='outline'
-                        className='hover:bg-orange-500/10 hover:border-orange-500/50 flex-1 rounded-xl border-2 py-4 text-xs font-bold shadow-sm transition-all duration-300 hover:scale-105 hover:text-orange-600 hover:shadow-lg'
+                        className='h-9 flex-1 gap-1.5'
                         onClick={() => handleAdjust(barrel, 'remove')}
                       >
-                        <TrendingDown className='mr-1.5 h-3.5 w-3.5' />
+                        <TrendingDown className='h-3.5 w-3.5' />
                         {getLiquidLabel(barrel.liquid_type)} -
                       </Button>
                     </div>
-
-                    <div className='flex flex-col gap-2 lg:flex-row'>
-                      {/* Historie Button - Alle Rollen */}
+                    <div className='flex gap-1'>
                       <Button
                         size='sm'
                         variant='ghost'
-                        className='hover:bg-primary/10 flex-1 rounded-xl py-2 text-xs font-bold transition-all duration-300 hover:scale-105 hover:text-primary'
+                        className='h-9 flex-1 gap-1.5 text-xs'
                         onClick={() => handleShowHistory(barrel)}
                       >
-                        <History className='mr-1.5 h-3.5 w-3.5' />
+                        <History className='h-3.5 w-3.5' />
                         {t('history')}
                       </Button>
-                      {/* Bearbeiten Button - Admin und Manager */}
                       {(userRole === 'admin' || userRole === 'manager') && (
                         <Button
                           size='sm'
                           variant='ghost'
-                          className='hover:bg-primary/10 rounded-xl px-3 py-2 font-bold transition-all duration-300 hover:scale-105 hover:text-primary'
+                          className='h-9 w-9 p-0'
                           onClick={() => handleEdit(barrel)}
                         >
                           <Edit className='h-3.5 w-3.5' />
                         </Button>
                       )}
-                      {/* Löschen Button - nur Admin */}
                       {userRole === 'admin' && (
                         <Button
                           size='sm'
                           variant='ghost'
-                          className='text-destructive hover:bg-destructive/10 rounded-xl px-3 py-2 font-bold transition-all duration-300 hover:scale-105 hover:text-destructive'
+                          className='text-destructive hover:bg-destructive/10 hover:text-destructive h-9 w-9 p-0'
                           onClick={() => handleDelete(barrel)}
                         >
                           <Trash2 className='h-3.5 w-3.5' />
@@ -747,9 +662,9 @@ export default function BarrelOilsPage() {
                       )}
                     </div>
                   </div>
-                </CardModern>
-              );
-            })}
+                </div>
+              </div>
+            ))}
           </div>
         )}
 
