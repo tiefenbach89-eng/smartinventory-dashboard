@@ -41,12 +41,12 @@ body {
 
 .theme-blue,
 .theme-blue-scaled {
-  --primary: var(--color-blue-600);
-  --primary-foreground: var(--color-blue-50);
+  --primary: oklch(0.55 0.24 262);
+  --primary-foreground: oklch(0.99 0.002 252);
 
   @variant dark {
-    --primary: var(--color-blue-500);
-    --primary-foreground: var(--color-blue-50);
+    --primary: oklch(0.66 0.24 262);
+    --primary-foreground: oklch(0.08 0.03 262);
   }
 }
 

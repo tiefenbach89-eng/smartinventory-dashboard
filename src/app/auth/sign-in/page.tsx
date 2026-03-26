@@ -75,21 +75,19 @@ export default function SignInPage() {
   return (
     <div className='relative flex min-h-[100dvh] flex-col items-center justify-center overflow-hidden px-5 py-10 sm:px-8'>
 
-      {/* ── Atmospheric Background ── */}
+      {/* ── Midnight Background ── */}
       <div className='pointer-events-none fixed inset-0 -z-10'>
-        {/* Base */}
         <div className='absolute inset-0 bg-background' />
-        {/* Amber radial glow — top right */}
-        <div className='absolute -right-[20%] -top-[20%] h-[60vw] w-[60vw] rounded-full bg-primary/10 blur-[100px] dark:bg-primary/15' />
-        {/* Subtle second glow — bottom left */}
-        <div className='absolute -bottom-[10%] -left-[10%] h-[40vw] w-[40vw] rounded-full bg-primary/6 blur-[80px] dark:bg-primary/10' />
-        {/* Fine grid overlay */}
+        {/* Indigo aurora — top right */}
+        <div className='absolute -right-[15%] -top-[15%] h-[55vw] w-[55vw] rounded-full bg-primary/8 blur-[120px] dark:bg-primary/14' />
+        {/* Teal counter-glow — bottom left */}
+        <div className='absolute -bottom-[10%] -left-[10%] h-[38vw] w-[38vw] rounded-full blur-[90px]' style={{ background: 'oklch(0.62 0.18 215 / 0.05)' }} />
+        {/* Dot-grid overlay — technical precision feel */}
         <div
-          className='absolute inset-0 opacity-[0.03] dark:opacity-[0.06]'
+          className='absolute inset-0 opacity-[0.035] dark:opacity-[0.055]'
           style={{
-            backgroundImage:
-              'linear-gradient(var(--foreground) 1px, transparent 1px), linear-gradient(90deg, var(--foreground) 1px, transparent 1px)',
-            backgroundSize: '32px 32px'
+            backgroundImage: 'radial-gradient(circle, var(--foreground) 1px, transparent 1px)',
+            backgroundSize: '28px 28px'
           }}
         />
       </div>
@@ -104,7 +102,7 @@ export default function SignInPage() {
 
         {/* Logo / Brand mark */}
         <div className='mb-8 text-center'>
-          <div className='mb-3 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-primary shadow-lg' style={{ boxShadow: '0 0 32px var(--amber-glow-strong)' }}>
+          <div className='mb-3 inline-flex h-14 w-14 items-center justify-center rounded-xl bg-primary shadow-lg' style={{ boxShadow: '0 0 28px var(--accent-glow-strong, var(--amber-glow-strong))' }}>
             <svg viewBox='0 0 24 24' fill='none' className='h-7 w-7 text-primary-foreground' stroke='currentColor' strokeWidth='2.2'>
               <path d='M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z' />
               <polyline points='9 22 9 12 15 12 15 22' />
@@ -119,7 +117,7 @@ export default function SignInPage() {
         </div>
 
         {/* Form Card */}
-        <div className='card-premium rounded-3xl p-6 sm:p-8'>
+        <div className='card-premium rounded-2xl p-6 sm:p-8'>
           <form onSubmit={handleSignIn} className='space-y-4'>
 
             {/* Email */}
