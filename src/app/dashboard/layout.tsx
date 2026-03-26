@@ -1,12 +1,6 @@
-'use client';
-
 import * as React from 'react';
-import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
-import AppSidebar from '@/components/layout/app-sidebar';
-import Header from '@/components/layout/header';
+import TopNav from '@/components/layout/top-nav';
 import BottomTabBar from '@/components/layout/bottom-tab-bar';
-
-// ⬇️ Neu: Querformat-Overlay importieren
 import OrientationOverlay from '@/components/layout/orientation-overlay';
 
 export default function DashboardLayout({
@@ -15,27 +9,22 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <SidebarProvider defaultOpen={false}>
-      {/* Desktop only: Sidebar (hidden on tablets and phones) */}
-      <div className='hidden lg:block'>
-        <AppSidebar />
-      </div>
+    <div className='flex min-h-dvh flex-col bg-background'>
+      {/* Top navigation — visible on all screen sizes */}
+      <TopNav />
 
-      <SidebarInset>
-        {/* Header - angepasst für alle Geräte */}
-        <Header />
+      {/* Orientation lock overlay (landscape phones) */}
+      <OrientationOverlay />
 
-        {/* ⬇️ Querformat-Only Overlay */}
-        <OrientationOverlay />
-
-        {/* Main Content */}
+      {/* Main content — full width, no sidebar offset */}
+      <main className='flex flex-1 flex-col'>
         {children}
+      </main>
 
-        {/* Tablets & Mobile: Bottom Tab Bar (hidden on desktop) */}
-        <div className='lg:hidden'>
-          <BottomTabBar />
-        </div>
-      </SidebarInset>
-    </SidebarProvider>
+      {/* Mobile bottom tab bar — hidden on desktop */}
+      <div className='lg:hidden'>
+        <BottomTabBar />
+      </div>
+    </div>
   );
 }
