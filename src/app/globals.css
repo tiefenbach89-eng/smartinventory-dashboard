@@ -70,136 +70,133 @@ button, [role="button"] {
 
 
 /* ============================================================
-   MIDNIGHT PRO — Light Mode
-   Cool pearl white base, sharp indigo accent, crisp neutrals
+   APPLE + TRADE REPUBLIC — Light Mode
+   Pure white, cool neutrals, Apple System Blue accent
    ============================================================ */
 :root {
-  --radius: 0.6rem;
+  --radius: 0.625rem;
 
-  /* Backgrounds — cool pearl white */
-  --background: oklch(0.974 0.006 252);
-  --foreground: oklch(0.10 0.018 252);
+  /* Backgrounds — clean system gray (like iOS grouped background) */
+  --background: oklch(0.968 0.004 252);
+  --foreground: oklch(0.09 0.016 252);
 
-  /* Cards — pure white, stands out from background */
+  /* Cards — pure white (elevated surface) */
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.10 0.018 252);
+  --card-foreground: oklch(0.09 0.016 252);
 
   /* Popover */
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.10 0.018 252);
+  --popover-foreground: oklch(0.09 0.016 252);
 
-  /* PRIMARY — Electric Indigo */
-  --primary: oklch(0.55 0.24 262);
-  --primary-foreground: oklch(0.99 0.002 252);
+  /* PRIMARY — Apple System Blue #007AFF */
+  --primary: oklch(0.585 0.195 250);
+  --primary-foreground: oklch(1 0 0);
 
-  /* Secondary — cool slate */
-  --secondary: oklch(0.93 0.010 252);
-  --secondary-foreground: oklch(0.22 0.018 252);
+  /* Secondary — system gray */
+  --secondary: oklch(0.928 0.008 252);
+  --secondary-foreground: oklch(0.18 0.014 252);
 
   /* Muted */
-  --muted: oklch(0.93 0.010 252);
-  --muted-foreground: oklch(0.46 0.014 252);
+  --muted: oklch(0.928 0.008 252);
+  --muted-foreground: oklch(0.44 0.012 252);
 
-  /* Accent — indigo tint */
-  --accent: oklch(0.93 0.018 262);
-  --accent-foreground: oklch(0.30 0.12 262);
+  /* Accent — blue tint */
+  --accent: oklch(0.935 0.014 250);
+  --accent-foreground: oklch(0.30 0.10 250);
 
-  /* Destructive */
+  /* Destructive — system red */
   --destructive: oklch(0.577 0.245 27.325);
 
-  /* Borders — cool, crisp */
-  --border: oklch(0.87 0.008 252);
-  --input: oklch(0.91 0.008 252);
-  --ring: oklch(0.55 0.24 262);
+  /* Borders — very clean, almost invisible */
+  --border: oklch(0.875 0.006 252);
+  --input: oklch(0.910 0.006 252);
+  --ring: oklch(0.585 0.195 250);
 
-  /* Charts — indigo-led vivid palette */
-  --chart-1: oklch(0.55 0.24 262);
-  --chart-2: oklch(0.62 0.18 215);
-  --chart-3: oklch(0.68 0.16 160);
-  --chart-4: oklch(0.65 0.20 310);
-  --chart-5: oklch(0.60 0.20 30);
+  /* Charts — Apple-style data palette */
+  --chart-1: oklch(0.585 0.195 250);
+  --chart-2: oklch(0.62 0.17 215);
+  --chart-3: oklch(0.60 0.17 160);
+  --chart-4: oklch(0.68 0.18 310);
+  --chart-5: oklch(0.62 0.20 30);
 
-  /* Sidebar — slightly darker than background */
-  --sidebar: oklch(0.960 0.010 252);
-  --sidebar-foreground: oklch(0.10 0.018 252);
-  --sidebar-primary: oklch(0.55 0.24 262);
-  --sidebar-primary-foreground: oklch(0.99 0.002 252);
-  --sidebar-accent: oklch(0.93 0.018 262);
-  --sidebar-accent-foreground: oklch(0.30 0.12 262);
-  --sidebar-border: oklch(0.88 0.008 252);
-  --sidebar-ring: oklch(0.55 0.24 262);
+  /* Sidebar — slightly distinct from bg */
+  --sidebar: oklch(0.980 0.003 252);
+  --sidebar-foreground: oklch(0.09 0.016 252);
+  --sidebar-primary: oklch(0.585 0.195 250);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.935 0.014 250);
+  --sidebar-accent-foreground: oklch(0.30 0.10 250);
+  --sidebar-border: oklch(0.882 0.006 252);
+  --sidebar-ring: oklch(0.585 0.195 250);
 
-  /* Indigo glow */
-  --accent-glow: oklch(0.55 0.24 262 / 0.22);
-  --accent-glow-strong: oklch(0.55 0.24 262 / 0.45);
-  /* keep amber-glow alias so existing inline styles don't break */
-  --amber-glow: oklch(0.55 0.24 262 / 0.22);
-  --amber-glow-strong: oklch(0.55 0.24 262 / 0.45);
+  --accent-glow: oklch(0.585 0.195 250 / 0.18);
+  --accent-glow-strong: oklch(0.585 0.195 250 / 0.38);
+  --amber-glow: oklch(0.585 0.195 250 / 0.18);
+  --amber-glow-strong: oklch(0.585 0.195 250 / 0.38);
 }
 
 /* ============================================================
-   MIDNIGHT PRO — Dark Mode
-   Deep midnight navy base, vivid indigo accent, crisp whites
+   APPLE + TRADE REPUBLIC — Dark Mode
+   Deep system black, Apple dark blue accent, pure contrast
    ============================================================ */
 .dark {
-  /* Backgrounds — deep midnight navy (not flat black) */
-  --background: oklch(0.085 0.028 255);
-  --foreground: oklch(0.94 0.010 252);
+  /* Backgrounds — Apple system black (true iOS dark) */
+  --background: oklch(0.000 0 0);
+  --foreground: oklch(0.96 0.006 252);
 
-  /* Cards — distinctly blue-tinted elevation */
-  --card: oklch(0.132 0.032 258);
-  --card-foreground: oklch(0.94 0.010 252);
+  /* Cards — iOS secondary dark system fill */
+  --card: oklch(0.115 0.010 252);
+  --card-foreground: oklch(0.96 0.006 252);
 
   /* Popover */
-  --popover: oklch(0.160 0.030 258);
-  --popover-foreground: oklch(0.94 0.010 252);
+  --popover: oklch(0.145 0.012 252);
+  --popover-foreground: oklch(0.96 0.006 252);
 
-  /* PRIMARY — bright electric indigo */
-  --primary: oklch(0.66 0.24 262);
-  --primary-foreground: oklch(0.08 0.03 262);
+  /* PRIMARY — Apple System Blue dark #0A84FF */
+  --primary: oklch(0.640 0.205 251);
+  --primary-foreground: oklch(0.00 0 0);
 
   /* Secondary */
-  --secondary: oklch(0.195 0.026 255);
-  --secondary-foreground: oklch(0.88 0.010 252);
+  --secondary: oklch(0.185 0.012 252);
+  --secondary-foreground: oklch(0.88 0.008 252);
 
   /* Muted */
-  --muted: oklch(0.175 0.022 255);
-  --muted-foreground: oklch(0.58 0.016 252);
+  --muted: oklch(0.165 0.010 252);
+  --muted-foreground: oklch(0.56 0.014 252);
 
   /* Accent */
-  --accent: oklch(0.215 0.038 262);
-  --accent-foreground: oklch(0.66 0.24 262);
+  --accent: oklch(0.200 0.025 250);
+  --accent-foreground: oklch(0.640 0.205 251);
 
   /* Destructive */
   --destructive: oklch(0.65 0.22 22);
 
-  /* Borders — blue-tinted subtle */
-  --border: oklch(1 0 0 / 9%);
-  --input: oklch(1 0 0 / 7%);
-  --ring: oklch(0.66 0.24 262);
+  /* Borders — iOS separator style */
+  --border: oklch(1 0 0 / 8%);
+  --input: oklch(1 0 0 / 6%);
+  --ring: oklch(0.640 0.205 251);
 
-  /* Charts — vivid on dark */
-  --chart-1: oklch(0.66 0.24 262);
-  --chart-2: oklch(0.68 0.18 215);
+  /* Charts */
+  --chart-1: oklch(0.640 0.205 251);
+  --chart-2: oklch(0.66 0.17 215);
   --chart-3: oklch(0.65 0.17 160);
-  --chart-4: oklch(0.70 0.20 310);
+  --chart-4: oklch(0.70 0.18 310);
   --chart-5: oklch(0.68 0.20 30);
 
-  /* Sidebar — midnight base, slightly distinct */
-  --sidebar: oklch(0.105 0.030 255);
-  --sidebar-foreground: oklch(0.92 0.010 252);
-  --sidebar-primary: oklch(0.66 0.24 262);
-  --sidebar-primary-foreground: oklch(0.08 0.03 262);
-  --sidebar-accent: oklch(0.215 0.038 262);
-  --sidebar-accent-foreground: oklch(0.66 0.24 262);
-  --sidebar-border: oklch(1 0 0 / 8%);
-  --sidebar-ring: oklch(0.66 0.24 262);
+  /* Sidebar — true black, crisp separation */
+  --sidebar: oklch(0.065 0.008 252);
+  --sidebar-foreground: oklch(0.94 0.006 252);
+  --sidebar-primary: oklch(0.640 0.205 251);
+  --sidebar-primary-foreground: oklch(0.00 0 0);
+  --sidebar-accent: oklch(0.200 0.025 250);
+  --sidebar-accent-foreground: oklch(0.640 0.205 251);
+  --sidebar-border: oklch(1 0 0 / 7%);
+  --sidebar-ring: oklch(0.640 0.205 251);
 
-  /* Indigo glow */
-  --accent-glow: oklch(0.66 0.24 262 / 0.20);
-  --accent-glow-strong: oklch(0.66 0.24 262 / 0.42);
-  --amber-glow: oklch(0.66 0.24 262 / 0.20);
-  --amber-glow-strong: oklch(0.66 0.24 262 / 0.42);
+  --accent-glow: oklch(0.640 0.205 251 / 0.18);
+  --accent-glow-strong: oklch(0.640 0.205 251 / 0.38);
+  --amber-glow: oklch(0.640 0.205 251 / 0.18);
+  --amber-glow-strong: oklch(0.640 0.205 251 / 0.38);
 }
 
 @theme inline {
@@ -253,27 +250,25 @@ button, [role="button"] {
 }
 
 /* ============================================================
-   MIDNIGHT PRO — Signature Utilities
+   APPLE + TRADE REPUBLIC — Utilities
    ============================================================ */
 
-/* Indigo glow — primary elements */
-.glow-amber {
-  box-shadow: 0 0 20px var(--accent-glow), 0 0 60px oklch(0.55 0.24 262 / 0.06);
-}
-.glow-amber-sm {
-  box-shadow: 0 0 10px var(--accent-glow), 0 2px 14px oklch(0.55 0.24 262 / 0.10);
-}
-
-/* Number display — always use JetBrains Mono */
+/* Number display — tabular, monospace (Trade Republic style) */
 .font-numeric {
-  font-family: var(--font-mono), 'JetBrains Mono', monospace;
+  font-family: var(--font-mono), 'JetBrains Mono', ui-monospace, monospace;
   font-feature-settings: "tnum" 1, "zero" 1;
   font-variant-numeric: tabular-nums;
 }
 
-/* Indigo accent border */
+/* Subtle primary glow (kept for backwards compat) */
+.glow-amber {
+  box-shadow: 0 0 16px var(--accent-glow);
+}
+.glow-amber-sm {
+  box-shadow: 0 0 8px var(--accent-glow);
+}
 .border-amber-accent {
-  border-color: oklch(0.55 0.24 262 / 0.35);
+  border-color: oklch(0.585 0.195 250 / 0.30);
 }
 
 /* Staggered fade-in animations */
@@ -326,53 +321,20 @@ button, [role="button"] {
 .delay-350 { animation-delay: 350ms; }
 .delay-400 { animation-delay: 400ms; }
 
-/* Midnight ambient gradient — cool indigo aurora */
+/* No ambient gradient — clean Apple/TR approach */
 .ambient-gradient {
-  position: relative;
-}
-.ambient-gradient::before {
-  content: '';
-  position: fixed;
-  top: -15%;
-  right: -5%;
-  width: 55vw;
-  height: 55vw;
-  background: radial-gradient(ellipse, oklch(0.55 0.24 262 / 0.05) 0%, transparent 65%);
-  pointer-events: none;
-  z-index: 0;
-}
-.ambient-gradient::after {
-  content: '';
-  position: fixed;
-  bottom: -10%;
-  left: -5%;
-  width: 40vw;
-  height: 40vw;
-  background: radial-gradient(ellipse, oklch(0.62 0.18 215 / 0.04) 0%, transparent 60%);
-  pointer-events: none;
-  z-index: 0;
-}
-.dark .ambient-gradient::before {
-  background: radial-gradient(ellipse, oklch(0.66 0.24 262 / 0.10) 0%, transparent 65%);
-}
-.dark .ambient-gradient::after {
-  background: radial-gradient(ellipse, oklch(0.68 0.18 215 / 0.07) 0%, transparent 60%);
+  /* intentionally empty — no decorative background */
 }
 
-/* Premium card — subtle indigo-tinted border in dark, crisp in light */
+/* Card — Apple-style elevated surface */
 .card-premium {
   background: var(--card);
   border: 1px solid var(--border);
-  box-shadow:
-    0 1px 2px oklch(0 0 0 / 0.06),
-    0 0 0 1px oklch(0.55 0.24 262 / 0.04);
+  box-shadow: 0 1px 3px oklch(0 0 0 / 0.07), 0 1px 2px oklch(0 0 0 / 0.04);
 }
 .dark .card-premium {
-  box-shadow:
-    0 2px 8px oklch(0 0 0 / 0.5),
-    0 1px 2px oklch(0 0 0 / 0.4),
-    0 0 0 1px oklch(0.66 0.24 262 / 0.10),
-    inset 0 1px 0 oklch(1 0 0 / 0.05);
+  border-color: oklch(1 0 0 / 9%);
+  box-shadow: 0 2px 10px oklch(0 0 0 / 0.6), inset 0 1px 0 oklch(1 0 0 / 0.04);
 }
 
 /* Enhanced Shadows für bessere Sichtbarkeit in light & dark mode */

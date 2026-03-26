@@ -8,7 +8,6 @@ import {
   Sidebar,
   SidebarContent,
   SidebarGroup,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -28,7 +27,6 @@ import { useRolePermissions } from '@/hooks/useRolePermissions';
 
 function isAdminRoute(url?: string | null) {
   if (!url) return false;
-  // hier kannst du bei Bedarf weitere Admin-Routen ergänzen
   return (
     url.startsWith('/dashboard/settings') ||
     url.startsWith('/dashboard/accounts')
@@ -44,29 +42,23 @@ export default function AppSidebar() {
   const { permissions } = useRolePermissions();
   const canAccessAdmin = permissions?.can_access_admin_panel ?? false;
 
-  // Map: welcher Menüpunkt ist aufgeklappt
   const [openMap, setOpenMap] = React.useState<Record<string, boolean>>({});
 
-  // NavItems, gefiltert nach Berechtigungen
   const items = React.useMemo(() => {
     const base = navItems(t);
 
     if (canAccessAdmin) return base;
 
-    // Employee: Admin-/Settings-Routen ausblenden
     return base
       .map((item) => {
         const filteredSubs = item.items?.filter(
           (sub) => !isAdminRoute(sub.url)
         );
 
-        // wenn der Hauptlink selbst eine Admin-Route ist → Item komplett raus
         if (isAdminRoute(item.url)) {
-          // falls keine Unterpunkte übrig bleiben, Item weg
           if (!filteredSubs || filteredSubs.length === 0) return null;
         }
 
-        // wenn alle Unterpunkte Admin sind → ganzes Item raus
         if (item.items && (!filteredSubs || filteredSubs.length === 0)) {
           return isAdminRoute(item.url) ? null : { ...item, items: [] };
         }
@@ -76,17 +68,14 @@ export default function AppSidebar() {
       .filter(Boolean) as ReturnType<typeof navItems>;
   }, [t, canAccessAdmin]);
 
-  // Aktive Gruppe beim Page-Load automatisch öffnen
   React.useEffect(() => {
     setOpenMap((prev) => {
       const next = { ...prev };
-
       items.forEach((item) => {
         if (item.items?.some((sub) => pathname === sub.url)) {
           next[item.key] = true;
         }
       });
-
       return next;
     });
   }, [pathname, items]);
@@ -96,47 +85,34 @@ export default function AppSidebar() {
   }
 
   return (
-    <Sidebar
-      collapsible='icon'
-      className='border-r border-border/50 bg-sidebar'
-    >
-      {/* iOS-Style Header mit Glasmorphismus */}
-      <SidebarHeader className='border-b border-border/30 px-4 py-4'>
-        <div className='flex items-center justify-center'>
-          {open ? (
-            <div className='flex items-center gap-3 transition-all duration-300'>
-              <div className='flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/20 via-primary/10 to-primary/5 shadow-lg shadow-primary/20 ring-1 ring-primary/20'>
-                <span className='text-lg font-black tracking-tight bg-gradient-to-br from-primary to-primary/60 bg-clip-text text-transparent'>
-                  {t('short')}
-                </span>
-              </div>
-              <div className='flex flex-col'>
-                <span className='text-base font-bold tracking-tight'>
-                  {t('title')}
-                </span>
-                <span className='text-muted-foreground text-xs font-medium'>
-                  {t('dashboardLabel')}
-                </span>
-              </div>
-            </div>
-          ) : (
-            <div className='flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/20 via-primary/10 to-primary/5 shadow-lg shadow-primary/20 ring-1 ring-primary/20 transition-all duration-300'>
-              <span className='text-sm font-black tracking-tight bg-gradient-to-br from-primary to-primary/60 bg-clip-text text-transparent'>
-                {t('short')}
+    <Sidebar collapsible='icon' className='border-r border-border bg-sidebar'>
+
+      {/* ── Header — clean wordmark, no decoration ── */}
+      <SidebarHeader className='border-b border-border px-4 py-4'>
+        <div className='flex items-center gap-2.5'>
+          {/* Logo mark — flat square, no gradient */}
+          <div className='flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary'>
+            <span className='text-[11px] font-black text-primary-foreground tracking-tight'>
+              {t('short')}
+            </span>
+          </div>
+          {open && (
+            <div className='flex flex-col leading-tight'>
+              <span className='text-sm font-semibold text-foreground'>
+                {t('title')}
+              </span>
+              <span className='text-[11px] text-muted-foreground'>
+                {t('dashboardLabel')}
               </span>
             </div>
           )}
         </div>
       </SidebarHeader>
 
-      {/* iOS-Style Navigation mit Cards */}
-      <SidebarContent className='overflow-x-hidden overflow-y-auto px-2 py-2'>
+      {/* ── Navigation — Linear-style flat rows ── */}
+      <SidebarContent className='overflow-x-hidden overflow-y-auto px-2 py-3'>
         <SidebarGroup>
-          <SidebarGroupLabel className='text-muted-foreground/70 px-2 pb-2 pt-1 text-[10px] font-bold tracking-widest uppercase'>
-            {t('group_overview')}
-          </SidebarGroupLabel>
-
-          <SidebarMenu className='space-y-2 px-1'>
+          <SidebarMenu className='space-y-0.5'>
             {items.map((item) => {
               const IconComponent = Icons[item.icon] ?? Icons.logo;
               const hasChildren = !!item.items && item.items.length > 0;
@@ -145,55 +121,28 @@ export default function AppSidebar() {
                 pathname === item.url ||
                 (item.items?.some((sub) => pathname === sub.url) ?? false);
 
-              const buttonClass = cn(
-                'group relative min-w-8 justify-start gap-3 rounded-2xl px-4 py-3.5 text-sm font-semibold',
-                'backdrop-blur-sm transition-all duration-300 ease-out',
-                                // Inactive State - iOS Card Style
-                !isActive && [
-                  'bg-gradient-to-br from-accent/30 via-accent/20 to-accent/10',
-                  'text-muted-foreground hover:text-foreground',
-                  'shadow-sm hover:shadow-md',
-                  'ring-1 ring-border/20 hover:ring-border/40',
-                ],
-                // Active State - iOS Gradient
-                isActive && [
-                  'bg-gradient-to-br from-primary via-primary/90 to-primary/80',
-                  'text-primary-foreground',
-                  'shadow-lg shadow-primary/30',
-                  'ring-1 ring-primary/50',
-                ]
-              );
-
-              // Icon-only Mode: Touch-optimierte Buttons
-              if (hasChildren && !open) {
+              // Icon-only (collapsed) mode
+              if (!open) {
                 return (
                   <SidebarMenuItem key={item.key}>
                     <SidebarMenuButton
                       tooltip={item.label}
                       isActive={isActive}
                       className={cn(
-                        'group relative flex h-12 w-12 items-center justify-center rounded-xl',
-                        'backdrop-blur-sm transition-all duration-300 ease-out',
-                                                !isActive && [
-                          'bg-transparent',
-                          'text-muted-foreground hover:text-foreground',
-                        ],
-                        isActive && [
-                          'bg-gradient-to-br from-primary via-primary/90 to-primary/80',
-                          'text-primary-foreground',
-                          'shadow-lg shadow-primary/30',
-                          'ring-2 ring-primary/50',
-                        ]
+                        'flex h-9 w-9 items-center justify-center rounded-lg transition-colors',
+                        isActive
+                          ? 'bg-primary/12 text-primary'
+                          : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
                       )}
                       onClick={() => router.push(item.url)}
                     >
-                      <IconComponent className='h-6 w-6 ' />
+                      <IconComponent className='h-5 w-5' />
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 );
               }
 
-              // Items mit Unterpunkten – iOS-Style Expansion
+              // Items with children — expandable
               if (hasChildren) {
                 const isOpen = !!openMap[item.key];
 
@@ -204,84 +153,61 @@ export default function AppSidebar() {
                       tooltip={item.label}
                       isActive={isActive}
                       className={cn(
-                        buttonClass,
-                        // Icon-only Mode: simplified button
-                        !open && 'bg-transparent p-0 shadow-none ring-0',
-                        !open && isActive && [
-                          'bg-gradient-to-br from-primary via-primary/90 to-primary/80',
-                          'shadow-lg shadow-primary/30 ring-2 ring-primary/50'
-                        ]
+                        'h-9 w-full rounded-lg px-3 transition-colors',
+                        isActive
+                          ? 'bg-primary/10 text-primary font-medium'
+                          : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
                       )}
                     >
                       <button
                         type='button'
-                        className={cn('flex items-center', open ? 'w-full' : 'h-12 w-12 justify-center rounded-xl')}
+                        className='flex w-full items-center gap-2.5'
                         onClick={() => toggle(item.key)}
                       >
-                        {open ? (
-                          <>
-                            <div className={cn(
-                              'flex h-9 w-9 items-center justify-center rounded-xl transition-all duration-300',
-                              isActive
-                                ? 'bg-white/20 shadow-inner'
-                                : 'bg-background/40 group-hover:bg-background/60'
-                            )}>
-                              <IconComponent className='h-5 w-5 ' />
-                            </div>
-                            <span className='truncate font-semibold'>{item.label}</span>
-                            <Icons.chevronRight
-                              className={cn(
-                                'ml-auto h-4 w-4 transition-all duration-300',
-                                isOpen && 'rotate-90',
-                                isActive ? 'opacity-80' : 'opacity-50 group-hover:opacity-100'
-                              )}
-                            />
-                          </>
-                        ) : (
-                          <IconComponent className='h-6 w-6 ' />
-                        )}
+                        <IconComponent className='h-4.5 w-4.5 shrink-0' />
+                        <span className='flex-1 truncate text-sm'>{item.label}</span>
+                        <Icons.chevronRight
+                          className={cn(
+                            'h-3.5 w-3.5 shrink-0 opacity-50 transition-transform duration-200',
+                            isOpen && 'rotate-90'
+                          )}
+                        />
                       </button>
                     </SidebarMenuButton>
 
-                    {/* Submenu — grid-rows trick avoids Chrome flicker from max-height+transform */}
+                    {/* Submenu — smooth expand */}
                     <div
                       className={cn(
-                        'grid transition-[grid-template-rows,opacity] duration-300 ease-in-out',
-                        isOpen ? 'mt-2 grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
+                        'grid transition-[grid-template-rows,opacity] duration-200 ease-in-out',
+                        isOpen ? 'mt-0.5 grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
                       )}
                     >
-                    <div className='overflow-hidden'>
-                      <SidebarMenuSub className='space-y-1 rounded-2xl bg-background/40 p-2 ring-1 ring-border/20'>
-                        {item.items!.map((sub) => (
-                          <SidebarMenuSubItem key={sub.key}>
-                            <SidebarMenuSubButton
-                              asChild
-                              isActive={pathname === sub.url}
-                              className={cn(
-                                'rounded-xl px-4 py-2.5 text-xs font-medium',
-                                pathname === sub.url
-                                  ? 'bg-primary/20 text-primary ring-1 ring-primary/30 shadow-sm'
-                                  : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'
-                              )}
-                            >
-                              <Link href={sub.url} className='flex items-center gap-2'>
-                                <div className={cn(
-                                  'h-1.5 w-1.5 rounded-full',
-                                  pathname === sub.url ? 'bg-primary' : 'bg-muted-foreground/30'
-                                )} />
-                                <span className='truncate'>{sub.label}</span>
-                              </Link>
-                            </SidebarMenuSubButton>
-                          </SidebarMenuSubItem>
-                        ))}
-                      </SidebarMenuSub>
-                    </div>
+                      <div className='overflow-hidden'>
+                        <SidebarMenuSub className='ml-4 space-y-0.5 border-l border-border py-1 pl-3'>
+                          {item.items!.map((sub) => (
+                            <SidebarMenuSubItem key={sub.key}>
+                              <SidebarMenuSubButton
+                                asChild
+                                isActive={pathname === sub.url}
+                                className={cn(
+                                  'h-8 rounded-md px-3 text-sm transition-colors',
+                                  pathname === sub.url
+                                    ? 'bg-primary/10 text-primary font-medium'
+                                    : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
+                                )}
+                              >
+                                <Link href={sub.url}>{sub.label}</Link>
+                              </SidebarMenuSubButton>
+                            </SidebarMenuSubItem>
+                          ))}
+                        </SidebarMenuSub>
+                      </div>
                     </div>
                   </SidebarMenuItem>
                 );
               }
 
-              // Normale Items ohne Unterpunkte - iOS Cards
+              // Regular items
               return (
                 <SidebarMenuItem key={item.key}>
                   <SidebarMenuButton
@@ -289,31 +215,15 @@ export default function AppSidebar() {
                     tooltip={item.label}
                     isActive={isActive}
                     className={cn(
-                      buttonClass,
-                      // Icon-only Mode: remove inner icon box background
-                      !open && 'bg-transparent p-0 shadow-none ring-0',
-                      !open && isActive && [
-                        'bg-gradient-to-br from-primary via-primary/90 to-primary/80',
-                        'shadow-lg shadow-primary/30 ring-2 ring-primary/50'
-                      ]
+                      'h-9 rounded-lg px-3 transition-colors',
+                      isActive
+                        ? 'bg-primary/10 text-primary font-medium'
+                        : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
                     )}
                   >
-                    <Link href={item.url} className={cn('flex items-center gap-3', !open && 'h-12 w-12 justify-center rounded-xl')}>
-                      {open ? (
-                        <>
-                          <div className={cn(
-                            'flex h-9 w-9 items-center justify-center rounded-xl transition-all duration-300',
-                            isActive
-                              ? 'bg-white/20 shadow-inner'
-                              : 'bg-background/40 group-hover:bg-background/60'
-                          )}>
-                            <IconComponent className='h-5 w-5 ' />
-                          </div>
-                          <span className='truncate font-semibold'>{item.label}</span>
-                        </>
-                      ) : (
-                        <IconComponent className='h-6 w-6 ' />
-                      )}
+                    <Link href={item.url} className='flex items-center gap-2.5'>
+                      <IconComponent className='h-4.5 w-4.5 shrink-0' />
+                      <span className='truncate text-sm'>{item.label}</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
