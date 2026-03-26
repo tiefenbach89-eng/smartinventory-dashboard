@@ -86,9 +86,9 @@ export default function BottomTabBar() {
                       'md:min-w-[72px] md:px-5 md:py-2.5'
                     )}
                   >
-                    {/* Active Background Pill — Amber Gold */}
+                    {/* Active Background Pill */}
                     {isActive && (
-                      <div className='absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/25 via-primary/15 to-primary/5 ring-1 ring-primary/30' style={{ boxShadow: '0 2px 12px var(--amber-glow)' }} />
+                      <div className='absolute inset-0 rounded-2xl bg-primary/10 ring-1 ring-primary/25' />
                     )}
 
                     {/* Icon Container */}
@@ -119,9 +119,9 @@ export default function BottomTabBar() {
                       {item.label}
                     </span>
 
-                    {/* Active Indicator Dot — amber glow */}
+                    {/* Active Indicator Dot */}
                     {isActive && (
-                      <div className='absolute -top-0.5 left-1/2 h-1 w-5 -translate-x-1/2 rounded-full bg-primary' style={{ boxShadow: '0 0 6px var(--amber-glow-strong)' }} />
+                      <div className='absolute -top-0.5 left-1/2 h-1 w-5 -translate-x-1/2 rounded-full bg-primary' />
                     )}
                   </Link>
                 );

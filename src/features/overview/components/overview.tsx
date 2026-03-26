@@ -68,7 +68,7 @@ export default function OverViewPage() {
 
   return (
     <PageContainer>
-      <div className='ambient-gradient flex flex-1 flex-col space-y-5 sm:space-y-6'>
+      <div className='flex flex-1 flex-col space-y-5 sm:space-y-6'>
 
         {/* ── Header ── */}
         <div className='animate-fade-up flex items-center justify-between gap-4'>

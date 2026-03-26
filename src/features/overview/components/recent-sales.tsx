@@ -367,7 +367,7 @@ export function RecentSales() {
               {/* ---------------- SLOW MOVERS ---------------- */}
               <div className='space-y-3'>
                 <div className='flex items-center justify-between'>
-                  <h3 className='flex items-center gap-2 text-sm font-black uppercase tracking-wider text-amber-600'>
+                  <h3 className='flex items-center gap-2 text-sm font-black uppercase tracking-wider text-muted-foreground'>
                     <Turtle className='h-4 w-4' />
                     {t('slow_movers')}
                   </h3>
