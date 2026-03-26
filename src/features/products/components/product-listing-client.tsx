@@ -380,126 +380,66 @@ export default function ProductListing({
             return (
               <div
                 key={p.artikelnummer}
-                className='flex flex-col overflow-hidden rounded-xl border border-border bg-card'
+                className='group flex flex-col overflow-hidden rounded-2xl border border-border/60 bg-card shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md dark:border-border/40'
               >
-                {/* ── Image ── */}
-                <div className='relative flex h-36 items-center justify-center bg-muted/30'>
+                {/* ── Image pane — always white bg for clean product photos ── */}
+                <div className='relative flex h-40 items-center justify-center bg-white'>
                   {p.image_url ? (
                     <img
                       src={p.image_url}
                       alt={p.artikelbezeichnung}
-                      className='h-full w-full cursor-pointer object-contain p-2'
+                      className='h-full w-full cursor-zoom-in object-contain p-4 transition-transform duration-300 group-hover:scale-105'
                       onDoubleClick={() => setImagePreview(p.image_url)}
                     />
                   ) : (
-                    <Package className='text-muted-foreground/20 h-10 w-10' />
+                    <div className='flex flex-col items-center gap-2'>
+                      <Package className='h-10 w-10 text-gray-200' />
+                    </div>
                   )}
-                  {/* Status badge */}
-                  <div className='absolute right-2 top-2'>
+
+                  {/* Status badge — pill style */}
+                  <div className='absolute left-2.5 top-2.5'>
                     {isLowStock ? (
-                      <Badge variant='outline' className='gap-1 border-red-200 bg-red-50 text-[10px] text-red-600 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-400'>
+                      <span className='inline-flex items-center gap-1 rounded-full bg-red-500/90 px-2 py-0.5 text-[10px] font-semibold text-white shadow-sm backdrop-blur-sm'>
                         <AlertTriangle className='h-2.5 w-2.5' />
                         {t('filterLow')}
-                      </Badge>
+                      </span>
                     ) : (
-                      <Badge variant='outline' className='gap-1 border-emerald-200 bg-emerald-50 text-[10px] text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-400'>
+                      <span className='inline-flex items-center gap-1 rounded-full bg-emerald-500/90 px-2 py-0.5 text-[10px] font-semibold text-white shadow-sm backdrop-blur-sm'>
                         <CheckCircle2 className='h-2.5 w-2.5' />
                         {t('filterInstock')}
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-
-                {/* ── Info ── */}
-                <div className='flex flex-1 flex-col gap-2.5 p-4'>
-                  <div>
-                    <span className='text-muted-foreground font-mono text-[11px]'>#{p.artikelnummer}</span>
-                    <h4 className='mt-0.5 line-clamp-2 text-sm font-semibold leading-snug'>
-                      {p.artikelbezeichnung}
-                    </h4>
-                  </div>
-
-                  <div className='flex items-center justify-between'>
-                    <span className='text-muted-foreground truncate text-xs'>{p.lieferant}</span>
-                    <span className='font-numeric whitespace-nowrap text-sm font-semibold'>
-                      {p.preis?.toFixed(2)} €
-                    </span>
-                  </div>
-
-                  {p.ean && (
-                    <p className='text-muted-foreground font-mono text-[11px]'>EAN {p.ean}</p>
-                  )}
-
-                  {/* Stock bar */}
-                  <div className='space-y-1'>
-                    <div className='flex items-center justify-between text-xs'>
-                      <span className='text-muted-foreground'>{t('colStock')}</span>
-                      <span className={isLowStock ? 'font-medium text-red-500' : 'text-muted-foreground'}>
-                        {p.bestand} / {p.sollbestand || 0}
                       </span>
-                    </div>
-                    <Progress
-                      value={Math.min(stockPercentage, 100)}
-                      className='h-1'
-                      indicatorClassName={isLowStock ? 'bg-red-500' : 'bg-primary'}
-                    />
+                    )}
                   </div>
 
-                  {/* ── Action buttons ── */}
-                  <div className='mt-auto flex items-center gap-1.5 border-t border-border/50 pt-3'>
-                    {/* Book In */}
-                    {canManageProducts && (
-                      <Button
-                        size='sm'
-                        onClick={() => handleBooking(p, 'add')}
-                        className='h-9 flex-1 gap-1 text-xs font-medium'
-                      >
-                        <TrendingUp className='h-3.5 w-3.5' />
-                        {t('bookIn')}
-                      </Button>
-                    )}
-                    {/* Book Out */}
-                    <Button
-                      size='sm'
-                      variant='outline'
-                      onClick={() => handleBooking(p, 'remove')}
-                      className='h-9 flex-1 gap-1 text-xs font-medium'
-                    >
-                      <TrendingDown className='h-3.5 w-3.5' />
-                      {t('bookOut')}
-                    </Button>
-                    {/* History icon */}
-                    <Button
-                      size='sm'
-                      variant='ghost'
+                  {/* Icon actions — top right, visible on hover */}
+                  <div className='absolute right-2 top-2 flex gap-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100'>
+                    <button
                       onClick={() => fetchLogs(p.artikelnummer)}
-                      className='h-9 w-9 shrink-0 p-0 text-muted-foreground hover:text-foreground'
+                      className='flex h-7 w-7 items-center justify-center rounded-lg bg-black/50 text-white backdrop-blur-sm transition-colors hover:bg-black/70'
+                      title={t('logTitle')}
                     >
-                      <History className='h-4 w-4' />
-                    </Button>
-                    {/* Edit icon */}
+                      <History className='h-3.5 w-3.5' />
+                    </button>
                     {canManageProducts && (
-                      <Button
-                        size='sm'
-                        variant='ghost'
+                      <button
                         onClick={() => setEditProduct(p)}
-                        className='h-9 w-9 shrink-0 p-0 text-muted-foreground hover:text-foreground'
+                        className='flex h-7 w-7 items-center justify-center rounded-lg bg-black/50 text-white backdrop-blur-sm transition-colors hover:bg-black/70'
+                        title={t('editTitle')}
                       >
-                        <Pencil className='h-4 w-4' />
-                      </Button>
+                        <Pencil className='h-3.5 w-3.5' />
+                      </button>
                     )}
-                    {/* Delete icon */}
                     {canDeleteProducts && (
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
-                          <Button
-                            size='sm'
-                            variant='ghost'
+                          <button
                             onClick={() => setDeleteTarget(p)}
-                            className='h-9 w-9 shrink-0 p-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive'
+                            className='flex h-7 w-7 items-center justify-center rounded-lg bg-black/50 text-white backdrop-blur-sm transition-colors hover:bg-red-600/80'
+                            title={t('deleteTitle')}
                           >
-                            <Trash2 className='h-4 w-4' />
-                          </Button>
+                            <Trash2 className='h-3.5 w-3.5' />
+                          </button>
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                           <AlertDialogHeader>
@@ -513,6 +453,65 @@ export default function ProductListing({
                         </AlertDialogContent>
                       </AlertDialog>
                     )}
+                  </div>
+                </div>
+
+                {/* ── Info body ── */}
+                <div className='flex flex-1 flex-col gap-3 p-3.5'>
+                  {/* Article nr + supplier */}
+                  <div className='flex items-center justify-between gap-1'>
+                    <span className='font-mono text-[10px] text-muted-foreground'>#{p.artikelnummer}</span>
+                    <span className='truncate text-right text-[10px] text-muted-foreground'>{p.lieferant}</span>
+                  </div>
+
+                  {/* Product name */}
+                  <h4 className='line-clamp-2 text-sm font-semibold leading-snug'>
+                    {p.artikelbezeichnung}
+                  </h4>
+
+                  {/* Price + EAN row */}
+                  <div className='flex items-end justify-between gap-2'>
+                    {p.ean ? (
+                      <span className='font-mono text-[10px] text-muted-foreground'>EAN {p.ean}</span>
+                    ) : (
+                      <span />
+                    )}
+                    <span className='font-numeric shrink-0 text-base font-bold tabular-nums'>
+                      {p.preis?.toFixed(2)} €
+                    </span>
+                  </div>
+
+                  {/* Stock bar */}
+                  <div className='space-y-1.5'>
+                    <div className='flex items-center justify-between text-[11px]'>
+                      <span className='text-muted-foreground'>{t('colStock')}</span>
+                      <span className={`font-semibold tabular-nums ${isLowStock ? 'text-red-500' : 'text-muted-foreground'}`}>
+                        {p.bestand} / {p.sollbestand || '—'}
+                      </span>
+                    </div>
+                    <Progress
+                      value={Math.min(stockPercentage, 100)}
+                      className='h-1.5 rounded-full bg-muted'
+                      indicatorClassName={`rounded-full transition-all ${isLowStock ? 'bg-red-500' : 'bg-primary'}`}
+                    />
+                  </div>
+
+                  {/* ── Action buttons ── */}
+                  <div className='mt-auto grid grid-cols-2 gap-1.5 border-t border-border/40 pt-3'>
+                    <button
+                      onClick={() => handleBooking(p, 'add')}
+                      className='flex items-center justify-center gap-1.5 rounded-xl bg-emerald-500/10 px-2 py-2 text-[11px] font-semibold text-emerald-700 transition-colors hover:bg-emerald-500/20 dark:text-emerald-400'
+                    >
+                      <TrendingUp className='h-3.5 w-3.5' />
+                      {t('bookIn')}
+                    </button>
+                    <button
+                      onClick={() => handleBooking(p, 'remove')}
+                      className='flex items-center justify-center gap-1.5 rounded-xl bg-rose-500/10 px-2 py-2 text-[11px] font-semibold text-rose-700 transition-colors hover:bg-rose-500/20 dark:text-rose-400'
+                    >
+                      <TrendingDown className='h-3.5 w-3.5' />
+                      {t('bookOut')}
+                    </button>
                   </div>
                 </div>
               </div>
